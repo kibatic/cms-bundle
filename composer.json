@@ -3,7 +3,7 @@
   "description": "simple block based cms bundle",
   "autoload": {
     "psr-4": {
-      "Kibatic\\CmsBundle": ""
+      "Kibatic\\CmsBundle\\": ""
     }
   },
   "require": {
