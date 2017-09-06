@@ -10,15 +10,7 @@
             <argument>KibaticCmsBundle:Block</argument>
         </service>
         
-        <service id="Kibatic\CmsBundle\Twig\BlockExtension">
-            <argument type="service" id="Kibatic\CmsBundle\Repository\BlockRepository" />
-            <argument type="service" id="security.authorization_checker" />
-            <argument type="service" id="router" />
-            <tag name="twig.extension" />
-        </service>
-
-        <service id="Kibatic\CmsBundle\BlockTypeChain">
-        </service>
+        <service id="Kibatic\CmsBundle\BlockTypeChain" />
 
         <!-- Block Form -->
 

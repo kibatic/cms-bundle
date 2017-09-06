@@ -1,6 +1,10 @@
 {% block body %}
     <h1>Blocks list</h1>
 
+    <a href="{{ path('cms_block_editModeToggle') }}">
+        {% if app.session.get('cms_edit_mode') %}Disable{% else %}Enable{% endif %} live edit mode</a>
+    </a>
+
     <table>
         <thead>
             <tr>

@@ -63,16 +63,14 @@ class BlockController extends Controller
          */
         $block = $this->get(BlockRepository::class)->findOneBy(['slug' => $slug]);
 
-        if ($block === null) {
-            throw $this->createNotFoundException();
+        if ($block !== null && $template === null) {
+            $template = 'KibaticCmsBundle:block:_' . $block->getType() . '_block.html.twig';
         }
 
-        if ($template === null) {
-            $template = 'KibaticCmsBundle:block:' . $block->getType() . '_block.html.twig';
-        }
-
-        return $this->render($template, [
-            'block' => $block
+        return $this->render('KibaticCmsBundle:block:show.html.twig', [
+            'block' => $block,
+            'slug' => $slug,
+            'template' => $template
         ]);
     }
 
@@ -125,5 +123,19 @@ class BlockController extends Controller
             ->setMethod('DELETE')
             ->getForm()
         ;
+    }
+
+    public function editModeToggleAction(Request $request)
+    {
+        $session = $this->get('session');
+        $session->set('cms_edit_mode', !$session->get('cms_edit_mode', false));
+
+        $redirectTo = $request->headers->get('referer');
+
+        if ($redirectTo === null) {
+            $redirectTo = $this->generateUrl('homepage');
+        }
+
+        return $this->redirect($redirectTo);
     }
 }
