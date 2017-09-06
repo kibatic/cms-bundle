@@ -1,11 +1,13 @@
-{% block body %}
+{% extends 'KibaticCmsBundle::layout.html.twig' %}
+
+{% block content %}
     <h1>Blocks list</h1>
 
     <a href="{{ path('cms_block_editModeToggle') }}">
         {% if app.session.get('cms_edit_mode') %}Disable{% else %}Enable{% endif %} live edit mode</a>
     </a>
 
-    <table>
+    <table class="table table-striped">
         <thead>
             <tr>
                 <th>Slug</th>
@@ -19,7 +21,6 @@
             <tr>
                 <td><a href="{{ path('cms_block_edit', { 'id': block.id }) }}">{{ block.slug }}</a></td>
                 <td>{{ block.type }}</td>
-                <td>{{ block.slug }}</td>
                 <td>{{ block.createdAt|date('Y-m-d') }}</td>
                 <td>{{ block.updatedAt|date('Y-m-d') }}</td>
             </tr>
