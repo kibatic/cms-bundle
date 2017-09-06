@@ -1,0 +1,33 @@
+{% block body %}
+    <h1>Blocks list</h1>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Slug</th>
+                <th>Type</th>
+                <th>Created at</th>
+                <th>Updated at</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for block in blocks %}
+            <tr>
+                <td><a href="{{ path('cms_block_edit', { 'id': block.id }) }}">{{ block.slug }}</a></td>
+                <td>{{ block.type }}</td>
+                <td>{{ block.slug }}</td>
+                <td>{{ block.createdAt|date('Y-m-d') }}</td>
+                <td>{{ block.updatedAt|date('Y-m-d') }}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    <ul>
+        {% for blockTypeName in blockTypeNames %}
+            <li>
+                <a href="{{ path('cms_block_new', {'typeName': blockTypeName}) }}">Create a new {{ blockTypeName }} block</a>
+            </li>
+        {% endfor %}
+    </ul>
+{% endblock %}

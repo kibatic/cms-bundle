@@ -1,0 +1,41 @@
+<?xml version="1.0" ?>
+
+<container xmlns="http://symfony.com/schema/dic/services"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
+
+    <services>
+        <service id="Kibatic\CmsBundle\Repository\BlockRepository">
+            <factory method="getRepository" service="doctrine" />
+            <argument>KibaticCmsBundle:Block</argument>
+        </service>
+        
+        <service id="Kibatic\CmsBundle\Twig\BlockExtension">
+            <argument type="service" id="Kibatic\CmsBundle\Repository\BlockRepository" />
+            <argument type="service" id="security.authorization_checker" />
+            <argument type="service" id="router" />
+            <tag name="twig.extension" />
+        </service>
+
+        <service id="Kibatic\CmsBundle\BlockTypeChain">
+        </service>
+
+        <!-- Block Form -->
+
+        <service class="Kibatic\CmsBundle\Form\TextBlockType">
+            <tag name="cms.block_type" />
+        </service>
+
+        <service class="Kibatic\CmsBundle\Form\ImageBlockType">
+            <tag name="cms.block_type" />
+        </service>
+
+        <service class="Kibatic\CmsBundle\Form\HtmlBlockType">
+            <tag name="cms.block_type" />
+        </service>
+
+        <service class="Kibatic\CmsBundle\Form\AlertBlockType">
+            <tag name="cms.block_type" />
+        </service>
+    </services>
+</container>
