@@ -25,3 +25,15 @@
         </li>
     </ul>
 {% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+
+    {% include 'KibaticCmsBundle::_css.html.twig' %}
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+
+    {% include 'KibaticCmsBundle::_js.html.twig' %}
+{% endblock %}
