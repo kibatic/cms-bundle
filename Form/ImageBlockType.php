@@ -11,7 +11,9 @@ class ImageBlockType extends AbstractBlockType implements BlockTypeInterface
         parent::buildForm($builder, $options);
 
         $builder->add('content', null, [
-            'label' => 'Image'
+            'attr' => [
+                'placeholder' => 'Image URL'
+            ]
         ]);
     }
 

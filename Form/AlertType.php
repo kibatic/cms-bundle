@@ -4,6 +4,7 @@ namespace Kibatic\CmsBundle\Form;
 
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
+use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\FormBuilderInterface;
 
 class AlertType extends AbstractType
@@ -22,7 +23,7 @@ class AlertType extends AbstractType
                     'Danger' => 'danger',
                 ]
             ])
-            ->add('message')
+            ->add('message', TextareaType::class)
         ;
     }
 

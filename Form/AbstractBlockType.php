@@ -4,7 +4,6 @@ namespace Kibatic\CmsBundle\Form;
 
 use Kibatic\CmsBundle\Entity\Block;
 use Symfony\Component\Form\AbstractType;
-use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
@@ -16,8 +15,19 @@ abstract class AbstractBlockType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
         $builder
-            ->add('slug')
-            ->add('content', TextareaType::class)
+            ->add('slug', null, [
+                'label_render' => false,
+                'attr' => [
+                    'placeholder' => 'Slug',
+                    'title' => 'Warning : be very carefull when changing the slug as it could break the page you use this block !'
+                ]
+            ])
+            ->add('content', null, [
+                'label_render' => false,
+                'attr' => [
+                    'placeholder' => 'Content'
+                ]
+            ])
         ;
     }
     

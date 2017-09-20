@@ -3,16 +3,12 @@
 {% block content %}
     <h1>Block creation</h1>
 
-    {{ form_start(form) }}
-        {{ form_widget(form) }}
-        <input type="submit" value="Create" />
-    {{ form_end(form) }}
+    {% include 'KibaticCmsBundle:block:_form.html.twig' %}
 
-    <ul>
-        <li>
-            <a href="{{ path('cms_block_index') }}">Back to the list</a>
-        </li>
-    </ul>
+    <div class="btn-group pull-right" role="group">
+        <a href="{{ path('cms_block_index') }}" class="btn btn-default">Back to the list</a>
+        <label class="btn btn-success" for="{{ form.vars.id }}_submit">Add</label>
+    </div>
 {% endblock %}
 
 {% block stylesheets %}

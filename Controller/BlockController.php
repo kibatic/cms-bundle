@@ -7,6 +7,7 @@ use Kibatic\CmsBundle\Entity\Block;
 use Kibatic\CmsBundle\Repository\BlockRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 
 class BlockController extends Controller
@@ -61,7 +62,7 @@ class BlockController extends Controller
         ]);
     }
 
-    public function showAction(string $slug, string $template = null)
+    public function showAction(Request $request, string $slug, string $template = null)
     {
         $this->assertIsCmsAdmin();
 
@@ -74,7 +75,12 @@ class BlockController extends Controller
             $template = 'KibaticCmsBundle:block:_' . $block->getType() . '_block.html.twig';
         }
 
-        return $this->render('KibaticCmsBundle:block:show.html.twig', [
+        $mainTemplate = $this->get('request_stack')->getMasterRequest() === $request ?
+            'KibaticCmsBundle:block:show.html.twig' :
+            'KibaticCmsBundle:block:show_content.html.twig'
+        ;
+
+        return $this->render($mainTemplate, [
             'block' => $block,
             'slug' => $slug,
             'template' => $template
@@ -127,7 +133,7 @@ class BlockController extends Controller
      */
     private function createDeleteForm(Block $block)
     {
-        return $this->createFormBuilder()
+        return $this->get('form.factory')->createNamedBuilder('block_delete_' . $block->getId())
             ->setAction($this->generateUrl('cms_block_delete', ['id' => $block->getId()]))
             ->setMethod('DELETE')
             ->getForm()

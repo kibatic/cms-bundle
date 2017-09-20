@@ -11,9 +11,12 @@ class AlertBlockType extends AbstractBlockType implements BlockTypeInterface
      */
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
+        parent::buildForm($builder, $options);
+
         $builder
-            ->add('slug')
-            ->add('content', AlertType::class)
+            ->add('content', AlertType::class, [
+                'label_render' => false
+            ])
         ;
     }
 
