@@ -7,11 +7,14 @@ use Kibatic\CmsBundle\Entity\Block;
 use Kibatic\CmsBundle\Repository\BlockRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 
 class BlockController extends Controller
 {
     public function indexAction()
     {
+        $this->assertIsCmsAdmin();
+
         $em = $this->getDoctrine()->getManager();
 
         $blocks = $em->getRepository(Block::class)->findAll();
@@ -26,6 +29,8 @@ class BlockController extends Controller
 
     public function newAction(Request $request, string $typeName)
     {
+        $this->assertIsCmsAdmin();
+
         $blockType  = $this->get(BlockTypeChain::class)->getBlockType($typeName);
 
         $block = new Block();
@@ -58,6 +63,8 @@ class BlockController extends Controller
 
     public function showAction(string $slug, string $template = null)
     {
+        $this->assertIsCmsAdmin();
+
         /**
          * @var Block $block
          */
@@ -99,6 +106,8 @@ class BlockController extends Controller
 
     public function deleteAction(Request $request, Block $block)
     {
+        $this->assertIsCmsAdmin();
+
         $form = $this->createDeleteForm($block);
         $form->handleRequest($request);
 
@@ -137,5 +146,12 @@ class BlockController extends Controller
         }
 
         return $this->redirect($redirectTo);
+    }
+
+    private function assertIsCmsAdmin()
+    {
+        if (!$this->isGranted(['ROLE_CMS_ADMIN'])) {
+            throw new AccessDeniedHttpException('You need the ROLE_CMS_ADMIN role.');
+        }
     }
 }

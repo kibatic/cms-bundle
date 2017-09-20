@@ -41,7 +41,7 @@ kibatic_cms:
 ```
 
 
-Finally update your database schema with :
+Update your database schema with :
 
 ```
 bin/console doctrine:schema:update --force
@@ -54,12 +54,16 @@ bin/console doctrine:migration:diff
 bin/console doctrine:migration:migrate
 ```
 
+Your user must have the `ROLE_CMS_ADMIN` to be able to use the CMS.
+
 ## Override Layout
 
-Create a template : `app/Resources/KibaticCmsBundle/layout.html.twig`
+By default, the cms use this layout : `::layout.html.twig`
 
-For example to use the layout of your app :
+If you wish to use another one, simply create a template : `app/Resources/KibaticCmsBundle/layout.html.twig`
+
+For example to use a layout in your AppBundle :
 
 ```
-{% extends '::layout.html.twig' %}
+{% extends 'AppBundle::layout.html.twig' %}
 ```
