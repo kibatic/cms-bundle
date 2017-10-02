@@ -64,8 +64,6 @@ class BlockController extends Controller
 
     public function showAction(Request $request, string $slug, string $template = null)
     {
-        $this->assertIsCmsAdmin();
-
         /**
          * @var Block $block
          */
