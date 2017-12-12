@@ -9,7 +9,7 @@
     "repositories": [
         {
             "type": "vcs",
-            "url": "git@gitlab.kitpages.fr:kibatic/KibaticCmsBundle.git"
+            "url": "https://github.com/kibatic/KibaticCmsBundle"
         }
     ]
 }
