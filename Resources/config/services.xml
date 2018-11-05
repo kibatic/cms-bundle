@@ -14,19 +14,19 @@
 
         <!-- Block Form -->
 
-        <service class="Kibatic\CmsBundle\Form\TextBlockType">
+        <service id="Kibatic\CmsBundle\Form\TextBlockType">
             <tag name="cms.block_type" />
         </service>
 
-        <service class="Kibatic\CmsBundle\Form\ImageBlockType">
+        <service id="Kibatic\CmsBundle\Form\ImageBlockType">
             <tag name="cms.block_type" />
         </service>
 
-        <service class="Kibatic\CmsBundle\Form\HtmlBlockType">
+        <service id="Kibatic\CmsBundle\Form\HtmlBlockType">
             <tag name="cms.block_type" />
         </service>
 
-        <service class="Kibatic\CmsBundle\Form\AlertBlockType">
+        <service id="Kibatic\CmsBundle\Form\AlertBlockType">
             <tag name="cms.block_type" />
         </service>
     </services>
