@@ -3,33 +3,7 @@
 ## Installation
 
 ```
-// composer.json
-{
-    ...
-    "repositories": [
-        {
-            "type": "vcs",
-            "url": "https://github.com/kibatic/KibaticCmsBundle"
-        }
-    ]
-}
-```
-
-```
-composer require kibatic/cms-bundle dev-master
-```
-
-```
-// app/AppKernel.php
-
-public function registerBundles()
-{
-    $bundles = [
-        // ...
-        new Kibatic\CmsBundle\KibaticCmsBundle(),
-        // ...
-    ];
-}
+composer require kibatic/cms-bundle
 ```
 
 ```

@@ -1,13 +1,13 @@
 {
   "name": "kibatic/cms-bundle",
-  "description": "simple block based cms bundle",
+  "description": "Simple block based CMS bundle for Symfony",
   "autoload": {
     "psr-4": {
       "Kibatic\\CmsBundle\\": ""
     }
   },
   "require": {
-    "php": "^7.1",
+    "php": "^8.1",
     "stof/doctrine-extensions-bundle": "^1.2"
   }
 }
