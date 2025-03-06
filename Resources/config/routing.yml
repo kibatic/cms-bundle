@@ -1,4 +1,0 @@
-kibatic_cms_block:
-    resource: "@KibaticCmsBundle/Resources/config/routing/block.xml"
-    prefix:   /cms
-

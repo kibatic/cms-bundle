@@ -1,22 +1,23 @@
-{% extends 'KibaticCmsBundle::layout.html.twig' %}
+{% extends '@KibaticCms/layout.html.twig' %}
 
 {% block content %}
     <div id="cms_blocks">
-        <h1>Blocks</h1>
+        <header>
+            <h1>CMS Blocks</h1>
 
-        <div class="row">
-            <div class="col-md-4">
-                <b>Create a block :</b>
+            <div>
                 {% for blockTypeName in blockTypeNames %}
-                    <a href="{{ path('cms_block_new', {'typeName': blockTypeName}) }}" class="btn btn-default">{{ blockTypeName|capitalize }}</a>
+                    <a href="{{ path('cms_block_new', {'typeName': blockTypeName}) }}" class="btn btn-outline-secondary">
+                        ➕ {{ blockTypeName|capitalize }}
+                    </a>
                 {% endfor %}
-            </div>
-            <div class="col-md-2 col-md-offset-6 text-right">
-                <a href="{{ path('cms_block_editModeToggle') }}" class="btn btn-{{ app.session.get('cms_edit_mode') ? 'primary' : 'default' }}">
-                    {% if app.session.get('cms_edit_mode') %}Disable{% else %}Enable{% endif %} live edit mode</a>
+
+                {% set debug = app.session.get('cms-debug', false) %}
+                <a href="{{ path('cms_block_debug') }}" class="btn btn-outline-{{ debug ? 'success' : 'danger' }}">
+                    🐛 Debug : {% if debug %}on{% else %}off{% endif %}
                 </a>
             </div>
-        </div>
+        </header>
 
         <table class="table table-striped">
             <thead>
@@ -38,11 +39,13 @@
             {% endfor %}
             </tbody>
         </table>
+
+        {{ cms_block_i18n('mentions-legales') }}
     </div>
 {% endblock %}
 
 {% block stylesheets %}
     {{ parent() }}
 
-    {% include 'KibaticCmsBundle::_css.html.twig' %}
+    {% include '@KibaticCms/_css.html.twig' %}
 {% endblock %}

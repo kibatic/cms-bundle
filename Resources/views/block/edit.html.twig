@@ -1,11 +1,11 @@
-{% extends 'KibaticCmsBundle::layout.html.twig' %}
+{% extends '@KibaticCms/layout.html.twig' %}
 
 {% block content %}
     <h1>Block edit</h1>
 
-    {% include 'KibaticCmsBundle:block:_form.html.twig' with {'form': edit_form} %}
+    {% include '@KibaticCms/block/_form.html.twig' with {'form': edit_form} %}
 
-    {{ form_start(delete_form, {'attr': {'data-confirm': 'Delete this block ?'}}) }}
+    {{ form_start(delete_form, {'attr': {'onclick': 'return confirm(\'Delete this block ?\')'}}) }}
         <input type="submit" id="{{ delete_form.vars.id }}_submit" class="hidden" />
     {{ form_end(delete_form) }}
 
@@ -20,11 +20,11 @@
 {% block stylesheets %}
     {{ parent() }}
 
-    {% include 'KibaticCmsBundle::_css.html.twig' %}
+    {% include '@KibaticCms/_css.html.twig' %}
 {% endblock %}
 
 {% block javascripts %}
     {{ parent() }}
 
-    {% include 'KibaticCmsBundle::_js.html.twig' %}
+    {% include '@KibaticCms/_js.html.twig' %}
 {% endblock %}

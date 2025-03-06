@@ -8,8 +8,4 @@ use Symfony\Component\HttpKernel\Bundle\Bundle;
 
 class KibaticCmsBundle extends Bundle
 {
-    public function build(ContainerBuilder $container)
-    {
-        $container->addCompilerPass(new BlockCompilerPass());
-    }
 }

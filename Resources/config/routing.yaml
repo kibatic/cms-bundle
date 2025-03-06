@@ -1,0 +1,29 @@
+cms_block_index:
+    path: /cms
+    controller: Kibatic\CmsBundle\Controller\BlockController::index
+    methods: GET
+
+cms_block_show:
+    path: /cms/block/{slug}/show
+    controller: Kibatic\CmsBundle\Controller\BlockController::show
+    methods: GET
+
+cms_block_new:
+    path: /block/{typeName}/new
+    controller: Kibatic\CmsBundle\Controller\BlockController::new
+    methods: GET|POST
+
+cms_block_edit:
+    path: /cms/block/{id}/edit
+    controller: Kibatic\CmsBundle\Controller\BlockController::edit
+    methods: GET|POST
+
+cms_block_delete:
+    path: /cms/block/{id}/delete
+    controller: Kibatic\CmsBundle\Controller\BlockController::delete
+    methods: DELETE
+
+cms_block_debug:
+    path: /cms/debug
+    controller: Kibatic\CmsBundle\Controller\BlockController::debug
+    methods: GET

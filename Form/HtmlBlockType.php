@@ -12,16 +12,13 @@ class HtmlBlockType extends AbstractBlockType implements BlockTypeInterface
         parent::buildForm($builder, $options);
 
         $builder->add('content', TextareaType::class, [
-            'label_render' => false,
+            'label' => false,
             'attr' => [
                 'class' => 'wysiwyg'
             ]
         ]);
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function getBlockPrefix()
     {
         return 'kibatic_cmsbundle_htmlblock';

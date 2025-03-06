@@ -2,25 +2,28 @@
 
 namespace Kibatic\CmsBundle\Controller;
 
+use App\Repository\MediaRepository;
+use Doctrine\ORM\EntityManagerInterface;
 use Kibatic\CmsBundle\BlockTypeChain;
 use Kibatic\CmsBundle\Entity\Block;
 use Kibatic\CmsBundle\Repository\BlockRepository;
-use Symfony\Bundle\FrameworkBundle\Controller\Controller;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 
-class BlockController extends Controller
+class BlockController extends AbstractController
 {
-    public function indexAction()
+    public static string $role = 'ROLE_CMS';
+
+    public function index(Request $request, BlockRepository $repository, BlockTypeChain $blockTypeChain)
     {
-        $this->assertIsCmsAdmin();
+        $this->denyAccessUnlessGranted(self::$role);
 
-        $em = $this->getDoctrine()->getManager();
+        $blocks = $repository->findAll();
+        $blockTypeNames = $blockTypeChain->getBlockTypeNames();
 
-        $blocks = $em->getRepository(Block::class)->findAll();
-
-        $blockTypeNames = $this->get(BlockTypeChain::class)->getBlockTypeNames();
+        dump($request->getSession()->get('cms-debug'));
 
         return $this->render('@KibaticCms/block/index.html.twig', [
             'blocks' => $blocks,
@@ -28,12 +31,15 @@ class BlockController extends Controller
         ]);
     }
 
-    public function newAction(Request $request, string $typeName)
-    {
-        $this->assertIsCmsAdmin();
+    public function new(
+        Request $request,
+        string $typeName,
+        BlockTypeChain $blockTypeChain,
+        EntityManagerInterface $entityManager
+    ) {
+        $this->denyAccessUnlessGranted(self::$role);
 
-        $blockType  = $this->get(BlockTypeChain::class)->getBlockType($typeName);
-
+        $blockType  = $blockTypeChain->getBlockType($typeName);
         $block = new Block();
 
         $slug = $request->get('slug');
@@ -42,16 +48,15 @@ class BlockController extends Controller
             $block->setSlug($slug);
         }
 
-        $form = $this->createForm(get_class($blockType), $block);
+        $form = $this->createForm($blockType::class, $block);
 
         $block->setType($blockType::getBlockTypeName());
 
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $em = $this->getDoctrine()->getManager();
-            $em->persist($block);
-            $em->flush();
+            $entityManager->persist($block);
+            $entityManager->flush();
 
             return $this->redirectToRoute('cms_block_index');
         }
@@ -62,41 +67,23 @@ class BlockController extends Controller
         ]);
     }
 
-    public function showAction(Request $request, string $slug, string $template = null)
-    {
-        /**
-         * @var Block $block
-         */
-        $block = $this->get(BlockRepository::class)->findOneBy(['slug' => $slug]);
+    public function edit(
+        Request $request,
+        Block $block,
+        BlockTypeChain $blockTypeChain,
+        EntityManagerInterface $entityManager
+    ) {
+        $this->denyAccessUnlessGranted(self::$role);
 
-        if ($block !== null && $template === null) {
-            $template = 'KibaticCmsBundle:block:_' . $block->getType() . '_block.html.twig';
-        }
-
-        $mainTemplate = $this->get('request_stack')->getMasterRequest() === $request ?
-            'KibaticCmsBundle:block:show.html.twig' :
-            'KibaticCmsBundle:block:show_content.html.twig'
-        ;
-
-        return $this->render($mainTemplate, [
-            'block' => $block,
-            'slug' => $slug,
-            'template' => $template
-        ]);
-    }
-
-    public function editAction(Request $request, Block $block)
-    {
-        $blockType  = $this->get(BlockTypeChain::class)->getBlockType($block->getType());
-
+        $blockType = $blockTypeChain->getBlockType($block->getType());
         $deleteForm = $this->createDeleteForm($block);
 
-        $editForm = $this->createForm(get_class($blockType), $block);
+        $editForm = $this->createForm($blockType::class, $block);
 
         $editForm->handleRequest($request);
 
         if ($editForm->isSubmitted() && $editForm->isValid()) {
-            $this->getDoctrine()->getManager()->flush();
+            $entityManager->flush();
 
             return $this->redirectToRoute('cms_block_edit', ['id' => $block->getId()]);
         }
@@ -108,17 +95,19 @@ class BlockController extends Controller
         ]);
     }
 
-    public function deleteAction(Request $request, Block $block)
-    {
-        $this->assertIsCmsAdmin();
+    public function delete(
+        Request $request,
+        Block $block,
+        EntityManagerInterface $entityManager
+    ) {
+        $this->denyAccessUnlessGranted(self::$role);
 
         $form = $this->createDeleteForm($block);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $em = $this->getDoctrine()->getManager();
-            $em->remove($block);
-            $em->flush();
+            $entityManager->remove($block);
+            $entityManager->flush();
         }
 
         return $this->redirectToRoute('cms_block_index');
@@ -131,31 +120,17 @@ class BlockController extends Controller
      */
     private function createDeleteForm(Block $block)
     {
-        return $this->get('form.factory')->createNamedBuilder('block_delete_' . $block->getId())
+        return $this->container->get('form.factory')->createNamedBuilder('block_delete_' . $block->getId())
             ->setAction($this->generateUrl('cms_block_delete', ['id' => $block->getId()]))
             ->setMethod('DELETE')
             ->getForm()
         ;
     }
 
-    public function editModeToggleAction(Request $request)
+    public function debug(Request $request)
     {
-        $session = $this->get('session');
-        $session->set('cms_edit_mode', !$session->get('cms_edit_mode', false));
+        $request->getSession()->set('cms-debug', !$request->getSession()->get('cms-debug', false));
 
-        $redirectTo = $request->headers->get('referer');
-
-        if ($redirectTo === null) {
-            $redirectTo = $this->generateUrl('homepage');
-        }
-
-        return $this->redirect($redirectTo);
-    }
-
-    private function assertIsCmsAdmin()
-    {
-        if (!$this->isGranted(['ROLE_CMS_ADMIN'])) {
-            throw new AccessDeniedHttpException('You need the ROLE_CMS_ADMIN role.');
-        }
+        return $this->redirect($request->headers->get('referer'));
     }
 }

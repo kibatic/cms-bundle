@@ -9,21 +9,18 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 
 abstract class AbstractBlockType extends AbstractType
 {
-    /**
-     * {@inheritdoc}
-     */
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
         $builder
             ->add('slug', null, [
-                'label_render' => false,
+                'label' => false,
                 'attr' => [
                     'placeholder' => 'Slug',
                     'title' => 'Warning : be very carefull when changing the slug as it could break the page you use this block !'
                 ]
             ])
             ->add('content', null, [
-                'label_render' => false,
+                'label' => false,
                 'attr' => [
                     'placeholder' => 'Content'
                 ]
@@ -31,9 +28,6 @@ abstract class AbstractBlockType extends AbstractType
         ;
     }
     
-    /**
-     * {@inheritdoc}
-     */
     public function configureOptions(OptionsResolver $resolver)
     {
         $resolver->setDefaults([
@@ -41,9 +35,6 @@ abstract class AbstractBlockType extends AbstractType
         ]);
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function getBlockPrefix()
     {
         return 'kibatic_cmsbundle_block';

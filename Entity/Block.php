@@ -4,144 +4,94 @@ namespace Kibatic\CmsBundle\Entity;
 
 use Kibatic\CmsBundle\Form\TextBlockType;
 use Webmozart\Assert\Assert;
+use Doctrine\ORM\Mapping as ORM;
+use Gedmo\Mapping\Annotation as Gedmo;
 
+#[ORM\Entity]
 class Block
 {
-    /**
-     * @var int
-     */
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column]
     private $id;
 
-    /**
-     * @var string
-     */
+    #[ORM\Column(type: 'string', unique: true)]
     private $slug;
 
-    /**
-     * @var string
-     */
+    #[ORM\Column(type: 'text', nullable: true)]
     private $content;
 
-    /**
-     * @var string
-     */
+    #[ORM\Column(type: 'string', nullable: false)]
     private $type = TextBlockType::class;
 
-    /**
-     * @var \DateTime
-     */
+    #[ORM\Column(type: 'datetime')]
+    #[Gedmo\Timestampable(on: 'create')]
     private $createdAt;
 
-    /**
-     * @var \DateTime
-     */
+    #[ORM\Column(type: 'datetime')]
+    #[Gedmo\Timestampable(on: 'update')]
     private $updatedAt;
 
 
-    /**
-     * Get id
-     *
-     * @return int
-     */
-    public function getId()
+    public function getId(): ?int
     {
         return $this->id;
     }
 
-    /**
-     * @param string $content
-     *
-     * @return Block
-     */
-    public function setContent($content)
+    public function setContent($content): static
     {
         $this->content = $content;
 
         return $this;
     }
 
-    /**
-     * @return string
-     */
-    public function getContent()
+    public function getContent(): ?string
     {
         return $this->content;
     }
 
-    /**
-     * @param \DateTime $createdAt
-     *
-     * @return Block
-     */
-    public function setCreatedAt($createdAt)
+    public function setCreatedAt($createdAt): static
     {
         $this->createdAt = $createdAt;
 
         return $this;
     }
 
-    /**
-     * @return \DateTime
-     */
-    public function getCreatedAt()
+    public function getCreatedAt(): ?\DateTime
     {
         return $this->createdAt;
     }
 
-    /**
-     * @param \DateTime $updatedAt
-     *
-     * @return Block
-     */
-    public function setUpdatedAt($updatedAt)
+    public function setUpdatedAt($updatedAt): static
     {
         $this->updatedAt = $updatedAt;
 
         return $this;
     }
 
-    /**
-     * @return \DateTime
-     */
-    public function getUpdatedAt()
+    public function getUpdatedAt(): ?\DateTime
     {
         return $this->updatedAt;
     }
 
-    /**
-     * @param string $slug
-     *
-     * @return Block
-     */
-    public function setSlug($slug)
+    public function setSlug($slug): static
     {
         $this->slug = $slug;
 
         return $this;
     }
 
-    /**
-     * @return string
-     */
-    public function getSlug()
+    public function getSlug(): ?string
     {
         return $this->slug;
     }
 
-    /**
-     * @return string
-     */
     public function getType(): string
     {
         return $this->type;
     }
 
-    /**
-     * @param string $type
-     *
-     * @return Block
-     */
-    public function setType(string $type)
+    public function setType(string $type): static
     {
         $this->type = $type;
 

@@ -3,6 +3,7 @@
 namespace Kibatic\CmsBundle;
 
 use Kibatic\CmsBundle\Form\BlockTypeInterface;
+use Symfony\Component\DependencyInjection\Attribute\AutowireIterator;
 
 class BlockTypeChain
 {
@@ -11,6 +12,12 @@ class BlockTypeChain
      */
     private $blockTypes = [];
 
+    public function __construct(#[AutowireIterator('cms.block_type')] iterable $blockTypes)
+    {
+        foreach ($blockTypes as $blockType) {
+            $this->addBlockType($blockType);
+        }
+    }
 
     public function addBlockType(BlockTypeInterface $blockType)
     {
