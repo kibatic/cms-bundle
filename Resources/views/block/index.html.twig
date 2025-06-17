@@ -19,28 +19,43 @@
             </div>
         </header>
 
-        <table class="table table-striped">
-            <thead>
-                <tr>
-                    <th>Slug</th>
-                    <th>Type</th>
-                    <th>Created at</th>
-                    <th>Updated at</th>
-                </tr>
-            </thead>
-            <tbody>
-            {% for block in blocks %}
-                <tr>
-                    <td><a href="{{ path('cms_block_edit', { 'id': block.id }) }}">{{ block.slug }}</a></td>
-                    <td>{{ block.type }}</td>
-                    <td>{{ block.createdAt|date('Y-m-d') }}</td>
-                    <td>{{ block.updatedAt|date('Y-m-d') }}</td>
-                </tr>
-            {% endfor %}
-            </tbody>
-        </table>
-
-        {{ cms_block_i18n('mentions-legales') }}
+        {% if blocks|length > 0 %}
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Slug</th>
+                        {% if i18nDisplay %}<th>Language</th>{% endif %}
+                        <th>Type</th>
+                        <th>Created at</th>
+                        <th>Updated at</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for slug, blocks in blocksBySlug %}
+                    {% set block = blocks[0] %}
+                        <tr>
+                            {% if i18nDisplay %}
+                                <td><a href="{{ path('cms_block_edit_by_slug', { 'slug': block.slug }) }}">{{ block.slug }}</a></td>
+                                <td>
+                                    {% for b in blocks %}
+                                        <a href="{{ path('cms_block_edit', {'id': block.id}) }}">{{ b.language ?? 'n/a' }}</a>{{ not loop.last ? ' - ' : '' }}
+                                    {% endfor %}
+                                </td>
+                            {% else %}
+                                <td><a href="{{ path('cms_block_edit', { 'id': block.id }) }}">{{ block.slug }}</a></td>
+                            {% endif %}
+                            <td>{{ block.type }}</td>
+                            <td>{{ block.createdAt|date('Y-m-d') }}</td>
+                            <td>{{ block.updatedAt|date('Y-m-d') }}</td>
+                        </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p class="alert alert-info">
+                There isn't any existing content block yet.
+            </p>
+        {% endif %}
     </div>
 {% endblock %}
 

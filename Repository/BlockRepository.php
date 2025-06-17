@@ -17,4 +17,27 @@ class BlockRepository extends ServiceEntityRepository
     {
         parent::__construct($registry, Block::class);
     }
+
+    public function findAll()
+    {
+        return $this->findBy([], ['slug' => 'ASC', 'language' => 'ASC']);
+    }
+
+    public function getExistingLanguages(): array
+    {
+        $languages = array_filter(
+            $this->createQueryBuilder('b')
+                ->select('b.language')
+                ->getQuery()
+                ->getSingleColumnResult()
+        );
+
+        sort($languages);
+        return $languages;
+    }
+
+    public function findBySlug(string $slug): array
+    {
+        return $this->findBy(['slug' => $slug], ['language' => 'ASC']);
+    }
 }

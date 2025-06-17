@@ -3,18 +3,22 @@
 {% block content %}
     <h1>Block edit</h1>
 
-    {% include '@KibaticCms/block/_form.html.twig' with {'form': edit_form} %}
+    <section>
 
-    {{ form_start(delete_form, {'attr': {'onclick': 'return confirm(\'Delete this block ?\')'}}) }}
-        <input type="submit" id="{{ delete_form.vars.id }}_submit" class="hidden" />
-    {{ form_end(delete_form) }}
+        {% include '@KibaticCms/block/_form.html.twig' with {'form': edit_form} %}
 
-    <div class="btn-group pull-right" role="group">
-        <a href="{{ path('cms_block_index') }}" class="btn btn-default">Back to the list</a>
-        <label class="btn btn-danger" for="{{ delete_form.vars.id }}_submit">Delete</label>
-        <a href="{{ path('cms_block_show', {'slug': block.slug}) }}" target="_blank" class="btn btn-default">Preview</a>
-        <label class="btn btn-success" for="{{ edit_form.vars.id }}_submit">Save</label>
-    </div>
+        {{ form_start(delete_form, {'attr': {
+            'id': delete_form.vars.id,
+            'onsubmit': 'return confirm(\'Are you sure ?\')'
+        }}) }}
+        {{ form_end(delete_form) }}
+
+        <div class="btn-group pull-right" role="group">
+            <a href="{{ path('cms_block_index') }}" class="btn btn-default">Back to the list</a>
+            <button type="submit" class="btn btn-danger" form="{{ delete_form.vars.id }}">Delete</button>
+            <button type="submit" class="btn btn-success" form="{{ edit_form.vars.id }}">Save</button>
+        </div>
+    </section>
 {% endblock %}
 
 {% block stylesheets %}

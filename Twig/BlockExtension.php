@@ -29,16 +29,27 @@ class BlockExtension extends AbstractExtension
     {
         return [
             new TwigFunction('cms_block', $this->cmsBlock(...), ['is_safe' => ['html']]),
-            new TwigFunction('cms_block_i18n', $this->cmsBlockI18n(...), ['is_safe' => ['html']]),
         ];
     }
 
     public function cmsBlock(string $slug, bool $strict = false)
     {
-        /**
-         * @var Block $block
-         */
-        $block = $this->blockRepository->findOneBy(['slug' => $slug]);
+        $locale = $this->translator->getLocale();
+        $fallbackLocales = $this->translator->getFallbackLocales();
+
+        $locales = [$locale, $fallbackLocales];
+
+        foreach ($locales as $language) {
+            $block = $this->blockRepository->findOneBy(['slug' => $slug, 'language' => $language]);
+
+            if ($block !== null) {
+                break;
+            }
+        }
+
+        if (empty($this->blockRepository->getExistingLanguages()) && $block === null) {
+            $block = $this->blockRepository->findOneBy(['slug' => $slug]);
+        }
 
         if ($block === null) {
             if ($strict) {
@@ -67,20 +78,5 @@ class BlockExtension extends AbstractExtension
         }
 
         return $content;
-    }
-
-    public function cmsBlockI18n(string $slug, bool $strict = false)
-    {
-        $locale = $this->translator->getLocale();
-
-        $realSlug = "{$slug}_{$locale}";
-
-        $block = $this->blockRepository->findOneBy(['slug' => $realSlug]);
-
-        if (!$block) {
-            $realSlug = "{$slug}_en";
-        }
-
-        return $this->cmsBlock($realSlug, $strict);
     }
 }

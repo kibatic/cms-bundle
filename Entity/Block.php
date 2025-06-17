@@ -8,6 +8,8 @@ use Doctrine\ORM\Mapping as ORM;
 use Gedmo\Mapping\Annotation as Gedmo;
 
 #[ORM\Entity]
+#[ORM\Table(name: 'cms_block')]
+#[ORM\UniqueConstraint(name: 'block_unique', columns: ['slug', 'language'])]
 class Block
 {
     #[ORM\Id]
@@ -15,7 +17,7 @@ class Block
     #[ORM\Column]
     private $id;
 
-    #[ORM\Column(type: 'string', unique: true)]
+    #[ORM\Column(type: 'string')]
     private $slug;
 
     #[ORM\Column(type: 'text', nullable: true)]
@@ -31,6 +33,9 @@ class Block
     #[ORM\Column(type: 'datetime')]
     #[Gedmo\Timestampable(on: 'update')]
     private $updatedAt;
+
+    #[ORM\Column(type: 'text', nullable: true)]
+    private $language;
 
 
     public function getId(): ?int
@@ -95,6 +100,17 @@ class Block
     {
         $this->type = $type;
 
+        return $this;
+    }
+
+    public function getLanguage()
+    {
+        return $this->language;
+    }
+
+    public function setLanguage($language)
+    {
+        $this->language = $language;
         return $this;
     }
 }

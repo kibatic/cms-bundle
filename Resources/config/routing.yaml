@@ -17,6 +17,13 @@ cms_block_edit:
     path: /cms/block/{id}/edit
     controller: Kibatic\CmsBundle\Controller\BlockController::edit
     methods: GET|POST
+    requirements:
+        id: '\d+'
+
+cms_block_edit_by_slug:
+    path: /cms/block/{slug}/edit
+    controller: Kibatic\CmsBundle\Controller\BlockController::editBySlug
+    methods: GET|POST
 
 cms_block_delete:
     path: /cms/block/{id}/delete
