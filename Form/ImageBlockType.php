@@ -6,7 +6,7 @@ use Symfony\Component\Form\FormBuilderInterface;
 
 class ImageBlockType extends AbstractBlockType implements BlockTypeInterface
 {
-    public function buildForm(FormBuilderInterface $builder, array $options)
+    public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         parent::buildForm($builder, $options);
 
