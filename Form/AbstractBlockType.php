@@ -48,7 +48,7 @@ abstract class AbstractBlockType extends AbstractType
         $resolver->setAllowedTypes('existing_languages', 'array');
     }
 
-    public function getBlockPrefix(): string
+    public function getBlockPrefix()
     {
         return 'kibatic_cmsbundle_block';
     }
