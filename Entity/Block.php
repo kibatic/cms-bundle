@@ -43,7 +43,7 @@ class Block
         return $this->id;
     }
 
-    public function setContent($content): static
+    public function setContent(?string $content): static
     {
         $this->content = $content;
 
@@ -103,12 +103,12 @@ class Block
         return $this;
     }
 
-    public function getLanguage()
+    public function getLanguage(): ?string
     {
         return $this->language;
     }
 
-    public function setLanguage($language)
+    public function setLanguage(?string $language): static
     {
         $this->language = $language;
         return $this;

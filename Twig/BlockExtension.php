@@ -32,7 +32,7 @@ class BlockExtension extends AbstractExtension
         ];
     }
 
-    public function cmsBlock(string $slug, bool $strict = false)
+    public function cmsBlock(string $slug, bool $strict = false): ?string
     {
         $locale = $this->translator->getLocale();
         $fallbackLocales = $this->translator->getFallbackLocales();
@@ -66,8 +66,16 @@ class BlockExtension extends AbstractExtension
 
         $content = $block->getContent();
 
-        $debug = $this->requestStack->getMainRequest()->get('cms-debug')
-            || $this->requestStack->getSession()->get('cms-debug');
+        $mainRequest = $this->requestStack->getMainRequest();
+        $debug = false;
+
+        if ($mainRequest !== null) {
+            $debug = $mainRequest->get('cms-debug');
+
+            if (!$debug && $mainRequest->hasPreviousSession()) {
+                $debug = $mainRequest->getSession()->get('cms-debug');
+            }
+        }
 
         if ($debug && $this->security->isGranted(BlockController::$role)) {
             return

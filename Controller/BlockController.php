@@ -2,16 +2,14 @@
 
 namespace Kibatic\CmsBundle\Controller;
 
-use App\Repository\MediaRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Kibatic\CmsBundle\BlockTypeChain;
 use Kibatic\CmsBundle\Entity\Block;
 use Kibatic\CmsBundle\Repository\BlockRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\Form\FormFactory;
 use Symfony\Component\Form\FormFactoryInterface;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 
 class BlockController extends AbstractController
@@ -23,7 +21,7 @@ class BlockController extends AbstractController
     ) {
     }
 
-    public function index(Request $request, BlockRepository $repository, BlockTypeChain $blockTypeChain)
+    public function index(Request $request, BlockRepository $repository, BlockTypeChain $blockTypeChain): Response
     {
         $this->denyAccessUnlessGranted(self::$role);
 
@@ -51,7 +49,7 @@ class BlockController extends AbstractController
         string $typeName,
         BlockTypeChain $blockTypeChain,
         EntityManagerInterface $entityManager,
-    ) {
+    ): Response {
         $this->denyAccessUnlessGranted(self::$role);
 
         $blockType  = $blockTypeChain->getBlockType($typeName);
@@ -89,7 +87,7 @@ class BlockController extends AbstractController
         Block $block,
         BlockTypeChain $blockTypeChain,
         EntityManagerInterface $entityManager,
-    ) {
+    ): Response {
         $this->denyAccessUnlessGranted(self::$role);
 
         $blockType = $blockTypeChain->getBlockType($block->getType());
@@ -117,10 +115,12 @@ class BlockController extends AbstractController
         BlockTypeChain $blockTypeChain,
         EntityManagerInterface $entityManager,
         FormFactoryInterface $formFactory,
-    ) {
+    ): Response {
         $this->denyAccessUnlessGranted(self::$role);
 
         $blocks = $this->blockRepository->findBySlug($slug);
+        $editForms = [];
+        $deleteForms = [];
 
         foreach ($blocks as $block) {
             $blockType = $blockTypeChain->getBlockType($block->getType());
@@ -148,7 +148,7 @@ class BlockController extends AbstractController
         Request $request,
         Block $block,
         EntityManagerInterface $entityManager
-    ) {
+    ): Response {
         $this->denyAccessUnlessGranted(self::$role);
 
         $form = $this->createDeleteForm($block);
@@ -176,9 +176,10 @@ class BlockController extends AbstractController
         ;
     }
 
-    public function debug(Request $request)
+    public function debug(Request $request): Response
     {
-        $request->getSession()->set('cms-debug', !$request->getSession()->get('cms-debug', false));
+        $session = $request->getSession();
+        $session->set('cms-debug', !$session->get('cms-debug', false));
 
         return $this->redirect($request->headers->get('referer'));
     }

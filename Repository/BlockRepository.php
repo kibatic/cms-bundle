@@ -1,8 +1,6 @@
 <?php
 
 namespace Kibatic\CmsBundle\Repository;
-
-use App\Entity\AudioRecording;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\Persistence\ManagerRegistry;

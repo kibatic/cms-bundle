@@ -38,7 +38,7 @@ abstract class AbstractBlockType extends AbstractType
         ;
     }
     
-    public function configureOptions(OptionsResolver $resolver)
+    public function configureOptions(OptionsResolver $resolver): void
     {
         $resolver->setDefaults([
             'data_class' => Block::class,
@@ -48,7 +48,7 @@ abstract class AbstractBlockType extends AbstractType
         $resolver->setAllowedTypes('existing_languages', 'array');
     }
 
-    public function getBlockPrefix()
+    public function getBlockPrefix(): string
     {
         return 'kibatic_cmsbundle_block';
     }

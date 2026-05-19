@@ -12,7 +12,7 @@
                     </a>
                 {% endfor %}
 
-                {% set debug = app.session.get('cms-debug', false) %}
+                {% set debug = app.request.hasPreviousSession ? app.session.get('cms-debug', false) : false %}
                 <a href="{{ path('cms_block_debug') }}" class="btn btn-outline-{{ debug ? 'success' : 'danger' }}">
                     🐛 Debug : {% if debug %}on{% else %}off{% endif %}
                 </a>
@@ -38,7 +38,7 @@
                                 <td><a href="{{ path('cms_block_edit_by_slug', { 'slug': block.slug }) }}">{{ block.slug }}</a></td>
                                 <td>
                                     {% for b in blocks %}
-                                        <a href="{{ path('cms_block_edit', {'id': block.id}) }}">{{ b.language ?? 'n/a' }}</a>{{ not loop.last ? ' - ' : '' }}
+                                        <a href="{{ path('cms_block_edit', {'id': b.id}) }}">{{ b.language ?? 'n/a' }}</a>{{ not loop.last ? ' - ' : '' }}
                                     {% endfor %}
                                 </td>
                             {% else %}
