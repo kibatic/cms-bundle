@@ -30,7 +30,7 @@ class AlertType extends AbstractType
     /**
      * {@inheritdoc}
      */
-    public function getBlockPrefix()
+    public function getBlockPrefix(): string
     {
         return 'kibatic_cmsbundle_alertblock';
     }

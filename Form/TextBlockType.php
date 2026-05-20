@@ -19,7 +19,7 @@ class TextBlockType extends AbstractBlockType implements BlockTypeInterface
     /**
      * {@inheritdoc}
      */
-    public function getBlockPrefix()
+    public function getBlockPrefix(): string
     {
         return 'kibatic_cmsbundle_textblock';
     }
