@@ -55,7 +55,7 @@ class BlockController extends AbstractController
         $blockType  = $blockTypeChain->getBlockType($typeName);
         $block = new Block();
 
-        $slug = $request->get('slug');
+        $slug = $request->query->get('slug');
 
         if ($slug !== null) {
             $block->setSlug($slug);
