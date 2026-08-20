@@ -1,11 +1,22 @@
-{#{% javascripts output='js/cms.js'#}
-{#    'https://cdnjs.cloudflare.com/ajax/libs/summernote/0.8.8/summernote.js'#}
-{#%}#}
-{#    <script src="{{ asset_url }}"></script>#}
-{#{% endjavascripts %}#}
-
-{#<script>#}
-{#    $(document).ready(function() {#}
-{#        $('.wysiwyg').summernote();#}
-{#    });#}
-{#</script>#}
+<script src="https://cdn.jsdelivr.net/gh/mdbassit/Wysi@latest/dist/wysi.min.js"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        Wysi({
+            el: '.wysiwyg',
+            darkMode: true,
+            height: 300,
+            autoGrow: true,
+            autoHide: false,
+            tools: [
+                'format', '|',
+                'bold', 'italic', 'underline', 'strike', '|',
+                {label: 'Text alignment', items: ['alignLeft', 'alignCenter', 'alignRight', 'alignJustify']}, '|',
+                'ul', 'ol', '|',
+                'indent', 'outdent', '|',
+                'link', 'image', 'hr', 'quote', '|',
+                'removeFormat'
+            ],
+            onChange: (content) => {}
+        });
+    });
+</script>

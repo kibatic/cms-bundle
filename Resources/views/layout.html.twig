@@ -1,1 +1,11 @@
 {% extends 'layout.html.twig' %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    {% include '@KibaticCms/_css.html.twig' %}
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    {% include '@KibaticCms/_js.html.twig' %}
+{% endblock %}
