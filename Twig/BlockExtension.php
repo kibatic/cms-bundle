@@ -70,7 +70,7 @@ class BlockExtension extends AbstractExtension
         $debug = false;
 
         if ($mainRequest !== null) {
-            $debug = $mainRequest->get('cms-debug');
+            $debug = $mainRequest->query->get('cms-debug');
 
             if (!$debug && $mainRequest->hasPreviousSession()) {
                 $debug = $mainRequest->getSession()->get('cms-debug');

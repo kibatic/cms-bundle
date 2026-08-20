@@ -15,27 +15,27 @@ class Block
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    private $id;
+    private int $id;
 
     #[ORM\Column(type: 'string')]
-    private $slug;
+    private string $slug;
 
     #[ORM\Column(type: 'text', nullable: true)]
-    private $content;
+    private string $content;
 
     #[ORM\Column(type: 'string', nullable: false)]
-    private $type = TextBlockType::class;
+    private string $type = TextBlockType::class;
 
     #[ORM\Column(type: 'datetime')]
     #[Gedmo\Timestampable(on: 'create')]
-    private $createdAt;
+    private \DateTime $createdAt;
 
     #[ORM\Column(type: 'datetime')]
     #[Gedmo\Timestampable(on: 'update')]
-    private $updatedAt;
+    private \DateTime $updatedAt;
 
     #[ORM\Column(type: 'text', nullable: true)]
-    private $language;
+    private string $language;
 
 
     public function getId(): ?int
@@ -114,4 +114,3 @@ class Block
         return $this;
     }
 }
-
