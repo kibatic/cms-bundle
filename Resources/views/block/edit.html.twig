@@ -10,7 +10,15 @@
             <h1 class="kcms-title"><span class="kcms-slug">{{ block.slug }}</span></h1>
             <p class="kcms-subtitle">{{ kcms.type_badge(block.type) }} {{ 'edit.updated'|trans({date: block.updatedAt|date('format.datetime'|trans)}) }}</p>
         </div>
-        <div class="kcms-head-actions">{{ kcms.copy_snippet(block.slug) }}</div>
+        <div class="kcms-head-actions">
+            {{ kcms.copy_snippet(block.slug) }}
+            {% if aiEnabled %}
+                <a href="{{ path('cms_chat', {'slug': block.slug}) }}" class="kcms-btn kcms-btn-sm">
+                    <svg class="kcms-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M9.9 15.5A2 2 0 0 0 8.5 14.1l-6.1-1.6a.5.5 0 0 1 0-1l6.1-1.6a2 2 0 0 0 1.4-1.4l1.6-6.1a.5.5 0 0 1 1 0l1.6 6.1a2 2 0 0 0 1.4 1.4l6.1 1.6a.5.5 0 0 1 0 1l-6.1 1.6a2 2 0 0 0-1.4 1.4l-1.6 6.1a.5.5 0 0 1-1 0Z"/></svg>
+                    {{ 'chat.ask'|trans }}
+                </a>
+            {% endif %}
+        </div>
     </header>
 
     {% if languages is not empty %}

@@ -23,5 +23,9 @@
         "allow-plugins": {
             "symfony/runtime": true
         }
+    },
+    "suggest": {
+        "symfony/ai-bundle": "For the assistant that writes the blocks (kibatic_cms.ai.agent)",
+        "symfony/ai-agent": "For the assistant that writes the blocks (kibatic_cms.ai.agent)"
     }
 }

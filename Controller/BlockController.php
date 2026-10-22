@@ -7,6 +7,7 @@ use Kibatic\CmsBundle\BlockTypeChain;
 use Kibatic\CmsBundle\Entity\Block;
 use Kibatic\CmsBundle\Repository\BlockRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\Form\FormFactoryInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -17,7 +18,9 @@ class BlockController extends AbstractController
     public static string $role = 'ROLE_CMS';
 
     public function __construct(
-        private BlockRepository $blockRepository
+        private BlockRepository $blockRepository,
+        #[Autowire(param: 'kibatic_cms.ai.enabled')]
+        private bool $aiEnabled,
     ) {
     }
 
@@ -41,7 +44,8 @@ class BlockController extends AbstractController
             'languages' => $languages,
             'blocksBySlug' => $blocksBySlug,
             'blocks' => $blocks,
-            'blockTypeNames' => $blockTypeNames
+            'blockTypeNames' => $blockTypeNames,
+            'aiEnabled' => $this->aiEnabled,
         ]);
     }
 
@@ -117,6 +121,7 @@ class BlockController extends AbstractController
         return $this->render('@KibaticCms/block/edit.html.twig', [
             'block' => $block,
             'translations' => $this->blockRepository->findBySlug($block->getSlug()),
+            'aiEnabled' => $this->aiEnabled,
             'languages' => $this->blockRepository->getExistingLanguages(),
             'edit_form' => $editForm->createView(),
             'delete_form' => $deleteForm->createView(),

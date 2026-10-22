@@ -35,3 +35,18 @@ cms_block_debug:
     path: /cms/debug
     controller: Kibatic\CmsBundle\Controller\BlockController::debug
     methods: GET
+
+cms_chat:
+    path: /cms/assistant
+    controller: Kibatic\CmsBundle\Controller\ChatController::index
+    methods: GET
+
+cms_chat_message:
+    path: /cms/assistant/message
+    controller: Kibatic\CmsBundle\Controller\ChatController::message
+    methods: POST
+
+cms_chat_reset:
+    path: /cms/assistant/reset
+    controller: Kibatic\CmsBundle\Controller\ChatController::reset
+    methods: POST

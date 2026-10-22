@@ -185,6 +185,36 @@
     .kcms .kcms-form div:has(> ul) input, .kcms .kcms-form div:has(> ul) textarea { border-color: var(--kcms-danger); }
     .kcms .wysi-wrapper { border-radius: 8px; }
 
+    /* Assistant (chat/index.html.twig) */
+    .kcms .kcms-chat { display: flex; flex-direction: column; gap: 12px; padding: 0; overflow: hidden; }
+    .kcms .kcms-chat-log { display: flex; flex-direction: column; gap: 12px; min-height: 320px; max-height: calc(100vh - 340px); overflow-y: auto; padding: 20px; }
+    .kcms .kcms-chat-empty { margin: auto; max-width: 520px; text-align: center; color: var(--kcms-muted); }
+    .kcms .kcms-chat-suggestions { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 12px; }
+    .kcms .kcms-chip-button { padding: 6px 12px; border: 1px solid var(--kcms-border); border-radius: 999px; background: var(--kcms-surface); color: var(--kcms-text); font: inherit; font-size: 14px; cursor: pointer; }
+    .kcms .kcms-chip-button:hover { border-color: var(--kcms-accent); background: var(--kcms-accent-soft); }
+    .kcms .kcms-message { max-width: 80%; padding: 10px 14px; border-radius: 14px; overflow-wrap: anywhere; }
+    .kcms .kcms-message p { margin: 0 0 8px; }
+    .kcms .kcms-message p:last-child, .kcms .kcms-message ul:last-child, .kcms .kcms-message ol:last-child { margin-bottom: 0; }
+    .kcms .kcms-message ul, .kcms .kcms-message ol { margin: 0 0 8px; padding-left: 20px; }
+    .kcms .kcms-message-user { align-self: flex-end; background: var(--kcms-accent); color: #fff; border-bottom-right-radius: 4px; }
+    .kcms .kcms-message-user code { background: rgb(255 255 255 / 15%); border-color: transparent; color: inherit; }
+    .kcms .kcms-message-assistant { align-self: flex-start; background: var(--kcms-subtle); border: 1px solid var(--kcms-border); border-bottom-left-radius: 4px; }
+    .kcms .kcms-message-error { align-self: flex-start; background: var(--kcms-danger-soft); color: var(--kcms-danger); font-weight: 500; }
+    .kcms .kcms-message-pending { display: flex; gap: 5px; padding: 14px 16px; }
+    .kcms .kcms-message-pending span { width: 7px; height: 7px; border-radius: 50%; background: var(--kcms-muted); animation: kcms-typing 1.2s infinite ease-in-out; }
+    .kcms .kcms-message-pending span:nth-child(2) { animation-delay: .15s; }
+    .kcms .kcms-message-pending span:nth-child(3) { animation-delay: .3s; }
+    @keyframes kcms-typing { 0%, 60%, 100% { opacity: .3; transform: translateY(0); } 30% { opacity: 1; transform: translateY(-3px); } }
+    .kcms .kcms-changes { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+    .kcms .kcms-change { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 999px; background: var(--kcms-success-soft); color: var(--kcms-success); font-size: 13px; font-weight: 550; }
+    .kcms .kcms-change:hover { color: var(--kcms-success); text-decoration: underline; }
+    .kcms .kcms-change .kcms-slug { font-weight: 600; }
+    .kcms .kcms-chat-form { display: flex; gap: 10px; align-items: flex-end; padding: 12px 20px 0; border-top: 1px solid var(--kcms-border); }
+    .kcms .kcms-chat-form textarea { min-height: 44px; max-height: 200px; resize: vertical; }
+    .kcms .kcms-chat-form .kcms-btn { min-height: 44px; }
+    .kcms .kcms-chat-hint { margin: 0; padding: 0 20px 12px; color: var(--kcms-muted); font-size: 12px; }
+    .kcms .kcms-btn:disabled { opacity: .5; cursor: default; }
+
     /* Flash message */
     .kcms .kcms-flash {
         display: flex; align-items: center; gap: 8px; margin-bottom: 16px; padding: 10px 14px;

@@ -116,3 +116,24 @@ flash:
     created: Block created.
     saved: Block saved.
     deleted: Block deleted.
+
+chat:
+    title: Assistant
+    subtitle: Ask the AI to write, modify or translate blocks.
+    ask: Ask the assistant
+    about_block: 'About the block "{slug}": '
+    reset: New conversation
+    empty: "The assistant reads and saves the blocks for you. For example:"
+    suggestion:
+        list: What blocks are there?
+        create: Write a short "About us" block in HTML
+        translate: Translate the missing blocks into English
+    placeholder: Your message…
+    send: Send
+    hint: "Enter to send, Shift+Enter for a new line. The AI can make mistakes: check the blocks it saves."
+    created: Created
+    saved: Modified
+    error:
+        csrf: The page has expired, reload it.
+        empty: Write a message.
+        model: The AI did not answer. Try again in a moment.

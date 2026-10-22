@@ -2,10 +2,14 @@
 
 namespace Kibatic\CmsBundle\DependencyInjection;
 
+use Kibatic\CmsBundle\Controller\ChatController;
+use Symfony\AI\Agent\AgentInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\Config\FileLocator;
+use Symfony\Component\DependencyInjection\Exception\LogicException;
 use Symfony\Component\DependencyInjection\Loader\YamlFileLoader;
 use Symfony\Component\DependencyInjection\Extension\Extension;
+use Symfony\Component\DependencyInjection\Reference;
 
 /**
  * This is the class that loads and manages your bundle configuration.
@@ -22,10 +26,25 @@ class KibaticCmsExtension extends Extension
         $configuration = new Configuration();
         $config = $this->processConfiguration($configuration, $configs);
 
-        (new YamlFileLoader(
+        $loader = new YamlFileLoader(
             $container,
             new FileLocator(dirname(__DIR__) . '/Resources/config')
-        ))
-            ->load('services.yaml');
+        );
+        $loader->load('services.yaml');
+
+        $agent = $config['ai']['agent'];
+        $container->setParameter('kibatic_cms.ai.enabled', null !== $agent);
+
+        if (null !== $agent) {
+            if (!interface_exists(AgentInterface::class)) {
+                throw new LogicException('The CMS assistant (kibatic_cms.ai.agent) requires Symfony AI: composer require symfony/ai-bundle symfony/ai-agent');
+            }
+
+            $loader->load('ai.yaml');
+        }
+
+        // Without an agent, the assistant's routes answer 404
+        $container->getDefinition(ChatController::class)
+            ->setArgument('$agent', null !== $agent ? new Reference($agent) : null);
     }
 }

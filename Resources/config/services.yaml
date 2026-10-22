@@ -7,6 +7,12 @@ services:
     Kibatic\CmsBundle\Controller\BlockController:
         tags: ['controller.service_arguments']
 
+    # Assistant (Symfony AI): its agent is set by KibaticCmsExtension, its tools are in ai.yaml
+    Kibatic\CmsBundle\Controller\ChatController:
+        tags: ['controller.service_arguments']
+
+    Kibatic\CmsBundle\Ai\BlockChanges: ~
+
     Kibatic\CmsBundle\Form\TextBlockType: ~
     Kibatic\CmsBundle\Form\ImageBlockType: ~
     Kibatic\CmsBundle\Form\HtmlBlockType: ~

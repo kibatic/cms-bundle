@@ -19,6 +19,20 @@ class Configuration implements ConfigurationInterface
     {
         $treeBuilder = new TreeBuilder('kibatic_cms');
 
+        $treeBuilder->getRootNode()
+            ->children()
+                ->arrayNode('ai')
+                    ->addDefaultsIfNotSet()
+                    ->children()
+                        ->scalarNode('agent')
+                            ->defaultNull()
+                            ->info('Service ID of the Symfony AI agent of the assistant (e.g. "ai.agent.cms"), with the tools of Kibatic\CmsBundle\Ai\Tool. Null: no assistant.')
+                        ->end()
+                    ->end()
+                ->end()
+            ->end()
+        ;
+
         return $treeBuilder;
     }
 }

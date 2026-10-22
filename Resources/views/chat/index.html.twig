@@ -1,0 +1,144 @@
+{% extends '@KibaticCms/layout.html.twig' %}
+{% trans_default_domain 'KibaticCmsBundle' %}
+
+{% block kcms_body %}
+    {% set csrf = csrf_token(constant('Kibatic\\CmsBundle\\Controller\\ChatController::CSRF_TOKEN_ID')) %}
+
+    <nav class="kcms-crumbs"><a href="{{ path('cms_block_index') }}">{{ 'index.title'|trans }}</a><span>{{ 'chat.title'|trans }}</span></nav>
+
+    <header class="kcms-head">
+        <div>
+            <h1 class="kcms-title">{{ 'chat.title'|trans }}</h1>
+            <p class="kcms-subtitle">{{ 'chat.subtitle'|trans }}</p>
+        </div>
+        <div class="kcms-head-actions">
+            <form method="post" action="{{ path('cms_chat_reset') }}">
+                <input type="hidden" name="_token" value="{{ csrf }}">
+                <button type="submit" class="kcms-btn" data-kcms-chat-reset {{ history is empty ? 'disabled' }}>{{ 'chat.reset'|trans }}</button>
+            </form>
+        </div>
+    </header>
+
+    <div class="kcms-card kcms-chat" data-kcms-chat data-kcms-url="{{ path('cms_chat_message') }}" data-kcms-csrf="{{ csrf }}"
+         data-kcms-created="{{ 'chat.created'|trans }}" data-kcms-saved="{{ 'chat.saved'|trans }}" data-kcms-error="{{ 'chat.error.model'|trans }}">
+        <div class="kcms-chat-log" data-kcms-chat-log aria-live="polite">
+            <div class="kcms-chat-empty" data-kcms-chat-empty {{ history is not empty ? 'hidden' }}>
+                <p>{{ 'chat.empty'|trans }}</p>
+                <div class="kcms-chat-suggestions">
+                    {% for suggestion in ['chat.suggestion.list', 'chat.suggestion.create', 'chat.suggestion.translate'] %}
+                        <button type="button" class="kcms-chip-button" data-kcms-suggestion>{{ suggestion|trans }}</button>
+                    {% endfor %}
+                </div>
+            </div>
+            {% for message in history %}
+                <div class="kcms-message kcms-message-{{ message.role }}" data-kcms-markdown>{{ message.content }}</div>
+            {% endfor %}
+        </div>
+
+        <form class="kcms-chat-form" data-kcms-chat-form>
+            <textarea rows="2" placeholder="{{ 'chat.placeholder'|trans }}" aria-label="{{ 'chat.placeholder'|trans }}" data-kcms-chat-input
+            >{{ slug ? 'chat.about_block'|trans({slug: slug}) }}</textarea>
+            <button type="submit" class="kcms-btn kcms-btn-primary" data-kcms-chat-send>
+                <svg class="kcms-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
+                {{ 'chat.send'|trans }}
+            </button>
+        </form>
+        <p class="kcms-chat-hint">{{ 'chat.hint'|trans }}</p>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const chat = document.querySelector('[data-kcms-chat]');
+            const log = chat.querySelector('[data-kcms-chat-log]');
+            const form = chat.querySelector('[data-kcms-chat-form]');
+            const input = chat.querySelector('[data-kcms-chat-input]');
+            const send = chat.querySelector('[data-kcms-chat-send]');
+            const empty = chat.querySelector('[data-kcms-chat-empty]');
+
+            // Markdown of the answers: bold, italic, inline code, links, lists and paragraphs, on escaped text
+            const escape = text => text.replace(/[&<>"']/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'})[c]);
+            const inline = text => escape(text)
+                .replace(/`([^`]+)`/g, '<code>$1</code>')
+                .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+                .replace(/(^|[^*])\*([^*\s][^*]*)\*/g, '$1<em>$2</em>')
+                .replace(/\[([^\]]+)\]\(((?:https?:\/)?\/[^)\s]+)\)/g, '<a href="$2">$1</a>');
+            const markdown = text => text.trim().split(/\n{2,}/).map(paragraph => {
+                const lines = paragraph.split('\n');
+                if (lines.every(line => /^\s*([-*]|\d+\.)\s+/.test(line))) {
+                    const tag = /^\s*\d+\./.test(lines[0]) ? 'ol' : 'ul';
+                    return `<${tag}>` + lines.map(line => '<li>' + inline(line.replace(/^\s*([-*]|\d+\.)\s+/, '')) + '</li>').join('') + `</${tag}>`;
+                }
+                const heading = paragraph.match(/^#{1,4}\s+(.*)$/);
+                return heading ? '<p><strong>' + inline(heading[1]) + '</strong></p>' : '<p>' + lines.map(inline).join('<br>') + '</p>';
+            }).join('');
+
+            const add = (role, html) => {
+                empty.hidden = true;
+                const message = document.createElement('div');
+                message.className = 'kcms-message kcms-message-' + role;
+                message.innerHTML = html;
+                log.append(message);
+                message.scrollIntoView({block: 'end', behavior: 'smooth'});
+                return message;
+            };
+            log.querySelectorAll('[data-kcms-markdown]').forEach(message => message.innerHTML = markdown(message.textContent));
+            log.lastElementChild?.scrollIntoView({block: 'end'});
+
+            const submit = async () => {
+                const text = input.value.trim();
+                if (!text || send.disabled) {
+                    return;
+                }
+                add('user', markdown(text));
+                document.querySelector('[data-kcms-chat-reset]').disabled = false;
+                input.value = '';
+                send.disabled = true;
+                const pending = add('assistant kcms-message-pending', '<span></span><span></span><span></span>');
+                try {
+                    const response = await fetch(chat.dataset.kcmsUrl, {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json', 'X-CSRF-Token': chat.dataset.kcmsCsrf},
+                        body: JSON.stringify({message: text}),
+                    });
+                    const data = await response.json();
+                    pending.remove();
+                    if (!response.ok) {
+                        add('error', escape(data.error ?? chat.dataset.kcmsError));
+                        input.value = text;
+                        return;
+                    }
+                    const changes = data.changes.map(change =>
+                        `<a class="kcms-change" href="${escape(change.url)}">${escape(change.created ? chat.dataset.kcmsCreated : chat.dataset.kcmsSaved)}`
+                        + ` <span class="kcms-slug">${escape(change.slug)}</span>${change.language ? ' · ' + escape(change.language) : ''}</a>`
+                    ).join('');
+                    add('assistant', markdown(data.answer) + (changes ? '<div class="kcms-changes">' + changes + '</div>' : ''));
+                } catch (error) {
+                    pending.remove();
+                    add('error', escape(chat.dataset.kcmsError));
+                    input.value = text;
+                } finally {
+                    send.disabled = false;
+                    input.focus();
+                }
+            };
+
+            form.addEventListener('submit', event => {
+                event.preventDefault();
+                submit();
+            });
+            // Enter sends, Shift+Enter goes to a new line
+            input.addEventListener('keydown', event => {
+                if (event.key === 'Enter' && !event.shiftKey && !event.isComposing) {
+                    event.preventDefault();
+                    submit();
+                }
+            });
+            chat.querySelectorAll('[data-kcms-suggestion]').forEach(button => button.addEventListener('click', () => {
+                input.value = button.textContent.trim();
+                submit();
+            }));
+            input.focus();
+            input.setSelectionRange(input.value.length, input.value.length);
+        });
+    </script>
+{% endblock %}

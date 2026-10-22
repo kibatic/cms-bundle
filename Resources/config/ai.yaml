@@ -1,0 +1,10 @@
+# Loaded when kibatic_cms.ai.agent is set (KibaticCmsExtension): tools to list in the agent's configuration
+services:
+    _defaults:
+        autowire: true
+        autoconfigure: true
+        public: false
+
+    Kibatic\CmsBundle\Ai\Tool\ListBlocksTool: ~
+    Kibatic\CmsBundle\Ai\Tool\GetBlockTool: ~
+    Kibatic\CmsBundle\Ai\Tool\SaveBlockTool: ~

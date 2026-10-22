@@ -116,3 +116,24 @@ flash:
     created: Bloc créé.
     saved: Bloc enregistré.
     deleted: Bloc supprimé.
+
+chat:
+    title: Assistant
+    subtitle: Demandez à l'IA d'écrire, de modifier ou de traduire des blocs.
+    ask: Demander à l'assistant
+    about_block: 'À propos du bloc « {slug} » : '
+    reset: Nouvelle conversation
+    empty: "L'assistant lit et enregistre les blocs pour vous. Par exemple :"
+    suggestion:
+        list: Quels blocs y a-t-il ?
+        create: Écris un court bloc HTML « Qui sommes-nous »
+        translate: Traduis en anglais les blocs qui manquent
+    placeholder: Votre message…
+    send: Envoyer
+    hint: "Entrée pour envoyer, Maj+Entrée pour aller à la ligne. L'IA peut se tromper : vérifiez les blocs qu'elle enregistre."
+    created: Créé
+    saved: Modifié
+    error:
+        csrf: La page a expiré, rechargez-la.
+        empty: Écrivez un message.
+        model: L'IA n'a pas répondu. Réessayez dans un instant.
