@@ -116,6 +116,10 @@ flash:
     created: Bloc créé.
     saved: Bloc enregistré.
     deleted: Bloc supprimé.
+    snapshot_taken: Snapshot pris.
+    snapshot_restored: Snapshot restauré. Les blocs d'avant sont dans le snapshot « Avant la restauration… ».
+    snapshot_deleted: Snapshot supprimé.
+
 
 chat:
     title: Assistant
@@ -137,3 +141,49 @@ chat:
         csrf: La page a expiré, rechargez-la.
         empty: Écrivez un message.
         model: L'IA n'a pas répondu. Réessayez dans un instant.
+
+snapshot:
+    title: Snapshots
+    subtitle: Enregistrez tous les blocs d'un coup, pour les comparer, les prévisualiser ou les restaurer plus tard.
+    take: Prendre un snapshot
+    name: Nom (facultatif)
+    name_placeholder: ex. Avant la refonte de l'été
+    unnamed: Snapshot
+    before_restore: 'Avant la restauration de « {name} »'
+    column:
+        name: Nom
+        date: Date
+        blocks: Blocs
+        size: Taille
+    size: '{size, number} Ko'
+    details: Détails
+    preview: Aperçu
+    preview_help: Affiche le site avec les blocs de ce snapshot, pour vous seulement
+    previewing: En aperçu
+    restore: Restaurer
+    restore_confirm: Remplacer tous les blocs par ceux de ce snapshot ? Les blocs actuels sont d'abord enregistrés dans un snapshot.
+    delete: Supprimer
+    delete_confirm: Supprimer ce snapshot ? Les blocs ne changent pas.
+    exit_preview: Quitter l'aperçu
+    banner: 'Aperçu, pour vous seulement, du snapshot'
+    in_snapshot: Dans le snapshot
+    now: Maintenant
+    no_block: Ce snapshot ne contient aucun bloc.
+    status:
+        modified: Modifiés
+        added: Ajoutés
+        removed: Supprimés
+        unchanged: Inchangés
+    row_status:
+        modified: Modifié
+        added: Ajouté
+        removed: Supprimé
+        unchanged: Inchangé
+    status_help:
+        modified: depuis le snapshot, remis comme avant par une restauration
+        added: depuis le snapshot, supprimés par une restauration
+        removed: depuis le snapshot, recréés par une restauration
+        unchanged: depuis le snapshot
+    empty:
+        title: Aucun snapshot pour l'instant
+        text: Prenez-en un avant de gros changements, pour pouvoir y revenir.

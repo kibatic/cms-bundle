@@ -5,6 +5,7 @@ namespace Kibatic\CmsBundle\Twig;
 use Kibatic\CmsBundle\Controller\BlockController;
 use Kibatic\CmsBundle\Entity\Block;
 use Kibatic\CmsBundle\Repository\BlockRepository;
+use Kibatic\CmsBundle\Snapshot\SnapshotPreview;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Routing\Router;
@@ -21,7 +22,8 @@ class BlockExtension extends AbstractExtension
         private Security $security,
         private RouterInterface $router,
         private RequestStack $requestStack,
-        private TranslatorInterface $translator
+        private TranslatorInterface $translator,
+        private SnapshotPreview $snapshotPreview,
     ) {
     }
 
@@ -29,6 +31,7 @@ class BlockExtension extends AbstractExtension
     {
         return [
             new TwigFunction('cms_block', $this->cmsBlock(...), ['is_safe' => ['html']]),
+            new TwigFunction('cms_snapshot_preview', $this->snapshotPreview->current(...)),
         ];
     }
 
@@ -38,17 +41,20 @@ class BlockExtension extends AbstractExtension
         $fallbackLocales = $this->translator->getFallbackLocales();
 
         $locales = [$locale, $fallbackLocales];
+        $snapshot = $this->snapshotPreview->current();
 
         foreach ($locales as $language) {
-            $block = $this->blockRepository->findOneBy(['slug' => $slug, 'language' => $language]);
+            $block = $this->findBlock($slug, $language);
 
             if ($block !== null) {
                 break;
             }
         }
 
-        if (empty($this->blockRepository->getExistingLanguages()) && $block === null) {
-            $block = $this->blockRepository->findOneBy(['slug' => $slug]);
+        $languages = null !== $snapshot ? $snapshot->getLanguages() : $this->blockRepository->getExistingLanguages();
+
+        if (empty($languages) && $block === null) {
+            $block = $this->findBlock($slug);
         }
 
         if ($block === null) {
@@ -80,7 +86,8 @@ class BlockExtension extends AbstractExtension
             }
         }
 
-        if ($debug && $this->security->isGranted(BlockController::$role)) {
+        // Blocks of a previewed snapshot have no id: nothing to edit
+        if ($debug && null !== $block->getId() && $this->security->isGranted(BlockController::$role)) {
             return
                 '<div class="alert alert-info" title="Block : ' . $block->getSlug() . '">' .
                     '<a class="btn btn-primary btn-sm float-end" href="' . $this->router->generate('cms_block_edit', ['id' => $block->getId()]) . '">✏️</a>' .
@@ -89,5 +96,27 @@ class BlockExtension extends AbstractExtension
         }
 
         return $content;
+    }
+
+    /**
+     * Block of the previewed snapshot (SnapshotPreview), or else of the database
+     *
+     * @param string|list<string>|false|null $language false: any language
+     */
+    private function findBlock(string $slug, string|array|false|null $language = false): ?Block
+    {
+        $snapshot = $this->snapshotPreview->current();
+
+        if (null === $snapshot) {
+            return $this->blockRepository->findOneBy(false === $language ? ['slug' => $slug] : ['slug' => $slug, 'language' => $language]);
+        }
+
+        foreach ($snapshot->getBlocks() as $block) {
+            if ($block->getSlug() === $slug && (false === $language || \in_array($block->getLanguage(), (array) $language, true) || $block->getLanguage() === $language)) {
+                return $block;
+            }
+        }
+
+        return null;
     }
 }

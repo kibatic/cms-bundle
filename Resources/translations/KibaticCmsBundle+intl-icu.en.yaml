@@ -116,6 +116,10 @@ flash:
     created: Block created.
     saved: Block saved.
     deleted: Block deleted.
+    snapshot_taken: Snapshot taken.
+    snapshot_restored: Snapshot restored. The previous blocks are in the snapshot "Before restoring…".
+    snapshot_deleted: Snapshot deleted.
+
 
 chat:
     title: Assistant
@@ -137,3 +141,49 @@ chat:
         csrf: The page has expired, reload it.
         empty: Write a message.
         model: The AI did not answer. Try again in a moment.
+
+snapshot:
+    title: Snapshots
+    subtitle: Save every block at once, to compare, preview or restore them later.
+    take: Take a snapshot
+    name: Name (optional)
+    name_placeholder: e.g. Before the summer redesign
+    unnamed: Snapshot
+    before_restore: 'Before restoring "{name}"'
+    column:
+        name: Name
+        date: Date
+        blocks: Blocks
+        size: Size
+    size: '{size, number} KB'
+    details: Details
+    preview: Preview
+    preview_help: Shows the site with the blocks of this snapshot, for you only
+    previewing: Previewing
+    restore: Restore
+    restore_confirm: Replace every block with those of this snapshot? The current blocks are saved in a snapshot first.
+    delete: Delete
+    delete_confirm: Delete this snapshot? The blocks are not changed.
+    exit_preview: Exit the preview
+    banner: 'Preview, for you only, of the snapshot'
+    in_snapshot: In the snapshot
+    now: Now
+    no_block: This snapshot has no block.
+    status:
+        modified: Modified
+        added: Added
+        removed: Deleted
+        unchanged: Unchanged
+    row_status:
+        modified: Modified
+        added: Added
+        removed: Deleted
+        unchanged: Unchanged
+    status_help:
+        modified: since the snapshot, put back by a restore
+        added: since the snapshot, deleted by a restore
+        removed: since the snapshot, brought back by a restore
+        unchanged: since the snapshot
+    empty:
+        title: No snapshot yet
+        text: Take one before big changes, to be able to come back to it.

@@ -13,6 +13,14 @@ services:
 
     Kibatic\CmsBundle\Ai\BlockChanges: ~
 
+    Kibatic\CmsBundle\Controller\SnapshotController:
+        tags: ['controller.service_arguments']
+
+    Kibatic\CmsBundle\Repository\SnapshotRepository: ~
+    Kibatic\CmsBundle\Snapshot\Snapshots: ~
+    Kibatic\CmsBundle\Snapshot\SnapshotPreview: ~
+    Kibatic\CmsBundle\Snapshot\PreviewBannerListener: ~
+
     Kibatic\CmsBundle\Form\TextBlockType: ~
     Kibatic\CmsBundle\Form\ImageBlockType: ~
     Kibatic\CmsBundle\Form\HtmlBlockType: ~

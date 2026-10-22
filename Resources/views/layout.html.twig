@@ -18,5 +18,10 @@
         {% endfor %}
 
         {% block kcms_body %}{% endblock %}
+
+        {% set previewed_snapshot = cms_snapshot_preview() %}
+        {% if previewed_snapshot %}
+            {% include '@KibaticCms/snapshot/_preview_banner.html.twig' with {snapshot: previewed_snapshot} %}
+        {% endif %}
     </div>
 {% endblock %}

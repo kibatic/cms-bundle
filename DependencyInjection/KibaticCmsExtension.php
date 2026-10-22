@@ -32,6 +32,8 @@ class KibaticCmsExtension extends Extension
         );
         $loader->load('services.yaml');
 
+        $container->setParameter('kibatic_cms.preview_path', $config['preview_path']);
+
         $agent = $config['ai']['agent'];
         $container->setParameter('kibatic_cms.ai.enabled', null !== $agent);
 

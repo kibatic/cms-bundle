@@ -50,3 +50,46 @@ cms_chat_reset:
     path: /cms/assistant/reset
     controller: Kibatic\CmsBundle\Controller\ChatController::reset
     methods: POST
+
+cms_snapshot_index:
+    path: /cms/snapshots
+    controller: Kibatic\CmsBundle\Controller\SnapshotController::index
+    methods: GET
+
+cms_snapshot_create:
+    path: /cms/snapshots
+    controller: Kibatic\CmsBundle\Controller\SnapshotController::create
+    methods: POST
+
+cms_snapshot_preview_exit:
+    path: /cms/snapshots/preview/exit
+    controller: Kibatic\CmsBundle\Controller\SnapshotController::exitPreview
+    methods: POST
+
+cms_snapshot_show:
+    path: /cms/snapshots/{id}
+    controller: Kibatic\CmsBundle\Controller\SnapshotController::show
+    methods: GET
+    requirements:
+        id: '\d+'
+
+cms_snapshot_restore:
+    path: /cms/snapshots/{id}/restore
+    controller: Kibatic\CmsBundle\Controller\SnapshotController::restore
+    methods: POST
+    requirements:
+        id: '\d+'
+
+cms_snapshot_delete:
+    path: /cms/snapshots/{id}/delete
+    controller: Kibatic\CmsBundle\Controller\SnapshotController::delete
+    methods: POST
+    requirements:
+        id: '\d+'
+
+cms_snapshot_preview:
+    path: /cms/snapshots/{id}/preview
+    controller: Kibatic\CmsBundle\Controller\SnapshotController::preview
+    methods: POST
+    requirements:
+        id: '\d+'

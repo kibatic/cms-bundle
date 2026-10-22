@@ -1,0 +1,21 @@
+{# Buttons of a snapshot (list and detail). Variables: snapshot, csrf, details (false on the detail page) #}
+{% trans_default_domain 'KibaticCmsBundle' %}
+<div class="kcms-inline-actions">
+    {% if details ?? true %}
+        <a href="{{ path('cms_snapshot_show', {id: snapshot.id}) }}" class="kcms-btn kcms-btn-sm">{{ 'snapshot.details'|trans }}</a>
+    {% endif %}
+    <form method="post" action="{{ path('cms_snapshot_preview', {id: snapshot.id}) }}">
+        <input type="hidden" name="_token" value="{{ csrf }}">
+        <button type="submit" class="kcms-btn kcms-btn-sm" title="{{ 'snapshot.preview_help'|trans }}">{{ 'snapshot.preview'|trans }}</button>
+    </form>
+    <form method="post" action="{{ path('cms_snapshot_restore', {id: snapshot.id}) }}"
+          onsubmit="return confirm('{{ 'snapshot.restore_confirm'|trans|e('js') }}')">
+        <input type="hidden" name="_token" value="{{ csrf }}">
+        <button type="submit" class="kcms-btn kcms-btn-sm kcms-btn-primary">{{ 'snapshot.restore'|trans }}</button>
+    </form>
+    <form method="post" action="{{ path('cms_snapshot_delete', {id: snapshot.id}) }}"
+          onsubmit="return confirm('{{ 'snapshot.delete_confirm'|trans|e('js') }}')">
+        <input type="hidden" name="_token" value="{{ csrf }}">
+        <button type="submit" class="kcms-btn kcms-btn-sm kcms-btn-danger">{{ 'snapshot.delete'|trans }}</button>
+    </form>
+</div>

@@ -20,6 +20,11 @@
                 <span class="kcms-toggle-track"></span> {{ 'index.debug'|trans }}
             </a>
 
+            <a href="{{ path('cms_snapshot_index') }}" class="kcms-btn">
+                {{ kcms.camera_icon() }}
+                {{ 'snapshot.title'|trans }}
+            </a>
+
             {% if aiEnabled %}
                 <a href="{{ path('cms_chat') }}" class="kcms-btn">
                     <svg class="kcms-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M9.9 15.5A2 2 0 0 0 8.5 14.1l-6.1-1.6a.5.5 0 0 1 0-1l6.1-1.6a2 2 0 0 0 1.4-1.4l1.6-6.1a.5.5 0 0 1 1 0l1.6 6.1a2 2 0 0 0 1.4 1.4l6.1 1.6a.5.5 0 0 1 0 1l-6.1 1.6a2 2 0 0 0-1.4 1.4l-1.6 6.1a.5.5 0 0 1-1 0Z"/></svg>

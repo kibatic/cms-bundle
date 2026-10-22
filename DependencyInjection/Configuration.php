@@ -21,6 +21,10 @@ class Configuration implements ConfigurationInterface
 
         $treeBuilder->getRootNode()
             ->children()
+                ->scalarNode('preview_path')
+                    ->defaultValue('/')
+                    ->info('Page of the site opened by the preview of a snapshot')
+                ->end()
                 ->arrayNode('ai')
                     ->addDefaultsIfNotSet()
                     ->children()

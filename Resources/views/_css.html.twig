@@ -35,7 +35,7 @@
 
     /* Page header */
     .kcms .kcms-crumbs { display: flex; gap: 8px; font-size: 13px; color: var(--kcms-muted); margin-bottom: 8px; }
-    .kcms .kcms-crumbs span::before { content: "/"; margin-right: 8px; opacity: .5; }
+    .kcms .kcms-crumbs span::before, .kcms .kcms-crumbs .kcms-crumb-link::before { content: "/"; margin-right: 8px; opacity: .5; color: var(--kcms-muted); }
     .kcms .kcms-head { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px; margin-bottom: 24px; }
     .kcms .kcms-title { font-size: 26px; font-weight: 650; letter-spacing: -.01em; line-height: 1.25; margin: 0; }
     .kcms .kcms-subtitle { display: flex; align-items: center; gap: 8px; color: var(--kcms-muted); margin: 4px 0 0; }
@@ -215,6 +215,36 @@
     .kcms .kcms-chat-hint { margin: 0; padding: 0 20px 12px; color: var(--kcms-muted); font-size: 12px; }
     .kcms .kcms-btn:disabled { opacity: .5; cursor: default; }
 
+    /* Snapshots (snapshot/*.html.twig) */
+    .kcms .kcms-snapshot-take { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 16px 24px; margin-bottom: 20px; padding: 28px; }
+    .kcms .kcms-btn-xl { min-height: 64px; padding: 0 32px; border-radius: 14px; font-size: 18px; box-shadow: 0 8px 20px rgb(79 70 229 / 28%); }
+    .kcms .kcms-btn-xl .kcms-icon { width: 24px; height: 24px; }
+    .kcms .kcms-snapshot-name { flex: 1; min-width: 240px; margin: 0; }
+    .kcms .kcms-snapshot-name span { display: block; margin-bottom: 6px; font-size: 14px; font-weight: 600; }
+    .kcms .kcms-snapshot-title { font-weight: 600; }
+    .kcms .kcms-badge-accent { margin-left: 8px; background: var(--kcms-accent-soft); border-color: transparent; color: var(--kcms-accent); }
+    .kcms .kcms-inline-actions { display: inline-flex; flex-wrap: wrap; justify-content: flex-end; gap: 6px; }
+    .kcms .kcms-inline-actions form { margin: 0; }
+    .kcms .kcms-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 20px; }
+    .kcms .kcms-stat { display: flex; flex-direction: column; padding: 14px 16px; border-radius: var(--kcms-radius); border: 1px solid var(--kcms-border); background: var(--kcms-surface); }
+    .kcms .kcms-stat strong { font-size: 24px; line-height: 1.2; }
+    .kcms .kcms-stat small { color: var(--kcms-muted); font-size: 12px; }
+    .kcms .kcms-status { margin-left: auto; padding: 2px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; }
+    .kcms .kcms-status-modified { --kcms-status: #b45309; --kcms-status-soft: #fffbeb; }
+    .kcms .kcms-status-added { --kcms-status: #1d4ed8; --kcms-status-soft: #eff6ff; }
+    .kcms .kcms-status-removed { --kcms-status: var(--kcms-danger); --kcms-status-soft: var(--kcms-danger-soft); }
+    .kcms .kcms-status-unchanged { --kcms-status: var(--kcms-muted); --kcms-status-soft: var(--kcms-subtle); }
+    .kcms .kcms-status { color: var(--kcms-status); background: var(--kcms-status-soft); }
+    .kcms .kcms-stat strong { color: var(--kcms-status); }
+    .kcms .kcms-change-row { border-bottom: 1px solid var(--kcms-border); }
+    .kcms .kcms-change-row:last-child { border-bottom: 0; }
+    .kcms .kcms-change-row summary { display: flex; align-items: center; gap: 10px; padding: 12px 16px; cursor: pointer; }
+    .kcms .kcms-change-row summary:hover { background: var(--kcms-subtle); }
+    .kcms .kcms-compare { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; padding: 0 16px 16px; }
+    .kcms .kcms-compare h3 { margin: 0 0 6px; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; color: var(--kcms-muted); }
+    .kcms .kcms-code { margin: 0; max-height: 260px; overflow: auto; padding: 10px 12px; border-radius: 8px; background: var(--kcms-subtle); border: 1px solid var(--kcms-border); font-family: var(--kcms-mono); font-size: 12px; white-space: pre-wrap; overflow-wrap: anywhere; }
+    .kcms .kcms-snapshot-image { display: block; max-width: 100%; max-height: 180px; border-radius: 8px; border: 1px solid var(--kcms-border); }
+
     /* Flash message */
     .kcms .kcms-flash {
         display: flex; align-items: center; gap: 8px; margin-bottom: 16px; padding: 10px 14px;
@@ -228,5 +258,6 @@
         .kcms .kcms-grid { grid-template-columns: minmax(0, 1fr); }
         .kcms .kcms-side { position: static; }
         .kcms .kcms-row-actions .kcms-copy { display: none; }
+        .kcms .kcms-compare { grid-template-columns: minmax(0, 1fr); }
     }
 </style>
