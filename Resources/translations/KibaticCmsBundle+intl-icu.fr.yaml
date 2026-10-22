@@ -41,7 +41,7 @@ type:
         new: Nouveau bloc HTML
     image:
         name: Image
-        description: Une image à partir de son adresse
+        description: Une image de l'ordinateur ou à partir de son adresse
         new: Nouveau bloc image
     alert:
         name: Alerte
@@ -76,6 +76,15 @@ editor:
     back: Retour à la liste
     delete: Supprimer ce bloc
     delete_confirm: Supprimer ce bloc ? Les pages qui l'affichent n'afficheront plus rien à sa place.
+    upload:
+        choose: Choisir une image
+        drop: ou la déposer ici
+        hint: 'PNG, JPG, GIF, WebP ou SVG, {size} Mo max. Enregistrée dans le bloc : rien n''est envoyé sur le serveur.'
+        uploaded: Image de l'ordinateur
+        replace: Remplacer
+        remove: Retirer
+        too_big: 'Cette image est trop lourde : {size} Mo max.'
+        not_image: Ce fichier n'est pas une image.
     preview:
         alt: Aperçu
         empty: L'aperçu de l'image s'affiche ici.
@@ -92,7 +101,7 @@ form:
         placeholder: Toutes les langues
     content: Contenu
     image_url:
-        label: Adresse de l'image
+        label: Ou l'adresse de l'image
         placeholder: https://… ou /images/…
     alert:
         label: Alerte

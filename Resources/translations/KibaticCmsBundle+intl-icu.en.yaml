@@ -41,7 +41,7 @@ type:
         new: New HTML block
     image:
         name: Image
-        description: An image from its URL
+        description: An image from the computer or from its URL
         new: New image block
     alert:
         name: Alert
@@ -76,6 +76,15 @@ editor:
     back: Back to the list
     delete: Delete this block
     delete_confirm: Delete this block? Pages that display it will show nothing in its place.
+    upload:
+        choose: Choose an image
+        drop: or drop it here
+        hint: 'PNG, JPG, GIF, WebP or SVG, {size} MB max. Saved inside the block: nothing is uploaded to the server.'
+        uploaded: Image from the computer
+        replace: Replace
+        remove: Remove
+        too_big: 'This image is too heavy: {size} MB max.'
+        not_image: This file is not an image.
     preview:
         alt: Preview
         empty: The image preview shows up here.
@@ -92,7 +101,7 @@ form:
         placeholder: All languages
     content: Content
     image_url:
-        label: Image URL
+        label: Or the image URL
         placeholder: https://… or /images/…
     alert:
         label: Alert

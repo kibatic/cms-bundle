@@ -9,6 +9,10 @@
 {{ form_start(form, {'attr': {'id': form.vars.id, 'class': 'kcms-form', 'data-kcms-form': true}}) }}
     <div class="kcms-grid">
         <section class="kcms-card kcms-main">
+            {% if block.type == 'image' %}
+                {% include '@KibaticCms/block/_image_upload.html.twig' %}
+            {% endif %}
+
             {{ form_row(form.content) }}
 
             {% if block.type == 'image' %}

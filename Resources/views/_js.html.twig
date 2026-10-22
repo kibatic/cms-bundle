@@ -58,6 +58,74 @@
             });
         });
 
+        // Image blocks: image from the computer, kept as a data: URL in the URL field (block/_image_upload.html.twig)
+        document.querySelectorAll('[data-kcms-upload]').forEach(upload => {
+            const urlInput = upload.closest('form').querySelector('[data-kcms-image-url]');
+            const urlRow = urlInput.parentElement;
+            const fileInput = upload.querySelector('[data-kcms-upload-input]');
+            const dropzone = upload.querySelector('[data-kcms-dropzone]');
+            const fileBox = upload.querySelector('[data-kcms-upload-file]');
+            const name = upload.querySelector('[data-kcms-upload-name]');
+            const error = upload.querySelector('[data-kcms-upload-error]');
+            const kilobytes = new Intl.NumberFormat(document.documentElement.lang || undefined, {style: 'unit', unit: 'kilobyte', maximumFractionDigits: 0});
+
+            const show = (fileName) => {
+                const isData = urlInput.value.startsWith('data:');
+                upload.classList.toggle('has-file', isData);
+                fileBox.hidden = !isData;
+                urlRow.hidden = isData;
+                if (isData) {
+                    // base64: 4 characters for 3 bytes
+                    const size = kilobytes.format(urlInput.value.length * 3 / 4 / 1024);
+                    name.textContent = (fileName ?? name.dataset.kcmsUploaded) + ' · ' + size;
+                }
+            };
+            const setValue = (value, fileName) => {
+                urlInput.value = value;
+                urlInput.dispatchEvent(new Event('input', {bubbles: true}));
+                show(fileName);
+            };
+            const read = (file) => {
+                error.hidden = true;
+                if (!file.type.startsWith('image/')) {
+                    error.textContent = upload.dataset.kcmsNotImage;
+                    error.hidden = false;
+                } else if (file.size > upload.dataset.kcmsMaxSize) {
+                    error.textContent = upload.dataset.kcmsTooBig;
+                    error.hidden = false;
+                } else {
+                    const reader = new FileReader();
+                    reader.addEventListener('load', () => setValue(reader.result, file.name));
+                    reader.readAsDataURL(file);
+                }
+            };
+
+            fileInput.addEventListener('change', () => {
+                fileInput.files.length && read(fileInput.files[0]);
+                fileInput.value = '';
+            });
+            upload.querySelector('[data-kcms-upload-remove]').addEventListener('click', () => setValue(''));
+            dropzone.addEventListener('dragover', event => {
+                event.preventDefault();
+                dropzone.classList.add('is-over');
+            });
+            dropzone.addEventListener('dragleave', () => dropzone.classList.remove('is-over'));
+            dropzone.addEventListener('drop', event => {
+                event.preventDefault();
+                dropzone.classList.remove('is-over');
+                event.dataTransfer.files.length && read(event.dataTransfer.files[0]);
+            });
+            // Ctrl+V of a copied image, anywhere on the page
+            document.addEventListener('paste', event => {
+                const file = [...event.clipboardData.files].find(f => f.type.startsWith('image/'));
+                if (file) {
+                    event.preventDefault();
+                    read(file);
+                }
+            });
+            show();
+        });
+
         // Image blocks: live preview of the URL
         document.querySelectorAll('[data-kcms-image-preview]').forEach(preview => {
             const input = preview.closest('form').querySelector('[data-kcms-image-url]');

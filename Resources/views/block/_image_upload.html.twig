@@ -1,0 +1,27 @@
+{#
+    Image picked from the computer: read in the browser as a data: URL (base64) and put in the block's URL field,
+    nothing is uploaded on its own (see _js.html.twig). The limit keeps the form under PHP's default post_max_size (8 MB).
+#}
+{% trans_default_domain 'KibaticCmsBundle' %}
+{% set max_size_mb = 2 %}
+
+<div class="kcms-upload" data-kcms-upload data-kcms-max-size="{{ max_size_mb * 1024 * 1024 }}"
+     data-kcms-too-big="{{ 'editor.upload.too_big'|trans({size: max_size_mb}) }}"
+     data-kcms-not-image="{{ 'editor.upload.not_image'|trans }}">
+    <input type="file" accept="image/*" id="{{ form.vars.id }}_file" hidden data-kcms-upload-input>
+
+    <label for="{{ form.vars.id }}_file" class="kcms-dropzone" data-kcms-dropzone>
+        <svg class="kcms-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m17 8-5-5-5 5"/><path d="M12 3v12"/></svg>
+        <span><strong>{{ 'editor.upload.choose'|trans }}</strong> {{ 'editor.upload.drop'|trans }}</span>
+        <small>{{ 'editor.upload.hint'|trans({size: max_size_mb}) }}</small>
+    </label>
+
+    <div class="kcms-upload-file" data-kcms-upload-file hidden>
+        <svg class="kcms-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.1-3.1a2 2 0 0 0-2.8 0L6 21"/></svg>
+        <span data-kcms-upload-name data-kcms-uploaded="{{ 'editor.upload.uploaded'|trans }}"></span>
+        <label for="{{ form.vars.id }}_file" class="kcms-btn kcms-btn-sm">{{ 'editor.upload.replace'|trans }}</label>
+        <button type="button" class="kcms-btn kcms-btn-sm kcms-btn-danger" data-kcms-upload-remove>{{ 'editor.upload.remove'|trans }}</button>
+    </div>
+
+    <p class="kcms-upload-error" data-kcms-upload-error hidden></p>
+</div>
