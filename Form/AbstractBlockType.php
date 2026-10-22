@@ -15,25 +15,24 @@ abstract class AbstractBlockType extends AbstractType
     {
         $builder
             ->add('slug', null, [
-                'label' => false,
+                'label' => 'Slug',
+                'help' => 'Used in templates with cms_block(\'…\'). Changing it breaks the pages that display this block.',
                 'attr' => [
-                    'placeholder' => 'Slug',
-                    'title' => 'Warning : be very carefull when changing the slug as it could break the page you use this block !'
+                    'placeholder' => 'e.g. home-intro',
+                    'spellcheck' => 'false',
                 ]
             ])
             ->add('language', LanguageType::class, [
-                'label' => false,
+                'label' => 'Language',
+                'help' => 'Leave empty for a block shared by every language.',
                 'required' => false,
                 'preferred_choices' => empty($options['existing_languages']) ? ['fr', 'en'] : $options['existing_languages'],
-                'placeholder' => 'Language',
+                'placeholder' => 'All languages',
                 'duplicate_preferred_choices' => false,
                 'empty_data' => null,
             ])
             ->add('content', null, [
-                'label' => false,
-                'attr' => [
-                    'placeholder' => 'Content'
-                ]
+                'label' => 'Content',
             ])
         ;
     }

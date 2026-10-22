@@ -25,7 +25,7 @@ class BlockController extends AbstractController
     {
         $this->denyAccessUnlessGranted(self::$role);
 
-        $i18nDisplay = !empty($repository->getExistingLanguages());
+        $languages = $repository->getExistingLanguages();
 
         $blocks = $repository->findAll();
         $blockTypeNames = $blockTypeChain->getBlockTypeNames();
@@ -37,7 +37,8 @@ class BlockController extends AbstractController
         }
 
         return $this->render('@KibaticCms/block/index.html.twig', [
-            'i18nDisplay' => $i18nDisplay,
+            'i18nDisplay' => !empty($languages),
+            'languages' => $languages,
             'blocksBySlug' => $blocksBySlug,
             'blocks' => $blocks,
             'blockTypeNames' => $blockTypeNames
@@ -61,6 +62,13 @@ class BlockController extends AbstractController
             $block->setSlug($slug);
         }
 
+        // Prefilled by the "add translation" links
+        $language = $request->query->get('language');
+
+        if ($language !== null) {
+            $block->setLanguage($language);
+        }
+
         $form = $this->createForm($blockType::class, $block, [
             'existing_languages' => $this->blockRepository->getExistingLanguages()
         ]);
@@ -72,12 +80,14 @@ class BlockController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             $entityManager->persist($block);
             $entityManager->flush();
+            $this->addFlash('kibatic_cms', 'Block created.');
 
-            return $this->redirectToRoute('cms_block_index');
+            return $this->redirectToRoute('cms_block_edit', ['id' => $block->getId()]);
         }
 
         return $this->render('@KibaticCms/block/new.html.twig', [
             'block' => $block,
+            'typeName' => $typeName,
             'form' => $form->createView(),
         ]);
     }
@@ -99,11 +109,15 @@ class BlockController extends AbstractController
 
         if ($editForm->isSubmitted() && $editForm->isValid()) {
             $entityManager->flush();
+            $this->addFlash('kibatic_cms', 'Block saved.');
+
             return $this->redirectToRoute('cms_block_edit', ['id' => $block->getId()]);
         }
 
         return $this->render('@KibaticCms/block/edit.html.twig', [
             'block' => $block,
+            'translations' => $this->blockRepository->findBySlug($block->getSlug()),
+            'languages' => $this->blockRepository->getExistingLanguages(),
             'edit_form' => $editForm->createView(),
             'delete_form' => $deleteForm->createView(),
         ]);
@@ -133,6 +147,8 @@ class BlockController extends AbstractController
 
             if ($editForm->isSubmitted() && $editForm->isValid()) {
                 $entityManager->flush();
+                $this->addFlash('kibatic_cms', 'Block saved.');
+
                 return $this->redirectToRoute('cms_block_edit_by_slug', ['slug' => $block->getSlug()]);
             }
         }
@@ -157,6 +173,7 @@ class BlockController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             $entityManager->remove($block);
             $entityManager->flush();
+            $this->addFlash('kibatic_cms', 'Block deleted.');
         }
 
         return $this->redirectToRoute('cms_block_index');
@@ -171,7 +188,7 @@ class BlockController extends AbstractController
     {
         return $this->container->get('form.factory')->createNamedBuilder('block_delete_' . $block->getId())
             ->setAction($this->generateUrl('cms_block_delete', ['id' => $block->getId()]))
-            ->setMethod('DELETE')
+            ->setMethod('POST')
             ->getForm()
         ;
     }

@@ -2,6 +2,7 @@
 
 namespace Kibatic\CmsBundle\Form;
 
+use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
 
 class ImageBlockType extends AbstractBlockType implements BlockTypeInterface
@@ -10,9 +11,13 @@ class ImageBlockType extends AbstractBlockType implements BlockTypeInterface
     {
         parent::buildForm($builder, $options);
 
-        $builder->add('content', null, [
+        // Text input rather than UrlType: relative paths (/images/…) are valid
+        $builder->add('content', TextType::class, [
+            'label' => 'Image URL',
             'attr' => [
-                'placeholder' => 'Image URL'
+                'inputmode' => 'url',
+                'placeholder' => 'https://… or /images/…',
+                'data-kcms-image-url' => true,
             ]
         ]);
     }

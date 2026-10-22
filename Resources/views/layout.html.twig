@@ -9,3 +9,13 @@
     {{ parent() }}
     {% include '@KibaticCms/_js.html.twig' %}
 {% endblock %}
+
+{% block content %}
+    <div class="kcms">
+        {% for message in app.flashes('kibatic_cms') %}
+            <div class="kcms-flash" role="status">{{ message }}</div>
+        {% endfor %}
+
+        {% block kcms_body %}{% endblock %}
+    </div>
+{% endblock %}

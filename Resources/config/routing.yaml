@@ -28,7 +28,8 @@ cms_block_edit_by_slug:
 cms_block_delete:
     path: /cms/block/{id}/delete
     controller: Kibatic\CmsBundle\Controller\BlockController::delete
-    methods: DELETE
+    # POST: http_method_override is off by default since Symfony 7
+    methods: POST|DELETE
 
 cms_block_debug:
     path: /cms/debug

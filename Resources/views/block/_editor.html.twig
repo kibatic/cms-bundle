@@ -1,0 +1,55 @@
+{#
+    Block form: content on the left, settings and actions on the right.
+    Variables: form, block, delete_form (null when creating), submit_label
+#}
+{# The admin styles plain form markup, whatever form theme the application uses #}
+{% form_theme form with ['form_div_layout.html.twig'] only %}
+
+{{ form_start(form, {'attr': {'id': form.vars.id, 'class': 'kcms-form', 'data-kcms-form': true}}) }}
+    <div class="kcms-grid">
+        <section class="kcms-card kcms-main">
+            {{ form_row(form.content) }}
+
+            {% if block.type == 'image' %}
+                <figure class="kcms-image-preview" data-kcms-image-preview>
+                    <img alt="Preview">
+                    <figcaption>The image preview shows up here.</figcaption>
+                </figure>
+            {% endif %}
+        </section>
+
+        <aside class="kcms-side">
+            <div class="kcms-card">
+                <h2 class="kcms-card-title">Settings</h2>
+                {{ form_row(form.slug) }}
+                {{ form_row(form.language) }}
+                {{ form_rest(form) }}
+            </div>
+
+            {% if delete_form %}
+                <dl class="kcms-meta">
+                    <div><dt>Created</dt><dd>{{ block.createdAt|date('M j, Y H:i') }}</dd></div>
+                    <div><dt>Updated</dt><dd>{{ block.updatedAt|date('M j, Y H:i') }}</dd></div>
+                </dl>
+            {% endif %}
+
+            <div class="kcms-actions">
+                <button type="submit" class="kcms-btn kcms-btn-primary" title="Ctrl+S">{{ submit_label }}</button>
+                <a href="{{ path('cms_block_index') }}" class="kcms-btn">Back to the list</a>
+            </div>
+
+            {% if delete_form %}
+                <button type="submit" class="kcms-btn kcms-btn-danger" form="{{ delete_form.vars.id }}">Delete this block</button>
+            {% endif %}
+        </aside>
+    </div>
+{{ form_end(form, {'render_rest': false}) }}
+
+{% if delete_form %}
+    {{ form_start(delete_form, {'attr': {
+        'id': delete_form.vars.id,
+        'hidden': true,
+        'onsubmit': 'return confirm(\'Delete this block? Pages that display it will show nothing in its place.\')'
+    }}) }}
+    {{ form_end(delete_form) }}
+{% endif %}

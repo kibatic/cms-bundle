@@ -15,13 +15,13 @@ class Block
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    private int $id;
+    private ?int $id = null;
 
     #[ORM\Column(type: 'string')]
     private string $slug;
 
     #[ORM\Column(type: 'text', nullable: true)]
-    private string $content;
+    private ?string $content = null;
 
     #[ORM\Column(type: 'string', nullable: false)]
     private string $type = TextBlockType::class;
@@ -35,7 +35,7 @@ class Block
     private \DateTime $updatedAt;
 
     #[ORM\Column(type: 'text', nullable: true)]
-    private string $language;
+    private ?string $language = null;
 
 
     public function getId(): ?int

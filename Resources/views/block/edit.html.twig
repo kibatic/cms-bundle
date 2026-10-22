@@ -1,34 +1,33 @@
 {% extends '@KibaticCms/layout.html.twig' %}
+{% import '@KibaticCms/_macros.html.twig' as kcms %}
 
-{% block content %}
-    <h1>Block edit</h1>
+{% block kcms_body %}
+    <nav class="kcms-crumbs"><a href="{{ path('cms_block_index') }}">Content blocks</a><span>{{ block.slug }}</span></nav>
 
-    <section>
-
-        {% include '@KibaticCms/block/_form.html.twig' with {'form': edit_form} %}
-
-        {{ form_start(delete_form, {'attr': {
-            'id': delete_form.vars.id,
-            'onsubmit': 'return confirm(\'Are you sure ?\')'
-        }}) }}
-        {{ form_end(delete_form) }}
-
-        <div class="btn-group pull-right" role="group">
-            <a href="{{ path('cms_block_index') }}" class="btn btn-default">Back to the list</a>
-            <button type="submit" class="btn btn-danger" form="{{ delete_form.vars.id }}">Delete</button>
-            <button type="submit" class="btn btn-success" form="{{ edit_form.vars.id }}">Save</button>
+    <header class="kcms-head">
+        <div>
+            <h1 class="kcms-title"><span class="kcms-slug">{{ block.slug }}</span></h1>
+            <p class="kcms-subtitle">{{ kcms.type_badge(block.type) }} Updated {{ block.updatedAt|date('M j, Y \\a\\t H:i') }}</p>
         </div>
-    </section>
-{% endblock %}
+        <div class="kcms-head-actions">{{ kcms.copy_snippet(block.slug) }}</div>
+    </header>
 
-{% block stylesheets %}
-    {{ parent() }}
+    {% if languages is not empty %}
+        {% set translatedLanguages = translations|map(t => t.language) %}
+        <nav class="kcms-tabs" aria-label="Translations">
+            {% for translation in translations %}
+                <a href="{{ path('cms_block_edit', {'id': translation.id}) }}"
+                   class="kcms-tab{{ translation.id == block.id ? ' is-active' }}">{{ translation.language ?? 'all languages' }}</a>
+            {% endfor %}
+            {% for language in languages|filter(l => l not in translatedLanguages) %}
+                <a href="{{ path('cms_block_new', {'typeName': block.type, 'slug': block.slug, 'language': language}) }}"
+                   class="kcms-tab kcms-tab-add" title="Add the {{ language }} translation">+ {{ language }}</a>
+            {% endfor %}
+            {% if translations|length > 1 %}
+                <a href="{{ path('cms_block_edit_by_slug', {'slug': block.slug}) }}" class="kcms-tab kcms-tab-end">Side by side</a>
+            {% endif %}
+        </nav>
+    {% endif %}
 
-    {% include '@KibaticCms/_css.html.twig' %}
-{% endblock %}
-
-{% block javascripts %}
-    {{ parent() }}
-
-    {% include '@KibaticCms/_js.html.twig' %}
+    {% include '@KibaticCms/block/_editor.html.twig' with {'form': edit_form, 'submit_label': 'Save'} %}
 {% endblock %}

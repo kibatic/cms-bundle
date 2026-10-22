@@ -2,8 +2,8 @@
 <script>
     document.addEventListener("DOMContentLoaded", function() {
         Wysi({
-            el: '.wysiwyg',
-            darkMode: true,
+            el: '.kcms .wysiwyg',
+            darkMode: false,
             height: 300,
             autoGrow: true,
             autoHide: false,
@@ -18,5 +18,86 @@
             ],
             onChange: (content) => {}
         });
+
+        // Block list: filter by slug
+        const filter = document.querySelector('[data-kcms-filter]');
+        if (filter) {
+            const rows = document.querySelectorAll('[data-kcms-slug]');
+            const noMatch = document.querySelector('[data-kcms-no-match]');
+            filter.addEventListener('input', () => {
+                const query = filter.value.trim().toLowerCase();
+                let visible = 0;
+                rows.forEach(row => {
+                    const match = row.dataset.kcmsSlug.toLowerCase().includes(query);
+                    row.hidden = !match;
+                    visible += match;
+                });
+                noMatch.hidden = visible > 0;
+            });
+        }
+
+        // "New block" menu: closes on a click outside or with Escape
+        document.querySelectorAll('.kcms-menu').forEach(menu => {
+            document.addEventListener('click', event => menu.contains(event.target) || menu.removeAttribute('open'));
+            document.addEventListener('keydown', event => event.key === 'Escape' && menu.removeAttribute('open'));
+        });
+
+        // "Copy Twig" buttons
+        document.querySelectorAll('[data-kcms-copy]').forEach(button => {
+            button.addEventListener('click', () => {
+                navigator.clipboard.writeText(button.dataset.kcmsCopy).then(() => {
+                    const label = button.querySelector('[data-kcms-copy-label]');
+                    label.textContent = 'Copied';
+                    button.classList.add('is-done');
+                    setTimeout(() => {
+                        label.textContent = 'Copy Twig';
+                        button.classList.remove('is-done');
+                    }, 1500);
+                });
+            });
+        });
+
+        // Image blocks: live preview of the URL
+        document.querySelectorAll('[data-kcms-image-preview]').forEach(preview => {
+            const input = preview.closest('form').querySelector('[data-kcms-image-url]');
+            const image = preview.querySelector('img');
+            const caption = preview.querySelector('figcaption');
+            image.addEventListener('load', () => preview.classList.add('is-loaded'));
+            image.addEventListener('error', () => {
+                preview.classList.remove('is-loaded');
+                preview.classList.add('is-broken');
+                image.removeAttribute('src');
+                caption.textContent = 'This URL does not load an image.';
+            });
+            const update = () => {
+                preview.classList.remove('is-loaded', 'is-broken');
+                caption.textContent = 'The image preview shows up here.';
+                input.value.trim() ? image.src = input.value.trim() : image.removeAttribute('src');
+            };
+            input.addEventListener('input', update);
+            update();
+        });
+
+        // Editor: Ctrl+S saves, leaving with unsaved changes asks first
+        const forms = document.querySelectorAll('[data-kcms-form]');
+        let dirty = false;
+        forms.forEach(form => {
+            form.addEventListener('input', () => dirty = true);
+            form.addEventListener('submit', () => dirty = false);
+        });
+        if (forms.length > 0) {
+            window.addEventListener('beforeunload', event => {
+                if (dirty) {
+                    event.preventDefault();
+                }
+            });
+            document.addEventListener('keydown', event => {
+                if ((event.ctrlKey || event.metaKey) && event.key === 's') {
+                    event.preventDefault();
+                    const form = document.activeElement?.closest('[data-kcms-form]') ?? forms[0];
+                    form.requestSubmit();
+                }
+            });
+        }
     });
 </script>

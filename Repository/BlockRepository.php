@@ -25,7 +25,7 @@ class BlockRepository extends ServiceEntityRepository
     {
         $languages = array_filter(
             $this->createQueryBuilder('b')
-                ->select('b.language')
+                ->select('DISTINCT b.language')
                 ->getQuery()
                 ->getSingleColumnResult()
         );

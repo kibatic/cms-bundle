@@ -1,66 +1,116 @@
 {% extends '@KibaticCms/layout.html.twig' %}
+{% import '@KibaticCms/_macros.html.twig' as kcms %}
 
-{% block content %}
-    <div id="cms_blocks">
-        <header>
-            <h1>CMS Blocks</h1>
+{% block kcms_body %}
+    {% set debug = app.request.hasPreviousSession ? app.session.get('cms-debug', false) : false %}
 
-            <div>
+    <header class="kcms-head">
+        <div>
+            <h1 class="kcms-title">Content blocks</h1>
+            <p class="kcms-subtitle">
+                {{ blocksBySlug|length }} block{{ blocksBySlug|length > 1 ? 's' }}
+                {%- if i18nDisplay %} · {{ languages|length }} language{{ languages|length > 1 ? 's' }}{% endif %}
+            </p>
+        </div>
+
+        <div class="kcms-head-actions">
+            <a href="{{ path('cms_block_debug') }}" class="kcms-toggle{{ debug ? ' is-on' }}" role="switch" aria-checked="{{ debug ? 'true' : 'false' }}"
+               title="Outlines every block on the site's pages, with a link to edit it">
+                <span class="kcms-toggle-track"></span> Debug mode
+            </a>
+
+            <details class="kcms-menu">
+                <summary class="kcms-btn kcms-btn-primary">
+                    <svg class="kcms-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+                    New block
+                </summary>
+                <div class="kcms-menu-list">
+                    {% for blockTypeName in blockTypeNames %}
+                        <a href="{{ path('cms_block_new', {'typeName': blockTypeName}) }}" class="kcms-menu-item">
+                            {{ kcms.type_icon(blockTypeName) }}
+                            <span>
+                                <strong>{{ blockTypeName|capitalize }}</strong>
+                                <small>{{ kcms.type_description(blockTypeName) }}</small>
+                            </span>
+                        </a>
+                    {% endfor %}
+                </div>
+            </details>
+        </div>
+    </header>
+
+    {% if blocks|length > 0 %}
+        <div class="kcms-card kcms-card-flush">
+            <div class="kcms-toolbar">
+                <label class="kcms-search">
+                    <svg class="kcms-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                    <input type="search" placeholder="Filter by slug…" data-kcms-filter aria-label="Filter by slug">
+                </label>
+            </div>
+
+            <div class="kcms-table-wrap">
+                <table class="kcms-table">
+                    <thead>
+                        <tr>
+                            <th>Slug</th>
+                            <th>Type</th>
+                            {% if i18nDisplay %}<th>Languages</th>{% endif %}
+                            <th>Updated</th>
+                            <th><span class="kcms-sr">Actions</span></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for slug, blocks in blocksBySlug %}
+                            {% set block = blocks[0] %}
+                            {% set updatedAt = blocks|map(b => b.updatedAt)|reduce((max, date) => max is null or date > max ? date : max) %}
+                            <tr data-kcms-slug="{{ slug }}">
+                                <td>
+                                    <a href="{{ path('cms_block_edit', {'id': block.id}) }}" class="kcms-slug">{{ slug }}</a>
+                                </td>
+                                <td>{{ kcms.type_badge(block.type) }}</td>
+                                {% if i18nDisplay %}
+                                    <td>
+                                        <div class="kcms-chips">
+                                            {% for b in blocks %}
+                                                <a href="{{ path('cms_block_edit', {'id': b.id}) }}" class="kcms-chip">{{ b.language ?? 'all' }}</a>
+                                            {% endfor %}
+                                            {% for language in languages %}
+                                                {% if language not in blocks|map(b => b.language) %}
+                                                    <a href="{{ path('cms_block_new', {'typeName': block.type, 'slug': slug, 'language': language}) }}"
+                                                       class="kcms-chip kcms-chip-missing" title="Add the {{ language }} translation">+ {{ language }}</a>
+                                                {% endif %}
+                                            {% endfor %}
+                                        </div>
+                                    </td>
+                                {% endif %}
+                                <td class="kcms-muted" title="{{ updatedAt|date('Y-m-d H:i') }}">{{ updatedAt|date('M j, Y') }}</td>
+                                <td class="kcms-row-actions">
+                                    {{ kcms.copy_snippet(slug) }}
+                                    <a href="{{ path('cms_block_edit', {'id': block.id}) }}" class="kcms-btn kcms-btn-sm">Edit</a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <p class="kcms-no-match" data-kcms-no-match hidden>No block matches this filter.</p>
+        </div>
+    {% else %}
+        <div class="kcms-card kcms-empty">
+            <h2>No content block yet</h2>
+            <p>
+                A block is a piece of content edited here and displayed in your templates with
+                <code>{{ "{{ cms_block('my-slug') }}" }}</code>. Choose its type to create the first one:
+            </p>
+            <div class="kcms-type-grid">
                 {% for blockTypeName in blockTypeNames %}
-                    <a href="{{ path('cms_block_new', {'typeName': blockTypeName}) }}" class="btn btn-outline-secondary">
-                        ➕ {{ blockTypeName|capitalize }}
+                    <a href="{{ path('cms_block_new', {'typeName': blockTypeName}) }}" class="kcms-type-card">
+                        {{ kcms.type_icon(blockTypeName) }}
+                        <strong>{{ blockTypeName|capitalize }}</strong>
+                        <small>{{ kcms.type_description(blockTypeName) }}</small>
                     </a>
                 {% endfor %}
-
-                {% set debug = app.request.hasPreviousSession ? app.session.get('cms-debug', false) : false %}
-                <a href="{{ path('cms_block_debug') }}" class="btn btn-outline-{{ debug ? 'success' : 'danger' }}">
-                    🐛 Debug : {% if debug %}on{% else %}off{% endif %}
-                </a>
             </div>
-        </header>
-
-        {% if blocks|length > 0 %}
-            <table class="table table-striped">
-                <thead>
-                    <tr>
-                        <th>Slug</th>
-                        {% if i18nDisplay %}<th>Language</th>{% endif %}
-                        <th>Type</th>
-                        <th>Created at</th>
-                        <th>Updated at</th>
-                    </tr>
-                </thead>
-                <tbody>
-                {% for slug, blocks in blocksBySlug %}
-                    {% set block = blocks[0] %}
-                        <tr>
-                            {% if i18nDisplay %}
-                                <td><a href="{{ path('cms_block_edit_by_slug', { 'slug': block.slug }) }}">{{ block.slug }}</a></td>
-                                <td>
-                                    {% for b in blocks %}
-                                        <a href="{{ path('cms_block_edit', {'id': b.id}) }}">{{ b.language ?? 'n/a' }}</a>{{ not loop.last ? ' - ' : '' }}
-                                    {% endfor %}
-                                </td>
-                            {% else %}
-                                <td><a href="{{ path('cms_block_edit', { 'id': block.id }) }}">{{ block.slug }}</a></td>
-                            {% endif %}
-                            <td>{{ block.type }}</td>
-                            <td>{{ block.createdAt|date('Y-m-d') }}</td>
-                            <td>{{ block.updatedAt|date('Y-m-d') }}</td>
-                        </tr>
-                {% endfor %}
-                </tbody>
-            </table>
-        {% else %}
-            <p class="alert alert-info">
-                There isn't any existing content block yet.
-            </p>
-        {% endif %}
-    </div>
-{% endblock %}
-
-{% block stylesheets %}
-    {{ parent() }}
-
-    {% include '@KibaticCms/_css.html.twig' %}
+        </div>
+    {% endif %}
 {% endblock %}

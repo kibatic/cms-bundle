@@ -1,35 +1,25 @@
 {% extends '@KibaticCms/layout.html.twig' %}
+{% import '@KibaticCms/_macros.html.twig' as kcms %}
 
-{% block content %}
-    <h1>Blocks edit : <b>{{ blocks[0].slug }}</b></h1>
+{% block kcms_body %}
+    <nav class="kcms-crumbs"><a href="{{ path('cms_block_index') }}">Content blocks</a><span>{{ blocks[0].slug }}</span></nav>
 
-    {% for edit_form in edit_forms %}
-        <section>
-            {% include '@KibaticCms/block/_form.html.twig' with {'form': edit_form} %}
+    <header class="kcms-head">
+        <div>
+            <h1 class="kcms-title"><span class="kcms-slug">{{ blocks[0].slug }}</span></h1>
+            <p class="kcms-subtitle">Every translation of this block, each saved on its own.</p>
+        </div>
+        <div class="kcms-head-actions">{{ kcms.copy_snippet(blocks[0].slug) }}</div>
+    </header>
 
-            {% set delete_form = delete_forms[loop.index0] %}
-            {{ form(delete_form, {'attr': {
-                'id': delete_form.vars.id,
-                'onsubmit': 'return confirm(\'Are you sure ?\')'
-            }}) }}
-
-            <div class="btn-group pull-right" role="group">
-                <a href="{{ path('cms_block_index') }}" class="btn btn-default">Back to the list</a>
-                <button type="submit" class="btn btn-danger" form="{{ delete_form.vars.id }}">Delete</button>
-                <button type="submit" class="btn btn-success" form="{{ edit_form.vars.id }}">Save</button>
-            </div>
-        </section>
+    {% for block in blocks %}
+        <h2 class="kcms-section-title">
+            <a href="{{ path('cms_block_edit', {'id': block.id}) }}">{{ block.language ?? 'All languages' }}</a>
+        </h2>
+        {% include '@KibaticCms/block/_editor.html.twig' with {
+            'form': edit_forms[loop.index0],
+            'delete_form': delete_forms[loop.index0],
+            'submit_label': 'Save',
+        } %}
     {% endfor %}
-{% endblock %}
-
-{% block stylesheets %}
-    {{ parent() }}
-
-    {% include '@KibaticCms/_css.html.twig' %}
-{% endblock %}
-
-{% block javascripts %}
-    {{ parent() }}
-
-    {% include '@KibaticCms/_js.html.twig' %}
 {% endblock %}
