@@ -1,15 +1,16 @@
 {% extends '@KibaticCms/layout.html.twig' %}
+{% trans_default_domain 'KibaticCmsBundle' %}
 {% import '@KibaticCms/_macros.html.twig' as kcms %}
 
 {% block kcms_body %}
-    <nav class="kcms-crumbs"><a href="{{ path('cms_block_index') }}">Content blocks</a><span>New block</span></nav>
+    <nav class="kcms-crumbs"><a href="{{ path('cms_block_index') }}">{{ 'index.title'|trans }}</a><span>{{ 'new.crumb'|trans }}</span></nav>
 
     <header class="kcms-head">
         <div>
-            <h1 class="kcms-title">New {{ typeName }} block</h1>
+            <h1 class="kcms-title">{{ kcms.type_new_title(typeName) }}</h1>
             <p class="kcms-subtitle">{{ kcms.type_description(typeName) }}</p>
         </div>
     </header>
 
-    {% include '@KibaticCms/block/_editor.html.twig' with {'delete_form': null, 'submit_label': 'Create block'} %}
+    {% include '@KibaticCms/block/_editor.html.twig' with {'delete_form': null, 'submit_label': 'editor.create'} %}
 {% endblock %}

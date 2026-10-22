@@ -1,4 +1,5 @@
 {% extends 'layout.html.twig' %}
+{% trans_default_domain 'KibaticCmsBundle' %}
 
 {% block stylesheets %}
     {{ parent() }}
@@ -13,7 +14,7 @@
 {% block content %}
     <div class="kcms">
         {% for message in app.flashes('kibatic_cms') %}
-            <div class="kcms-flash" role="status">{{ message }}</div>
+            <div class="kcms-flash" role="status">{{ message|trans }}</div>
         {% endfor %}
 
         {% block kcms_body %}{% endblock %}

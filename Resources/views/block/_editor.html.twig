@@ -2,6 +2,7 @@
     Block form: content on the left, settings and actions on the right.
     Variables: form, block, delete_form (null when creating), submit_label
 #}
+{% trans_default_domain 'KibaticCmsBundle' %}
 {# The admin styles plain form markup, whatever form theme the application uses #}
 {% form_theme form with ['form_div_layout.html.twig'] only %}
 
@@ -11,16 +12,16 @@
             {{ form_row(form.content) }}
 
             {% if block.type == 'image' %}
-                <figure class="kcms-image-preview" data-kcms-image-preview>
-                    <img alt="Preview">
-                    <figcaption>The image preview shows up here.</figcaption>
+                <figure class="kcms-image-preview" data-kcms-image-preview data-kcms-broken="{{ 'editor.preview.broken'|trans }}">
+                    <img alt="{{ 'editor.preview.alt'|trans }}">
+                    <figcaption>{{ 'editor.preview.empty'|trans }}</figcaption>
                 </figure>
             {% endif %}
         </section>
 
         <aside class="kcms-side">
             <div class="kcms-card">
-                <h2 class="kcms-card-title">Settings</h2>
+                <h2 class="kcms-card-title">{{ 'editor.settings'|trans }}</h2>
                 {{ form_row(form.slug) }}
                 {{ form_row(form.language) }}
                 {{ form_rest(form) }}
@@ -28,18 +29,18 @@
 
             {% if delete_form %}
                 <dl class="kcms-meta">
-                    <div><dt>Created</dt><dd>{{ block.createdAt|date('M j, Y H:i') }}</dd></div>
-                    <div><dt>Updated</dt><dd>{{ block.updatedAt|date('M j, Y H:i') }}</dd></div>
+                    <div><dt>{{ 'editor.created'|trans }}</dt><dd>{{ block.createdAt|date('format.datetime'|trans) }}</dd></div>
+                    <div><dt>{{ 'editor.updated'|trans }}</dt><dd>{{ block.updatedAt|date('format.datetime'|trans) }}</dd></div>
                 </dl>
             {% endif %}
 
             <div class="kcms-actions">
-                <button type="submit" class="kcms-btn kcms-btn-primary" title="Ctrl+S">{{ submit_label }}</button>
-                <a href="{{ path('cms_block_index') }}" class="kcms-btn">Back to the list</a>
+                <button type="submit" class="kcms-btn kcms-btn-primary" title="Ctrl+S">{{ submit_label|trans }}</button>
+                <a href="{{ path('cms_block_index') }}" class="kcms-btn">{{ 'editor.back'|trans }}</a>
             </div>
 
             {% if delete_form %}
-                <button type="submit" class="kcms-btn kcms-btn-danger" form="{{ delete_form.vars.id }}">Delete this block</button>
+                <button type="submit" class="kcms-btn kcms-btn-danger" form="{{ delete_form.vars.id }}">{{ 'editor.delete'|trans }}</button>
             {% endif %}
         </aside>
     </div>
@@ -49,7 +50,7 @@
     {{ form_start(delete_form, {'attr': {
         'id': delete_form.vars.id,
         'hidden': true,
-        'onsubmit': 'return confirm(\'Delete this block? Pages that display it will show nothing in its place.\')'
+        'onsubmit': 'return confirm(\'' ~ ('editor.delete_confirm'|trans|e('js')) ~ '\')'
     }}) }}
     {{ form_end(delete_form) }}
 {% endif %}

@@ -80,7 +80,7 @@ class BlockController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             $entityManager->persist($block);
             $entityManager->flush();
-            $this->addFlash('kibatic_cms', 'Block created.');
+            $this->addFlash('kibatic_cms', 'flash.created');
 
             return $this->redirectToRoute('cms_block_edit', ['id' => $block->getId()]);
         }
@@ -109,7 +109,7 @@ class BlockController extends AbstractController
 
         if ($editForm->isSubmitted() && $editForm->isValid()) {
             $entityManager->flush();
-            $this->addFlash('kibatic_cms', 'Block saved.');
+            $this->addFlash('kibatic_cms', 'flash.saved');
 
             return $this->redirectToRoute('cms_block_edit', ['id' => $block->getId()]);
         }
@@ -147,7 +147,7 @@ class BlockController extends AbstractController
 
             if ($editForm->isSubmitted() && $editForm->isValid()) {
                 $entityManager->flush();
-                $this->addFlash('kibatic_cms', 'Block saved.');
+                $this->addFlash('kibatic_cms', 'flash.saved');
 
                 return $this->redirectToRoute('cms_block_edit_by_slug', ['slug' => $block->getSlug()]);
             }
@@ -173,7 +173,7 @@ class BlockController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             $entityManager->remove($block);
             $entityManager->flush();
-            $this->addFlash('kibatic_cms', 'Block deleted.');
+            $this->addFlash('kibatic_cms', 'flash.deleted');
         }
 
         return $this->redirectToRoute('cms_block_index');

@@ -1,0 +1,109 @@
+format:
+    # PHP date() formats
+    date: 'M j, Y'
+    datetime: 'M j, Y, H:i'
+
+index:
+    title: Content blocks
+    blocks: '{count, plural, one {# block} other {# blocks}}'
+    languages: '{count, plural, one {# language} other {# languages}}'
+    debug: Debug mode
+    debug_help: Outlines every block on the site's pages, with a link to edit it
+    new: New block
+    filter: Filter by slug…
+    column:
+        slug: Slug
+        type: Type
+        languages: Languages
+        updated: Updated
+        actions: Actions
+    edit: Edit
+    add_translation: 'Add the {language} translation'
+    no_match: No block matches this filter.
+    empty:
+        title: No content block yet
+        text: 'A block is a piece of content edited here and displayed in your templates with:'
+        choose: 'Choose its type to create the first one:'
+
+language:
+    all: all
+    all_long: All languages
+
+type:
+    custom: Custom block type
+    text:
+        name: Text
+        description: Plain text, no formatting
+        new: New text block
+    html:
+        name: HTML
+        description: Rich text with the visual editor
+        new: New HTML block
+    image:
+        name: Image
+        description: An image from its URL
+        new: New image block
+    alert:
+        name: Alert
+        description: A coloured message box
+        new: New alert block
+
+copy:
+    label: Copy Twig
+    done: Copied
+    title: Copy the Twig code that displays this block
+
+new:
+    crumb: New block
+    title: 'New {type} block'
+
+edit:
+    updated: 'Updated {date}'
+    translations: Translations
+    side_by_side: Side by side
+    by_slug: Every translation of this block, each saved on its own.
+
+# Shown on the site's pages to the CMS admins, in place of a block that does not exist
+missing_block: 'CMS block <b>"{slug}"</b> does not exist, <a href="{url}">create it</a>.'
+
+editor:
+    alignment: Text alignment
+    settings: Settings
+    created: Created
+    updated: Updated
+    save: Save
+    create: Create block
+    back: Back to the list
+    delete: Delete this block
+    delete_confirm: Delete this block? Pages that display it will show nothing in its place.
+    preview:
+        alt: Preview
+        empty: The image preview shows up here.
+        broken: This URL does not load an image.
+
+form:
+    slug:
+        label: Slug
+        help: "Used in templates with cms_block('…'). Changing it breaks the pages that display this block."
+        placeholder: e.g. home-intro
+    language:
+        label: Language
+        help: Leave empty for a block shared by every language.
+        placeholder: All languages
+    content: Content
+    image_url:
+        label: Image URL
+        placeholder: https://… or /images/…
+    alert:
+        label: Alert
+        type: Type
+        message: Message
+        success: Success
+        info: Info
+        warning: Warning
+        danger: Danger
+
+flash:
+    created: Block created.
+    saved: Block saved.
+    deleted: Block deleted.

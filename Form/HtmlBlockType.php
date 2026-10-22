@@ -12,7 +12,7 @@ class HtmlBlockType extends AbstractBlockType implements BlockTypeInterface
         parent::buildForm($builder, $options);
 
         $builder->add('content', TextareaType::class, [
-            'label' => 'Content',
+            'label' => 'form.content',
             'attr' => [
                 'class' => 'wysiwyg'
             ]

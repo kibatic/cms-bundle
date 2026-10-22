@@ -1,25 +1,26 @@
 {% extends '@KibaticCms/layout.html.twig' %}
+{% trans_default_domain 'KibaticCmsBundle' %}
 {% import '@KibaticCms/_macros.html.twig' as kcms %}
 
 {% block kcms_body %}
-    <nav class="kcms-crumbs"><a href="{{ path('cms_block_index') }}">Content blocks</a><span>{{ blocks[0].slug }}</span></nav>
+    <nav class="kcms-crumbs"><a href="{{ path('cms_block_index') }}">{{ 'index.title'|trans }}</a><span>{{ blocks[0].slug }}</span></nav>
 
     <header class="kcms-head">
         <div>
             <h1 class="kcms-title"><span class="kcms-slug">{{ blocks[0].slug }}</span></h1>
-            <p class="kcms-subtitle">Every translation of this block, each saved on its own.</p>
+            <p class="kcms-subtitle">{{ 'edit.by_slug'|trans }}</p>
         </div>
         <div class="kcms-head-actions">{{ kcms.copy_snippet(blocks[0].slug) }}</div>
     </header>
 
     {% for block in blocks %}
         <h2 class="kcms-section-title">
-            <a href="{{ path('cms_block_edit', {'id': block.id}) }}">{{ block.language ?? 'All languages' }}</a>
+            <a href="{{ path('cms_block_edit', {'id': block.id}) }}">{{ block.language ?? 'language.all_long'|trans }}</a>
         </h2>
         {% include '@KibaticCms/block/_editor.html.twig' with {
             'form': edit_forms[loop.index0],
             'delete_form': delete_forms[loop.index0],
-            'submit_label': 'Save',
+            'submit_label': 'editor.save',
         } %}
     {% endfor %}
 {% endblock %}

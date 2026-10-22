@@ -15,24 +15,24 @@ abstract class AbstractBlockType extends AbstractType
     {
         $builder
             ->add('slug', null, [
-                'label' => 'Slug',
-                'help' => 'Used in templates with cms_block(\'…\'). Changing it breaks the pages that display this block.',
+                'label' => 'form.slug.label',
+                'help' => 'form.slug.help',
                 'attr' => [
-                    'placeholder' => 'e.g. home-intro',
+                    'placeholder' => 'form.slug.placeholder',
                     'spellcheck' => 'false',
                 ]
             ])
             ->add('language', LanguageType::class, [
-                'label' => 'Language',
-                'help' => 'Leave empty for a block shared by every language.',
+                'label' => 'form.language.label',
+                'help' => 'form.language.help',
                 'required' => false,
                 'preferred_choices' => empty($options['existing_languages']) ? ['fr', 'en'] : $options['existing_languages'],
-                'placeholder' => 'All languages',
+                'placeholder' => 'form.language.placeholder',
                 'duplicate_preferred_choices' => false,
                 'empty_data' => null,
             ])
             ->add('content', null, [
-                'label' => 'Content',
+                'label' => 'form.content',
             ])
         ;
     }
@@ -41,6 +41,7 @@ abstract class AbstractBlockType extends AbstractType
     {
         $resolver->setDefaults([
             'data_class' => Block::class,
+            'translation_domain' => 'KibaticCmsBundle',
             'existing_languages' => [],
         ]);
 

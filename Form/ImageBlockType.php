@@ -13,10 +13,10 @@ class ImageBlockType extends AbstractBlockType implements BlockTypeInterface
 
         // Text input rather than UrlType: relative paths (/images/…) are valid
         $builder->add('content', TextType::class, [
-            'label' => 'Image URL',
+            'label' => 'form.image_url.label',
             'attr' => [
                 'inputmode' => 'url',
-                'placeholder' => 'https://… or /images/…',
+                'placeholder' => 'form.image_url.placeholder',
                 'data-kcms-image-url' => true,
             ]
         ]);

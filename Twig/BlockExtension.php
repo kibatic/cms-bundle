@@ -58,7 +58,10 @@ class BlockExtension extends AbstractExtension
 
             if ($this->security->isGranted(BlockController::$role)) {
                 $url = $this->router->generate('cms_block_new', ['slug' => $slug, 'typeName' => 'html']);
-                return '<div class="alert alert-danger">CMS Block <b>"' . $slug . '"</b> does not exist, <a href="' . $url . '">create it.</a></div>';
+                return '<div class="alert alert-danger">' . $this->translator->trans('missing_block', [
+                    'slug' => htmlspecialchars($slug),
+                    'url' => htmlspecialchars($url),
+                ], 'KibaticCmsBundle') . '</div>';
             }
 
             return null;

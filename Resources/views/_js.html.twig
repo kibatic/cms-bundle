@@ -10,7 +10,7 @@
             tools: [
                 'format', '|',
                 'bold', 'italic', 'underline', 'strike', '|',
-                {label: 'Text alignment', items: ['alignLeft', 'alignCenter', 'alignRight', 'alignJustify']}, '|',
+                {label: '{{ 'editor.alignment'|trans({}, 'KibaticCmsBundle')|e('js') }}', items: ['alignLeft', 'alignCenter', 'alignRight', 'alignJustify']}, '|',
                 'ul', 'ol', '|',
                 'indent', 'outdent', '|',
                 'link', 'image', 'hr', 'quote', '|',
@@ -47,10 +47,11 @@
             button.addEventListener('click', () => {
                 navigator.clipboard.writeText(button.dataset.kcmsCopy).then(() => {
                     const label = button.querySelector('[data-kcms-copy-label]');
-                    label.textContent = 'Copied';
+                    const text = label.textContent;
+                    label.textContent = button.dataset.kcmsCopyDone;
                     button.classList.add('is-done');
                     setTimeout(() => {
-                        label.textContent = 'Copy Twig';
+                        label.textContent = text;
                         button.classList.remove('is-done');
                     }, 1500);
                 });
@@ -62,16 +63,17 @@
             const input = preview.closest('form').querySelector('[data-kcms-image-url]');
             const image = preview.querySelector('img');
             const caption = preview.querySelector('figcaption');
+            const emptyText = caption.textContent;
             image.addEventListener('load', () => preview.classList.add('is-loaded'));
             image.addEventListener('error', () => {
                 preview.classList.remove('is-loaded');
                 preview.classList.add('is-broken');
                 image.removeAttribute('src');
-                caption.textContent = 'This URL does not load an image.';
+                caption.textContent = preview.dataset.kcmsBroken;
             });
             const update = () => {
                 preview.classList.remove('is-loaded', 'is-broken');
-                caption.textContent = 'The image preview shows up here.';
+                caption.textContent = emptyText;
                 input.value.trim() ? image.src = input.value.trim() : image.removeAttribute('src');
             };
             input.addEventListener('input', update);

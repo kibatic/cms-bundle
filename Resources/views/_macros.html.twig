@@ -1,3 +1,5 @@
+{% trans_default_domain 'KibaticCmsBundle' %}
+
 {% macro type_icon(name) %}
     {%- set paths = {
         text: '<path d="M4 7V4h16v3"/><path d="M9 20h6"/><path d="M12 4v16"/>',
@@ -8,23 +10,33 @@
     <svg class="kcms-icon" viewBox="0 0 24 24" aria-hidden="true">{{ (paths[name] ?? '<rect x="3" y="3" width="18" height="18" rx="2"/>')|raw }}</svg>
 {%- endmacro %}
 
+{# Block types added by the application have no translation: their name is shown as is #}
+{% macro type_label(name) %}
+    {%- set key = 'type.' ~ name ~ '.name' -%}
+    {%- set label = key|trans -%}
+    {{- label == key ? name|capitalize : label -}}
+{%- endmacro %}
+
 {% macro type_description(name) %}
-    {%- set descriptions = {
-        text: 'Plain text, no formatting',
-        html: 'Rich text with the visual editor',
-        image: 'An image from its URL',
-        alert: 'A coloured message box',
-    } -%}
-    {{- descriptions[name] ?? 'Custom block type' -}}
+    {%- set key = 'type.' ~ name ~ '.description' -%}
+    {%- set description = key|trans -%}
+    {{- description == key ? 'type.custom'|trans : description -}}
+{%- endmacro %}
+
+{% macro type_new_title(name) %}
+    {%- set key = 'type.' ~ name ~ '.new' -%}
+    {%- set title = key|trans -%}
+    {{- title == key ? 'new.title'|trans({type: name}) : title -}}
 {%- endmacro %}
 
 {% macro type_badge(name) %}
-    <span class="kcms-badge">{{ _self.type_icon(name) }}{{ name|capitalize }}</span>
+    <span class="kcms-badge">{{ _self.type_icon(name) }}{{ _self.type_label(name) }}</span>
 {%- endmacro %}
 
 {% macro copy_snippet(slug) %}
-    <button type="button" class="kcms-copy" data-kcms-copy="{{ "{{ cms_block('" ~ slug ~ "') }}" }}" title="Copy the Twig code that displays this block">
+    <button type="button" class="kcms-copy" data-kcms-copy="{{ "{{ cms_block('" ~ slug ~ "') }}" }}" data-kcms-copy-done="{{ 'copy.done'|trans }}"
+            title="{{ 'copy.title'|trans }}">
         <svg class="kcms-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="8" width="14" height="14" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
-        <span data-kcms-copy-label>Copy Twig</span>
+        <span data-kcms-copy-label>{{ 'copy.label'|trans }}</span>
     </button>
 {%- endmacro %}

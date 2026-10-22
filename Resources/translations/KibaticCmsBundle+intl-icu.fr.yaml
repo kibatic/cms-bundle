@@ -1,0 +1,109 @@
+format:
+    # Formats de date() de PHP
+    date: 'd/m/Y'
+    datetime: 'd/m/Y à H:i'
+
+index:
+    title: Blocs de contenu
+    blocks: '{count, plural, one {# bloc} other {# blocs}}'
+    languages: '{count, plural, one {# langue} other {# langues}}'
+    debug: Mode debug
+    debug_help: Encadre chaque bloc sur les pages du site, avec un lien pour le modifier
+    new: Nouveau bloc
+    filter: Filtrer par slug…
+    column:
+        slug: Slug
+        type: Type
+        languages: Langues
+        updated: Modifié le
+        actions: Actions
+    edit: Modifier
+    add_translation: 'Ajouter la traduction {language}'
+    no_match: Aucun bloc ne correspond à ce filtre.
+    empty:
+        title: Aucun bloc de contenu pour l'instant
+        text: 'Un bloc est un contenu modifié ici et affiché dans vos templates avec :'
+        choose: 'Choisissez son type pour créer le premier :'
+
+language:
+    all: toutes
+    all_long: Toutes les langues
+
+type:
+    custom: Type de bloc personnalisé
+    text:
+        name: Texte
+        description: Texte brut, sans mise en forme
+        new: Nouveau bloc de texte
+    html:
+        name: HTML
+        description: Texte mis en forme avec l'éditeur visuel
+        new: Nouveau bloc HTML
+    image:
+        name: Image
+        description: Une image à partir de son adresse
+        new: Nouveau bloc image
+    alert:
+        name: Alerte
+        description: Un message dans un encadré coloré
+        new: Nouveau bloc d'alerte
+
+copy:
+    label: Copier le Twig
+    done: Copié
+    title: Copier le code Twig qui affiche ce bloc
+
+new:
+    crumb: Nouveau bloc
+    title: 'Nouveau bloc {type}'
+
+edit:
+    updated: 'Modifié le {date}'
+    translations: Traductions
+    side_by_side: Côte à côte
+    by_slug: Toutes les traductions de ce bloc, chacune enregistrée séparément.
+
+# Affiché sur les pages du site aux admins du CMS, à la place d'un bloc qui n'existe pas
+missing_block: 'Le bloc <b>« {slug} »</b> n''existe pas, <a href="{url}">le créer</a>.'
+
+editor:
+    alignment: Alignement du texte
+    settings: Réglages
+    created: Créé le
+    updated: Modifié le
+    save: Enregistrer
+    create: Créer le bloc
+    back: Retour à la liste
+    delete: Supprimer ce bloc
+    delete_confirm: Supprimer ce bloc ? Les pages qui l'affichent n'afficheront plus rien à sa place.
+    preview:
+        alt: Aperçu
+        empty: L'aperçu de l'image s'affiche ici.
+        broken: Cette adresse ne charge pas d'image.
+
+form:
+    slug:
+        label: Slug
+        help: "Utilisé dans les templates avec cms_block('…'). Le changer casse les pages qui affichent ce bloc."
+        placeholder: ex. accueil-intro
+    language:
+        label: Langue
+        help: Laisser vide pour un bloc commun à toutes les langues.
+        placeholder: Toutes les langues
+    content: Contenu
+    image_url:
+        label: Adresse de l'image
+        placeholder: https://… ou /images/…
+    alert:
+        label: Alerte
+        type: Type
+        message: Message
+        success: Succès
+        info: Information
+        warning: Avertissement
+        danger: Danger
+
+flash:
+    created: Bloc créé.
+    saved: Bloc enregistré.
+    deleted: Bloc supprimé.
