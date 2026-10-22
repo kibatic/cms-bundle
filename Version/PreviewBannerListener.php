@@ -1,20 +1,21 @@
 <?php
 
-namespace Kibatic\CmsBundle\Snapshot;
+namespace Kibatic\CmsBundle\Version;
 
 use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
 use Symfony\Component\HttpKernel\Event\ResponseEvent;
 use Twig\Environment;
 
 /**
- * During a snapshot preview, adds a banner at the bottom of the site's HTML pages (exit, restore). The admin pages
- * show it themselves (layout.html.twig).
+ * Banner of the CMS admins at the bottom of the site's HTML pages (VersionPreview::mode()): version preview (exit,
+ * restore), draft preview (publish, see the published version) or published version (see the draft). The admin pages
+ * show the version preview banner themselves (layout.html.twig).
  */
 #[AsEventListener]
 final class PreviewBannerListener
 {
     public function __construct(
-        private readonly SnapshotPreview $preview,
+        private readonly VersionPreview $preview,
         private readonly Environment $twig,
     ) {
     }
@@ -31,14 +32,21 @@ final class PreviewBannerListener
             return;
         }
 
-        $snapshot = $this->preview->current();
+        $banner = match ($mode = $this->preview->mode()) {
+            'version' => $this->twig->render('@KibaticCms/version/_preview_banner.html.twig', ['version' => $this->preview->current()]),
+            'draft', 'published' => $this->twig->render('@KibaticCms/version/_draft_banner.html.twig', [
+                'mode' => $mode,
+                'published' => $this->preview->published(),
+                'changes' => $this->preview->draftChanges(),
+            ]),
+            default => null,
+        };
 
-        if (null === $snapshot) {
+        if (null === $banner) {
             return;
         }
 
         $content = $response->getContent();
-        $banner = $this->twig->render('@KibaticCms/snapshot/_preview_banner.html.twig', ['snapshot' => $snapshot]);
         $response->setContent(substr($content, 0, $position).$banner.substr($content, $position));
     }
 }

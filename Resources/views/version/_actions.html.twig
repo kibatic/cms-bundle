@@ -1,0 +1,36 @@
+{# Buttons of a version (list and detail). Variables: version, csrf, details (false on the detail page) #}
+{% trans_default_domain 'KibaticCmsBundle' %}
+<div class="kcms-inline-actions">
+    {% if details ?? true %}
+        <a href="{{ path('cms_version_show', {id: version.id}) }}" class="kcms-btn kcms-btn-sm">{{ 'version.details'|trans }}</a>
+    {% endif %}
+    <form method="post" action="{{ path('cms_version_preview', {id: version.id}) }}">
+        <input type="hidden" name="_token" value="{{ csrf }}">
+        <button type="submit" class="kcms-btn kcms-btn-sm" title="{{ 'version.preview_help'|trans }}">{{ 'version.preview'|trans }}</button>
+    </form>
+    {% if version.published %}
+        <form method="post" action="{{ path('cms_version_unpublish') }}"
+              onsubmit="return confirm('{{ 'version.unpublish_confirm'|trans|e('js') }}')">
+            <input type="hidden" name="_token" value="{{ csrf }}">
+            <button type="submit" class="kcms-btn kcms-btn-sm">{{ 'version.unpublish'|trans }}</button>
+        </form>
+    {% else %}
+        <form method="post" action="{{ path('cms_version_publish', {id: version.id}) }}"
+              onsubmit="return confirm('{{ 'version.publish_confirm'|trans|e('js') }}')">
+            <input type="hidden" name="_token" value="{{ csrf }}">
+            <button type="submit" class="kcms-btn kcms-btn-sm kcms-btn-success" title="{{ 'version.publish_help'|trans }}">{{ 'version.publish'|trans }}</button>
+        </form>
+    {% endif %}
+    <form method="post" action="{{ path('cms_version_restore', {id: version.id}) }}"
+          onsubmit="return confirm('{{ 'version.restore_confirm'|trans|e('js') }}')">
+        <input type="hidden" name="_token" value="{{ csrf }}">
+        <button type="submit" class="kcms-btn kcms-btn-sm" title="{{ 'version.restore_help'|trans }}">{{ 'version.restore'|trans }}</button>
+    </form>
+    {% if not version.published %}
+        <form method="post" action="{{ path('cms_version_delete', {id: version.id}) }}"
+              onsubmit="return confirm('{{ 'version.delete_confirm'|trans|e('js') }}')">
+            <input type="hidden" name="_token" value="{{ csrf }}">
+            <button type="submit" class="kcms-btn kcms-btn-sm kcms-btn-danger">{{ 'version.delete'|trans }}</button>
+        </form>
+    {% endif %}
+</div>

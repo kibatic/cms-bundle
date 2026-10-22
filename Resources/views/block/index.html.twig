@@ -11,6 +11,9 @@
             <p class="kcms-subtitle">
                 {{ 'index.blocks'|trans({count: blocksBySlug|length}) }}
                 {%- if i18nDisplay %} · {{ 'index.languages'|trans({count: languages|length}) }}{% endif %}
+                {%- set published = cms_published_version() %}
+                {%- if published %} · <a href="{{ path('cms_version_index') }}" class="kcms-published-link">{{ 'index.published'|trans({name: published.name ?? published.createdAt|date('format.datetime'|trans)}) }}</a>{% endif %}
+                {%- if cms_draft_changes() > 0 %} · <a href="{{ path('cms_version_index') }}" class="kcms-draft-link">{{ 'version.draft.changes'|trans({count: cms_draft_changes()}) }}</a>{% endif %}
             </p>
         </div>
 
@@ -20,9 +23,9 @@
                 <span class="kcms-toggle-track"></span> {{ 'index.debug'|trans }}
             </a>
 
-            <a href="{{ path('cms_snapshot_index') }}" class="kcms-btn">
-                {{ kcms.camera_icon() }}
-                {{ 'snapshot.title'|trans }}
+            <a href="{{ path('cms_version_index') }}" class="kcms-btn">
+                {{ kcms.versions_icon() }}
+                {{ 'version.title'|trans }}
             </a>
 
             {% if aiEnabled %}

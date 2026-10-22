@@ -5,11 +5,12 @@ namespace Kibatic\CmsBundle\Entity;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
- * Copy of every block at a given time (Snapshot\Snapshots), to preview the site as it was or to restore it.
+ * Copy of every block at a given time (Version\Versions), to preview the site as it was or to restore it.
+ * The published version, if any, is what the site displays (Version\VersionPreview::displayed()).
  */
 #[ORM\Entity]
-#[ORM\Table(name: 'cms_snapshot')]
-class Snapshot
+#[ORM\Table(name: 'cms_version')]
+class Version
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -21,6 +22,10 @@ class Snapshot
 
     #[ORM\Column(type: 'datetime_immutable')]
     private \DateTimeImmutable $createdAt;
+
+    /** Null: not published; only one version is published at a time (Versions::publish()) */
+    #[ORM\Column(type: 'datetime_immutable', nullable: true)]
+    private ?\DateTimeImmutable $publishedAt = null;
 
     /**
      * @var list<array{slug: string, language: ?string, type: string, content: ?string, created_at: string, updated_at: string}>
@@ -63,8 +68,25 @@ class Snapshot
         return $this->createdAt;
     }
 
+    public function getPublishedAt(): ?\DateTimeImmutable
+    {
+        return $this->publishedAt;
+    }
+
+    public function isPublished(): bool
+    {
+        return null !== $this->publishedAt;
+    }
+
+    public function setPublishedAt(?\DateTimeImmutable $publishedAt): static
+    {
+        $this->publishedAt = $publishedAt;
+
+        return $this;
+    }
+
     /**
-     * The blocks of the snapshot as Block objects, never persisted (no id)
+     * The blocks of the version as Block objects, never persisted (no id)
      *
      * @return list<Block>
      */

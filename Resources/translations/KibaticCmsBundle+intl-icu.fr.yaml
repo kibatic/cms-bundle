@@ -19,6 +19,7 @@ index:
         actions: Actions
     edit: Modifier
     add_translation: 'Ajouter la traduction {language}'
+    published: 'Site public : {name}'
     no_match: Aucun bloc ne correspond à ce filtre.
     empty:
         title: Aucun bloc de contenu pour l'instant
@@ -116,9 +117,13 @@ flash:
     created: Bloc créé.
     saved: Bloc enregistré.
     deleted: Bloc supprimé.
-    snapshot_taken: Snapshot pris.
-    snapshot_restored: Snapshot restauré. Les blocs d'avant sont dans le snapshot « Avant la restauration… ».
-    snapshot_deleted: Snapshot supprimé.
+    version_taken: Version enregistrée.
+    version_restored: Version restaurée. Les blocs d'avant sont dans la version « Avant la restauration… ».
+    version_deleted: Version supprimée.
+    draft_published: "Brouillon publié : les visiteurs le voient."
+    version_taken_published: Version enregistrée et publiée.
+    version_published: "Version publiée : le site affiche ses blocs."
+    version_unpublished: "Version dépubliée : le site affiche les blocs actuels."
 
 
 chat:
@@ -142,13 +147,14 @@ chat:
         empty: Écrivez un message.
         model: L'IA n'a pas répondu. Réessayez dans un instant.
 
-snapshot:
-    title: Snapshots
-    subtitle: Enregistrez tous les blocs d'un coup, pour les comparer, les prévisualiser ou les restaurer plus tard.
-    take: Prendre un snapshot
+version:
+    title: Versions
+    subtitle: Enregistrez tous les blocs d'un coup, pour les comparer, les prévisualiser, les publier ou les restaurer plus tard.
+    take: Enregistrer une version
+    take_publish: Enregistrer et publier
     name: Nom (facultatif)
     name_placeholder: ex. Avant la refonte de l'été
-    unnamed: Snapshot
+    unnamed: Version
     before_restore: 'Avant la restauration de « {name} »'
     column:
         name: Nom
@@ -158,17 +164,42 @@ snapshot:
     size: '{size, number} Ko'
     details: Détails
     preview: Aperçu
-    preview_help: Affiche le site avec les blocs de ce snapshot, pour vous seulement
+    preview_help: Affiche le site avec les blocs de cette version, pour vous seulement
     previewing: En aperçu
+    published: Publiée
+    publish: Publier
+    publish_help: Le site affichera les blocs de cette version, quelles que soient les modifications faites depuis
+    publish_confirm: Publier ? Le site affichera les blocs de cette version ; vos prochaines modifications ne seront pas en ligne avant la prochaine publication.
+    unpublish: Dépublier
+    unpublish_confirm: Dépublier ? Le site affichera les blocs actuels, avec toutes les modifications faites depuis.
     restore: Restaurer
-    restore_confirm: Remplacer tous les blocs par ceux de ce snapshot ? Les blocs actuels sont d'abord enregistrés dans un snapshot.
+    restore_help: Remet les blocs de cette version dans l'admin, pour les modifier
+    restore_confirm: Remplacer tous les blocs par ceux de cette version ? Les blocs actuels sont d'abord enregistrés dans une version.
     delete: Supprimer
-    delete_confirm: Supprimer ce snapshot ? Les blocs ne changent pas.
+    delete_confirm: Supprimer cette version ? Les blocs ne changent pas.
     exit_preview: Quitter l'aperçu
-    banner: 'Aperçu, pour vous seulement, du snapshot'
-    in_snapshot: Dans le snapshot
+    banner: 'Aperçu, pour vous seulement, de la version'
+    in_version: Dans la version
     now: Maintenant
-    no_block: Ce snapshot ne contient aucun bloc.
+    no_block: Cette version ne contient aucun bloc.
+    public:
+        live: 'Site public : blocs actuels, en direct'
+        live_help: Aucune version n'est publiée, chaque modification est visible tout de suite. Publiez une version pour choisir ce que voient les visiteurs.
+        version: 'Site public : version'
+        version_help: 'Publiée le {date}. Les modifications faites depuis forment un brouillon, pas en ligne : publiez-le pour les mettre en ligne.'
+    draft:
+        name: Brouillon
+        unpublished: Non publié
+        date: Modifications en cours
+        changes: '{count, plural, one {# modification non publiée} other {# modifications non publiées}}'
+        see_changes: Changements
+        banner: '{count, plural, one {Aperçu du brouillon : # modification pas encore publiée. Les visiteurs voient} other {Aperçu du brouillon : # modifications pas encore publiées. Les visiteurs voient}}'
+        banner_published: '{count, plural, one {Version publiée, comme la voient les visiteurs (le brouillon a # modification) :} other {Version publiée, comme la voient les visiteurs (le brouillon a # modifications) :}}'
+        publish: Publier le brouillon
+        publish_confirm: Publier le brouillon ? Les visiteurs verront les blocs actuels, enregistrés dans une nouvelle version.
+        see_published: Voir la version publiée
+        see_draft: Voir le brouillon
+    draft_name: 'Publication du {date}'
     status:
         modified: Modifiés
         added: Ajoutés
@@ -180,10 +211,10 @@ snapshot:
         removed: Supprimé
         unchanged: Inchangé
     status_help:
-        modified: depuis le snapshot, remis comme avant par une restauration
-        added: depuis le snapshot, supprimés par une restauration
-        removed: depuis le snapshot, recréés par une restauration
-        unchanged: depuis le snapshot
+        modified: depuis la version, remis comme avant par une restauration
+        added: depuis la version, supprimés par une restauration
+        removed: depuis la version, recréés par une restauration
+        unchanged: depuis la version
     empty:
-        title: Aucun snapshot pour l'instant
-        text: Prenez-en un avant de gros changements, pour pouvoir y revenir.
+        title: Aucune version pour l'instant
+        text: Enregistrez-en une avant de gros changements, pour pouvoir y revenir.

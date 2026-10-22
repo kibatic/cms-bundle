@@ -23,7 +23,7 @@ class Configuration implements ConfigurationInterface
             ->children()
                 ->scalarNode('preview_path')
                     ->defaultValue('/')
-                    ->info('Page of the site opened by the preview of a snapshot')
+                    ->info('Page of the site opened by the preview of a version')
                 ->end()
                 ->arrayNode('ai')
                     ->addDefaultsIfNotSet()

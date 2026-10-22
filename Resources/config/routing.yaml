@@ -51,45 +51,67 @@ cms_chat_reset:
     controller: Kibatic\CmsBundle\Controller\ChatController::reset
     methods: POST
 
-cms_snapshot_index:
-    path: /cms/snapshots
-    controller: Kibatic\CmsBundle\Controller\SnapshotController::index
+cms_version_index:
+    path: /cms/versions
+    controller: Kibatic\CmsBundle\Controller\VersionController::index
     methods: GET
 
-cms_snapshot_create:
-    path: /cms/snapshots
-    controller: Kibatic\CmsBundle\Controller\SnapshotController::create
+cms_version_create:
+    path: /cms/versions
+    controller: Kibatic\CmsBundle\Controller\VersionController::create
     methods: POST
 
-cms_snapshot_preview_exit:
-    path: /cms/snapshots/preview/exit
-    controller: Kibatic\CmsBundle\Controller\SnapshotController::exitPreview
+cms_version_publish_draft:
+    path: /cms/versions/draft/publish
+    controller: Kibatic\CmsBundle\Controller\VersionController::publishDraft
     methods: POST
 
-cms_snapshot_show:
-    path: /cms/snapshots/{id}
-    controller: Kibatic\CmsBundle\Controller\SnapshotController::show
+cms_version_show_published:
+    path: /cms/versions/published/show
+    controller: Kibatic\CmsBundle\Controller\VersionController::showPublished
+    methods: POST
+
+cms_version_unpublish:
+    path: /cms/versions/unpublish
+    controller: Kibatic\CmsBundle\Controller\VersionController::unpublish
+    methods: POST
+
+cms_version_preview_exit:
+    path: /cms/versions/preview/exit
+    controller: Kibatic\CmsBundle\Controller\VersionController::exitPreview
+    methods: POST
+
+cms_version_show:
+    path: /cms/versions/{id}
+    controller: Kibatic\CmsBundle\Controller\VersionController::show
     methods: GET
     requirements:
         id: '\d+'
 
-cms_snapshot_restore:
-    path: /cms/snapshots/{id}/restore
-    controller: Kibatic\CmsBundle\Controller\SnapshotController::restore
+cms_version_restore:
+    path: /cms/versions/{id}/restore
+    controller: Kibatic\CmsBundle\Controller\VersionController::restore
     methods: POST
     requirements:
         id: '\d+'
 
-cms_snapshot_delete:
-    path: /cms/snapshots/{id}/delete
-    controller: Kibatic\CmsBundle\Controller\SnapshotController::delete
+cms_version_delete:
+    path: /cms/versions/{id}/delete
+    controller: Kibatic\CmsBundle\Controller\VersionController::delete
     methods: POST
     requirements:
         id: '\d+'
 
-cms_snapshot_preview:
-    path: /cms/snapshots/{id}/preview
-    controller: Kibatic\CmsBundle\Controller\SnapshotController::preview
+cms_version_preview:
+    path: /cms/versions/{id}/preview
+    controller: Kibatic\CmsBundle\Controller\VersionController::preview
+    methods: POST
+    requirements:
+        id: '\d+'
+
+cms_version_publish:
+    path: /cms/versions/{id}/publish
+    controller: Kibatic\CmsBundle\Controller\VersionController::publish
     methods: POST
     requirements:
         id: '\d+'

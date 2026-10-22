@@ -19,6 +19,7 @@ index:
         actions: Actions
     edit: Edit
     add_translation: 'Add the {language} translation'
+    published: 'Public site: {name}'
     no_match: No block matches this filter.
     empty:
         title: No content block yet
@@ -116,9 +117,13 @@ flash:
     created: Block created.
     saved: Block saved.
     deleted: Block deleted.
-    snapshot_taken: Snapshot taken.
-    snapshot_restored: Snapshot restored. The previous blocks are in the snapshot "Before restoring…".
-    snapshot_deleted: Snapshot deleted.
+    version_taken: Version saved.
+    version_restored: Version restored. The previous blocks are in the version "Before restoring…".
+    version_deleted: Version deleted.
+    draft_published: "Draft published: the visitors see it."
+    version_taken_published: Version saved and published.
+    version_published: "Version published: the site shows its blocks."
+    version_unpublished: "Version unpublished: the site shows the current blocks."
 
 
 chat:
@@ -142,13 +147,14 @@ chat:
         empty: Write a message.
         model: The AI did not answer. Try again in a moment.
 
-snapshot:
-    title: Snapshots
-    subtitle: Save every block at once, to compare, preview or restore them later.
-    take: Take a snapshot
+version:
+    title: Versions
+    subtitle: Save every block at once, to compare, preview, publish or restore them later.
+    take: Save a version
+    take_publish: Save and publish
     name: Name (optional)
     name_placeholder: e.g. Before the summer redesign
-    unnamed: Snapshot
+    unnamed: Version
     before_restore: 'Before restoring "{name}"'
     column:
         name: Name
@@ -158,17 +164,42 @@ snapshot:
     size: '{size, number} KB'
     details: Details
     preview: Preview
-    preview_help: Shows the site with the blocks of this snapshot, for you only
+    preview_help: Shows the site with the blocks of this version, for you only
     previewing: Previewing
+    published: Published
+    publish: Publish
+    publish_help: The site will show the blocks of this version, whatever the changes made since
+    publish_confirm: Publish? The site will show the blocks of this version; your next changes will not be online until you publish again.
+    unpublish: Unpublish
+    unpublish_confirm: Unpublish? The site will show the current blocks, with every change made since.
     restore: Restore
-    restore_confirm: Replace every block with those of this snapshot? The current blocks are saved in a snapshot first.
+    restore_help: Puts the blocks of this version back in the admin, to modify them
+    restore_confirm: Replace every block with those of this version? The current blocks are saved in a version first.
     delete: Delete
-    delete_confirm: Delete this snapshot? The blocks are not changed.
+    delete_confirm: Delete this version? The blocks are not changed.
     exit_preview: Exit the preview
-    banner: 'Preview, for you only, of the snapshot'
-    in_snapshot: In the snapshot
+    banner: 'Preview, for you only, of the version'
+    in_version: In the version
     now: Now
-    no_block: This snapshot has no block.
+    no_block: This version has no block.
+    public:
+        live: 'Public site: current blocks, live'
+        live_help: No version is published, each change is visible right away. Publish a version to choose what the visitors see.
+        version: 'Public site: version'
+        version_help: 'Published on {date}. The changes made since are a draft, not online: publish it to put them online.'
+    draft:
+        name: Draft
+        unpublished: Not published
+        date: Changes in progress
+        changes: '{count, plural, one {# change not published} other {# changes not published}}'
+        see_changes: Changes
+        banner: '{count, plural, one {Draft preview: # change not published yet. The visitors see} other {Draft preview: # changes not published yet. The visitors see}}'
+        banner_published: '{count, plural, one {Published version, as the visitors see it (the draft has # change):} other {Published version, as the visitors see it (the draft has # changes):}}'
+        publish: Publish the draft
+        publish_confirm: Publish the draft? The visitors will see the current blocks, saved in a new version.
+        see_published: See the published version
+        see_draft: See the draft
+    draft_name: 'Publication of {date}'
     status:
         modified: Modified
         added: Added
@@ -180,10 +211,10 @@ snapshot:
         removed: Deleted
         unchanged: Unchanged
     status_help:
-        modified: since the snapshot, put back by a restore
-        added: since the snapshot, deleted by a restore
-        removed: since the snapshot, brought back by a restore
-        unchanged: since the snapshot
+        modified: since the version, put back by a restore
+        added: since the version, deleted by a restore
+        removed: since the version, brought back by a restore
+        unchanged: since the version
     empty:
-        title: No snapshot yet
-        text: Take one before big changes, to be able to come back to it.
+        title: No version yet
+        text: Save one before big changes, to be able to come back to it.

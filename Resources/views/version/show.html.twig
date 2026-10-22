@@ -5,14 +5,14 @@
     {%- if block is null -%}
         <p class="kcms-muted">—</p>
     {%- elseif block.type == 'image' and block.content -%}
-        <img src="{{ block.content }}" alt="" class="kcms-snapshot-image">
+        <img src="{{ block.content }}" alt="" class="kcms-version-image">
     {%- else -%}
         <pre class="kcms-code">{{ block.content }}</pre>
     {%- endif -%}
 {% endmacro %}
 
 {% block kcms_body %}
-    {% set csrf = csrf_token(constant('Kibatic\\CmsBundle\\Controller\\SnapshotController::CSRF_TOKEN_ID')) %}
+    {% set csrf = csrf_token(constant('Kibatic\\CmsBundle\\Controller\\VersionController::CSRF_TOKEN_ID')) %}
     {% set counts = {modified: 0, added: 0, removed: 0, unchanged: 0} %}
     {% for change in changes %}
         {% set counts = counts|merge({(change.status): counts[change.status] + 1}) %}
@@ -20,19 +20,22 @@
 
     <nav class="kcms-crumbs">
         <a href="{{ path('cms_block_index') }}">{{ 'index.title'|trans }}</a>
-        <a href="{{ path('cms_snapshot_index') }}" class="kcms-crumb-link">{{ 'snapshot.title'|trans }}</a>
-        <span>{{ snapshot.name ?? 'snapshot.unnamed'|trans }}</span>
+        <a href="{{ path('cms_version_index') }}" class="kcms-crumb-link">{{ 'version.title'|trans }}</a>
+        <span>{{ version.name ?? 'version.unnamed'|trans }}</span>
     </nav>
 
     <header class="kcms-head">
         <div>
-            <h1 class="kcms-title">{{ snapshot.name ?? 'snapshot.unnamed'|trans }}</h1>
+            <h1 class="kcms-title">
+                {{ version.name ?? 'version.unnamed'|trans }}
+                {% if version.published %}<span class="kcms-badge kcms-badge-success">{{ 'version.published'|trans }}</span>{% endif %}
+            </h1>
             <p class="kcms-subtitle">
-                {{ snapshot.createdAt|date('format.datetime'|trans) }} · {{ 'index.blocks'|trans({count: snapshot.blockCount}) }}
+                {{ version.createdAt|date('format.datetime'|trans) }} · {{ 'index.blocks'|trans({count: version.blockCount}) }}
             </p>
         </div>
         <div class="kcms-head-actions">
-            {% include '@KibaticCms/snapshot/_actions.html.twig' with {details: false} %}
+            {% include '@KibaticCms/version/_actions.html.twig' with {details: false} %}
         </div>
     </header>
 
@@ -40,8 +43,8 @@
         {% for status in ['modified', 'added', 'removed', 'unchanged'] %}
             <div class="kcms-stat kcms-status-{{ status }}">
                 <strong>{{ counts[status] }}</strong>
-                <span>{{ ('snapshot.status.' ~ status)|trans }}</span>
-                <small>{{ ('snapshot.status_help.' ~ status)|trans }}</small>
+                <span>{{ ('version.status.' ~ status)|trans }}</span>
+                <small>{{ ('version.status_help.' ~ status)|trans }}</small>
             </div>
         {% endfor %}
     </div>
@@ -52,21 +55,21 @@
                 <summary>
                     <span class="kcms-slug">{{ change.slug }}</span>
                     <span class="kcms-chip">{{ change.language ?? 'language.all'|trans }}</span>
-                    <span class="kcms-status kcms-status-{{ change.status }}">{{ ('snapshot.row_status.' ~ change.status)|trans }}</span>
+                    <span class="kcms-status kcms-status-{{ change.status }}">{{ ('version.row_status.' ~ change.status)|trans }}</span>
                 </summary>
                 <div class="kcms-compare">
                     <div>
-                        <h3>{{ 'snapshot.in_snapshot'|trans }}</h3>
-                        {{ _self.content(change.snapshot) }}
+                        <h3>{{ 'version.in_version'|trans }}</h3>
+                        {{ _self.content(change.version) }}
                     </div>
                     <div>
-                        <h3>{{ 'snapshot.now'|trans }}</h3>
+                        <h3>{{ 'version.now'|trans }}</h3>
                         {{ _self.content(change.current) }}
                     </div>
                 </div>
             </details>
         {% else %}
-            <p class="kcms-no-match">{{ 'snapshot.no_block'|trans }}</p>
+            <p class="kcms-no-match">{{ 'version.no_block'|trans }}</p>
         {% endfor %}
     </div>
 {% endblock %}

@@ -19,9 +19,9 @@
 
         {% block kcms_body %}{% endblock %}
 
-        {% set previewed_snapshot = cms_snapshot_preview() %}
-        {% if previewed_snapshot %}
-            {% include '@KibaticCms/snapshot/_preview_banner.html.twig' with {snapshot: previewed_snapshot} %}
+        {% set previewed_version = cms_version_preview() %}
+        {% if previewed_version %}
+            {% include '@KibaticCms/version/_preview_banner.html.twig' with {version: previewed_version} %}
         {% endif %}
     </div>
 {% endblock %}

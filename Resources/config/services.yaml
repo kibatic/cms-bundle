@@ -13,13 +13,13 @@ services:
 
     Kibatic\CmsBundle\Ai\BlockChanges: ~
 
-    Kibatic\CmsBundle\Controller\SnapshotController:
+    Kibatic\CmsBundle\Controller\VersionController:
         tags: ['controller.service_arguments']
 
-    Kibatic\CmsBundle\Repository\SnapshotRepository: ~
-    Kibatic\CmsBundle\Snapshot\Snapshots: ~
-    Kibatic\CmsBundle\Snapshot\SnapshotPreview: ~
-    Kibatic\CmsBundle\Snapshot\PreviewBannerListener: ~
+    Kibatic\CmsBundle\Repository\VersionRepository: ~
+    Kibatic\CmsBundle\Version\Versions: ~
+    Kibatic\CmsBundle\Version\VersionPreview: ~
+    Kibatic\CmsBundle\Version\PreviewBannerListener: ~
 
     Kibatic\CmsBundle\Form\TextBlockType: ~
     Kibatic\CmsBundle\Form\ImageBlockType: ~

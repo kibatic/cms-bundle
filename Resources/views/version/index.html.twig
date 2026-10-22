@@ -1,0 +1,115 @@
+{% extends '@KibaticCms/layout.html.twig' %}
+{% trans_default_domain 'KibaticCmsBundle' %}
+{% import '@KibaticCms/_macros.html.twig' as kcms %}
+
+{% block kcms_body %}
+    {% set csrf = csrf_token(constant('Kibatic\\CmsBundle\\Controller\\VersionController::CSRF_TOKEN_ID')) %}
+    {% set previewed = cms_version_preview() %}
+    {% set published = cms_published_version() %}
+
+    <nav class="kcms-crumbs"><a href="{{ path('cms_block_index') }}">{{ 'index.title'|trans }}</a><span>{{ 'version.title'|trans }}</span></nav>
+
+    <header class="kcms-head">
+        <div>
+            <h1 class="kcms-title">{{ 'version.title'|trans }}</h1>
+            <p class="kcms-subtitle">{{ 'version.subtitle'|trans }}</p>
+        </div>
+    </header>
+
+    <div class="kcms-public-state{{ published ? ' is-version' }}">
+        <span class="kcms-public-dot"></span>
+        <div>
+            {% if published %}
+                <strong>{{ 'version.public.version'|trans }}
+                    <a href="{{ path('cms_version_show', {id: published.id}) }}">{{ published.name ?? 'version.unnamed'|trans }}</a></strong>
+                <small>{{ 'version.public.version_help'|trans({date: published.publishedAt|date('format.datetime'|trans)}) }}</small>
+            {% else %}
+                <strong>{{ 'version.public.live'|trans }}</strong>
+                <small>{{ 'version.public.live_help'|trans }}</small>
+            {% endif %}
+        </div>
+    </div>
+
+    <form method="post" action="{{ path('cms_version_create') }}" class="kcms-card kcms-version-take">
+        <input type="hidden" name="_token" value="{{ csrf }}">
+        <label class="kcms-version-name">
+            <span>{{ 'version.name'|trans }}</span>
+            <input type="text" name="name" maxlength="255" placeholder="{{ 'version.name_placeholder'|trans }}">
+        </label>
+        <button type="submit" class="kcms-btn kcms-btn-primary kcms-btn-xl">
+            {{ kcms.save_icon() }}
+            {{ 'version.take'|trans }}
+        </button>
+        <button type="submit" name="publish" value="1" class="kcms-btn kcms-btn-success kcms-btn-xl"
+                onclick="return confirm('{{ 'version.publish_confirm'|trans|e('js') }}')">
+            {{ 'version.take_publish'|trans }}
+        </button>
+    </form>
+
+    {% if versions is not empty %}
+        <div class="kcms-card kcms-card-flush">
+            <div class="kcms-table-wrap">
+                <table class="kcms-table">
+                    <thead>
+                        <tr>
+                            <th>{{ 'version.column.name'|trans }}</th>
+                            <th>{{ 'version.column.date'|trans }}</th>
+                            <th>{{ 'version.column.blocks'|trans }}</th>
+                            <th>{{ 'version.column.size'|trans }}</th>
+                            <th><span class="kcms-sr">{{ 'index.column.actions'|trans }}</span></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% set draftChanges = cms_draft_changes() %}
+                        {% if draftChanges > 0 %}
+                            <tr class="kcms-draft-row">
+                                <td>
+                                    <strong>{{ 'version.draft.name'|trans }}</strong>
+                                    <span class="kcms-badge kcms-badge-warning">{{ 'version.draft.unpublished'|trans }}</span>
+                                </td>
+                                <td class="kcms-muted">{{ 'version.draft.date'|trans }}</td>
+                                <td>{{ 'version.draft.changes'|trans({count: draftChanges}) }}</td>
+                                <td></td>
+                                <td class="kcms-row-actions">
+                                    <div class="kcms-inline-actions">
+                                        <a href="{{ path('cms_version_show', {id: published.id}) }}" class="kcms-btn kcms-btn-sm">{{ 'version.draft.see_changes'|trans }}</a>
+                                        <form method="post" action="{{ path('cms_version_preview_exit') }}">
+                                            <input type="hidden" name="_token" value="{{ csrf }}">
+                                            <input type="hidden" name="site" value="1">
+                                            <button type="submit" class="kcms-btn kcms-btn-sm">{{ 'version.preview'|trans }}</button>
+                                        </form>
+                                        <form method="post" action="{{ path('cms_version_publish_draft') }}"
+                                              onsubmit="return confirm('{{ 'version.draft.publish_confirm'|trans|e('js') }}')">
+                                            <input type="hidden" name="_token" value="{{ csrf }}">
+                                            <button type="submit" class="kcms-btn kcms-btn-sm kcms-btn-success">{{ 'version.publish'|trans }}</button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endif %}
+                        {% for version in versions %}
+                            <tr>
+                                <td>
+                                    <a href="{{ path('cms_version_show', {id: version.id}) }}" class="kcms-version-title">{{ version.name ?? 'version.unnamed'|trans }}</a>
+                                    {% if version.published %}<span class="kcms-badge kcms-badge-success">{{ 'version.published'|trans }}</span>{% endif %}
+                                    {% if previewed and previewed.id == version.id %}<span class="kcms-badge kcms-badge-accent">{{ 'version.previewing'|trans }}</span>{% endif %}
+                                </td>
+                                <td class="kcms-muted">{{ version.createdAt|date('format.datetime'|trans) }}</td>
+                                <td>{{ 'index.blocks'|trans({count: version.blockCount}) }}</td>
+                                <td class="kcms-muted">{{ 'version.size'|trans({size: (version.size / 1024)|round(1)}) }}</td>
+                                <td class="kcms-row-actions">
+                                    {% include '@KibaticCms/version/_actions.html.twig' %}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    {% else %}
+        <div class="kcms-card kcms-empty">
+            <h2>{{ 'version.empty.title'|trans }}</h2>
+            <p>{{ 'version.empty.text'|trans }}</p>
+        </div>
+    {% endif %}
+{% endblock %}
