@@ -115,3 +115,8 @@ cms_version_publish:
     methods: POST
     requirements:
         id: '\d+'
+
+cms_upload_image:
+    path: /cms/uploads/image
+    controller: Kibatic\CmsBundle\Controller\UploadController::image
+    methods: POST

@@ -9,6 +9,8 @@
     "require": {
         "php": "^8.2",
         "ext-intl": "*",
+        "league/flysystem": "^3.10",
+        "league/flysystem-local": "^3.10",
         "symfony/framework-bundle": "^6.4 || ^7.0 || ^8.0",
         "symfony/form": "^6.4 || ^7.0 || ^8.0",
         "symfony/twig-bundle": "^6.4 || ^7.0 || ^8.0",

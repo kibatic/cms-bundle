@@ -1,13 +1,18 @@
 {#
-    Image picked from the computer: read in the browser as a data: URL (base64) and put in the block's URL field,
-    nothing is uploaded on its own (see _js.html.twig). The limit keeps the form under PHP's default post_max_size (8 MB).
+    Image picked from the computer: uploaded right away (UploadController, saved by Upload\ImageStorage), its URL put
+    in the block's URL field (see _js.html.twig). Images saved inside a block (data: URLs, before) are still shown.
 #}
 {% trans_default_domain 'KibaticCmsBundle' %}
-{% set max_size_mb = 2 %}
+{% set max_size_mb = (cms_upload_max_size() / 1024 / 1024)|round(1) %}
 
-<div class="kcms-upload" data-kcms-upload data-kcms-max-size="{{ max_size_mb * 1024 * 1024 }}"
+<div class="kcms-upload" data-kcms-upload data-kcms-max-size="{{ cms_upload_max_size() }}"
+     data-kcms-upload-url="{{ path('cms_upload_image') }}"
+     data-kcms-csrf="{{ csrf_token(constant('Kibatic\\CmsBundle\\Controller\\UploadController::CSRF_TOKEN_ID')) }}"
+     data-kcms-uploads-path="{{ cms_uploads_path() }}"
      data-kcms-too-big="{{ 'editor.upload.too_big'|trans({size: max_size_mb}) }}"
-     data-kcms-not-image="{{ 'editor.upload.not_image'|trans }}">
+     data-kcms-not-image="{{ 'editor.upload.not_image'|trans }}"
+     data-kcms-uploading="{{ 'editor.upload.uploading'|trans }}"
+     data-kcms-failed="{{ 'editor.upload.failed'|trans }}">
     <input type="file" accept="image/*" id="{{ form.vars.id }}_file" hidden data-kcms-upload-input>
 
     <label for="{{ form.vars.id }}_file" class="kcms-dropzone" data-kcms-dropzone>

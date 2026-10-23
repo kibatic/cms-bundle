@@ -80,7 +80,9 @@ editor:
     upload:
         choose: Choisir une image
         drop: ou la déposer ici
-        hint: 'PNG, JPG, GIF, WebP ou SVG, {size} Mo max. Enregistrée dans le bloc : rien n''est envoyé sur le serveur.'
+        hint: 'PNG, JPG, GIF ou WebP, {size} Mo max.'
+        uploading: Envoi…
+        failed: L'image n'a pas pu être envoyée. Réessayez.
         uploaded: Image de l'ordinateur
         replace: Remplacer
         remove: Retirer
@@ -139,6 +141,7 @@ chat:
         translate: Traduis en anglais les blocs qui manquent
     placeholder: Votre message…
     send: Envoyer
+    attach: Joindre des images (ou les coller, les déposer ici)
     hint: "Entrée pour envoyer, Maj+Entrée pour aller à la ligne. L'IA peut se tromper : vérifiez les blocs qu'elle enregistre."
     created: Créé
     saved: Modifié

@@ -163,6 +163,7 @@
     .kcms .kcms-upload-file span { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 550; }
     .kcms .kcms-form .kcms-upload-file label { display: inline-flex; margin: 0; font-size: 13px; }
     .kcms .kcms-upload-error { margin: 8px 0 0; color: var(--kcms-danger); font-size: 14px; font-weight: 500; }
+    .kcms .kcms-upload-error.is-pending { color: var(--kcms-muted); }
     .kcms .kcms-upload.has-file .kcms-dropzone, .kcms [hidden] { display: none; }
 
     /* Form fields (plain form_div_layout markup, see block/_editor.html.twig) */
@@ -210,6 +211,16 @@
     .kcms .kcms-change:hover { color: var(--kcms-success); text-decoration: underline; }
     .kcms .kcms-change .kcms-slug { font-weight: 600; }
     .kcms .kcms-chat-form { display: flex; gap: 10px; align-items: flex-end; padding: 12px 20px 0; border-top: 1px solid var(--kcms-border); }
+    .kcms .kcms-chat-attachments:not([hidden]) + .kcms-chat-form { border-top: 0; }
+    .kcms .kcms-chat.is-over { outline: 2px dashed var(--kcms-accent); outline-offset: -6px; }
+    .kcms .kcms-chat-attach { min-width: 44px; padding: 0; }
+    .kcms .kcms-chat-attachments { display: flex; flex-wrap: wrap; gap: 8px; padding: 12px 20px 0; border-top: 1px solid var(--kcms-border); }
+    .kcms .kcms-attachment { position: relative; width: 64px; height: 64px; border-radius: 10px; border: 1px solid var(--kcms-border); background: var(--kcms-subtle); overflow: hidden; }
+    .kcms .kcms-attachment img { width: 100%; height: 100%; object-fit: cover; }
+    .kcms .kcms-attachment button { position: absolute; top: 3px; right: 3px; width: 20px; height: 20px; padding: 0; border: 0; border-radius: 50%; background: rgb(15 23 42 / 70%); color: #fff; font-size: 14px; line-height: 20px; cursor: pointer; }
+    .kcms .kcms-attachment-pending { animation: kcms-typing 1.2s infinite ease-in-out; }
+    .kcms .kcms-message-images { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+    .kcms .kcms-message-images img { display: block; max-width: 140px; max-height: 110px; border-radius: 8px; }
     .kcms .kcms-chat-form textarea { min-height: 44px; max-height: 200px; resize: vertical; }
     .kcms .kcms-chat-form .kcms-btn { min-height: 44px; }
     .kcms .kcms-chat-hint { margin: 0; padding: 0 20px 12px; color: var(--kcms-muted); font-size: 12px; }

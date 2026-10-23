@@ -13,6 +13,12 @@ services:
 
     Kibatic\CmsBundle\Ai\BlockChanges: ~
 
+    Kibatic\CmsBundle\Controller\UploadController:
+        tags: ['controller.service_arguments']
+
+    Kibatic\CmsBundle\Upload\ImageStorage: ~
+    Kibatic\CmsBundle\Command\CleanUploadsCommand: ~
+
     Kibatic\CmsBundle\Controller\VersionController:
         tags: ['controller.service_arguments']
 

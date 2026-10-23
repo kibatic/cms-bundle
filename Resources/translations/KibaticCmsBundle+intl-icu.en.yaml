@@ -80,7 +80,9 @@ editor:
     upload:
         choose: Choose an image
         drop: or drop it here
-        hint: 'PNG, JPG, GIF, WebP or SVG, {size} MB max. Saved inside the block: nothing is uploaded to the server.'
+        hint: 'PNG, JPG, GIF or WebP, {size} MB max.'
+        uploading: Uploading…
+        failed: The image could not be uploaded. Try again.
         uploaded: Image from the computer
         replace: Replace
         remove: Remove
@@ -139,6 +141,7 @@ chat:
         translate: Translate the missing blocks into English
     placeholder: Your message…
     send: Send
+    attach: Join images (or paste them, drop them here)
     hint: "Enter to send, Shift+Enter for a new line. The AI can make mistakes: check the blocks it saves."
     created: Created
     saved: Modified

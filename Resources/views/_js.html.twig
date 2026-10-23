@@ -58,7 +58,7 @@
             });
         });
 
-        // Image blocks: image from the computer, kept as a data: URL in the URL field (block/_image_upload.html.twig)
+        // Image blocks: image from the computer, uploaded, its URL put in the URL field (block/_image_upload.html.twig)
         document.querySelectorAll('[data-kcms-upload]').forEach(upload => {
             const urlInput = upload.closest('form').querySelector('[data-kcms-image-url]');
             const urlRow = urlInput.parentElement;
@@ -69,34 +69,49 @@
             const error = upload.querySelector('[data-kcms-upload-error]');
             const kilobytes = new Intl.NumberFormat(document.documentElement.lang || undefined, {style: 'unit', unit: 'kilobyte', maximumFractionDigits: 0});
 
-            const show = (fileName) => {
-                const isData = urlInput.value.startsWith('data:');
-                upload.classList.toggle('has-file', isData);
-                fileBox.hidden = !isData;
-                urlRow.hidden = isData;
-                if (isData) {
-                    // base64: 4 characters for 3 bytes
-                    const size = kilobytes.format(urlInput.value.length * 3 / 4 / 1024);
-                    name.textContent = (fileName ?? name.dataset.kcmsUploaded) + ' · ' + size;
+            const show = (fileName, size) => {
+                // Uploaded image, or image saved inside the block before (data: URL)
+                const isFile = urlInput.value.startsWith(upload.dataset.kcmsUploadsPath) || urlInput.value.startsWith('data:');
+                upload.classList.toggle('has-file', isFile);
+                fileBox.hidden = !isFile;
+                urlRow.hidden = isFile;
+                if (isFile) {
+                    name.textContent = (fileName ?? name.dataset.kcmsUploaded) + (size ? ' · ' + kilobytes.format(size / 1024) : '');
                 }
             };
-            const setValue = (value, fileName) => {
+            const setValue = (value, fileName, size) => {
                 urlInput.value = value;
                 urlInput.dispatchEvent(new Event('input', {bubbles: true}));
-                show(fileName);
+                show(fileName, size);
             };
-            const read = (file) => {
+            const fail = (message) => {
+                error.textContent = message;
+                error.hidden = false;
+            };
+            const read = async (file) => {
                 error.hidden = true;
                 if (!file.type.startsWith('image/')) {
-                    error.textContent = upload.dataset.kcmsNotImage;
-                    error.hidden = false;
-                } else if (file.size > upload.dataset.kcmsMaxSize) {
-                    error.textContent = upload.dataset.kcmsTooBig;
-                    error.hidden = false;
-                } else {
-                    const reader = new FileReader();
-                    reader.addEventListener('load', () => setValue(reader.result, file.name));
-                    reader.readAsDataURL(file);
+                    return fail(upload.dataset.kcmsNotImage);
+                }
+                if (file.size > upload.dataset.kcmsMaxSize) {
+                    return fail(upload.dataset.kcmsTooBig);
+                }
+                fail(upload.dataset.kcmsUploading);
+                error.classList.add('is-pending');
+                try {
+                    const body = new FormData();
+                    body.append('file', file);
+                    const response = await fetch(upload.dataset.kcmsUploadUrl, {method: 'POST', headers: {'X-CSRF-Token': upload.dataset.kcmsCsrf}, body});
+                    const data = await response.json();
+                    if (!response.ok) {
+                        return fail(data.error ?? upload.dataset.kcmsFailed);
+                    }
+                    error.hidden = true;
+                    setValue(data.url, data.name, data.size);
+                } catch (exception) {
+                    fail(upload.dataset.kcmsFailed);
+                } finally {
+                    error.classList.remove('is-pending');
                 }
             };
 

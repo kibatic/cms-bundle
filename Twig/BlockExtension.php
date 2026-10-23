@@ -5,6 +5,7 @@ namespace Kibatic\CmsBundle\Twig;
 use Kibatic\CmsBundle\Controller\BlockController;
 use Kibatic\CmsBundle\Entity\Block;
 use Kibatic\CmsBundle\Repository\BlockRepository;
+use Kibatic\CmsBundle\Upload\ImageStorage;
 use Kibatic\CmsBundle\Version\VersionPreview;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\RequestStack;
@@ -24,6 +25,7 @@ class BlockExtension extends AbstractExtension
         private RequestStack $requestStack,
         private TranslatorInterface $translator,
         private VersionPreview $versionPreview,
+        private ImageStorage $imageStorage,
     ) {
     }
 
@@ -34,6 +36,8 @@ class BlockExtension extends AbstractExtension
             new TwigFunction('cms_version_preview', $this->versionPreview->current(...)),
             new TwigFunction('cms_published_version', $this->versionPreview->published(...)),
             new TwigFunction('cms_draft_changes', $this->versionPreview->draftChanges(...)),
+            new TwigFunction('cms_uploads_path', $this->imageStorage->getPublicPath(...)),
+            new TwigFunction('cms_upload_max_size', $this->imageStorage->getMaxSize(...)),
         ];
     }
 

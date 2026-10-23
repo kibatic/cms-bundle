@@ -4,12 +4,15 @@ namespace Kibatic\CmsBundle\Controller;
 
 use Kibatic\CmsBundle\Ai\BlockChanges;
 use Kibatic\CmsBundle\Repository\BlockRepository;
+use Kibatic\CmsBundle\Upload\ImageStorage;
 use Psr\Log\LoggerInterface;
 use Symfony\AI\Agent\AgentInterface;
 use Symfony\AI\Agent\Exception\ExceptionInterface as AgentException;
 use Symfony\AI\Platform\Exception\ExceptionInterface as PlatformException;
+use Symfony\AI\Platform\Message\Content\Image;
 use Symfony\AI\Platform\Message\Message;
 use Symfony\AI\Platform\Message\MessageBag;
+use Symfony\AI\Platform\Message\UserMessage;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -26,6 +29,8 @@ class ChatController extends AbstractController
     private const SESSION_KEY = 'kibatic_cms_chat';
     /** Messages of the conversation sent back to the model (the oldest ones are forgotten) */
     private const HISTORY_SIZE = 20;
+    /** Images joined to a message (uploaded first: UploadController) */
+    private const MAX_IMAGES = 4;
     public const CSRF_TOKEN_ID = 'kibatic_cms_chat';
 
     public function __construct(
@@ -34,6 +39,7 @@ class ChatController extends AbstractController
         private readonly BlockChanges $changes,
         private readonly TranslatorInterface $translator,
         private readonly LoggerInterface $logger,
+        private readonly ImageStorage $imageStorage,
     ) {
     }
 
@@ -56,8 +62,13 @@ class ChatController extends AbstractController
         }
 
         $text = trim((string) $request->getPayload()->get('message'));
+        // Only images of the storage: their file is sent to the model
+        $images = \array_slice(array_values(array_filter(
+            (array) ($request->getPayload()->all()['images'] ?? []),
+            fn ($url) => \is_string($url) && str_starts_with($url, $this->imageStorage->getPublicPath()),
+        )), 0, self::MAX_IMAGES);
 
-        if ('' === $text) {
+        if ('' === $text && [] === $images) {
             return $this->json(['error' => $this->trans('chat.error.empty')], Response::HTTP_BAD_REQUEST);
         }
 
@@ -66,9 +77,9 @@ class ChatController extends AbstractController
 
         $messages = new MessageBag(Message::forSystem($this->systemPrompt($request->getLocale())));
         foreach ($history as $message) {
-            $messages->add('user' === $message['role'] ? Message::ofUser($message['content']) : Message::ofAssistant($message['content']));
+            $messages->add('user' === $message['role'] ? $this->userMessage($message['content'], $message['images'] ?? []) : Message::ofAssistant($message['content']));
         }
-        $messages->add(Message::ofUser($text));
+        $messages->add($this->userMessage($text, $images));
 
         try {
             $answer = trim((string) $this->agent->call($messages)->getContent());
@@ -78,7 +89,7 @@ class ChatController extends AbstractController
             return $this->json(['error' => $this->trans('chat.error.model')], Response::HTTP_BAD_GATEWAY);
         }
 
-        $history[] = ['role' => 'user', 'content' => $text];
+        $history[] = ['role' => 'user', 'content' => $text, 'images' => $images];
         $history[] = ['role' => 'assistant', 'content' => $answer];
         $session->set(self::SESSION_KEY, \array_slice($history, -self::HISTORY_SIZE));
 
@@ -129,9 +140,31 @@ class ChatController extends AbstractController
               strong, em, img), without <html>, <body>, <style>, <script>, inline styles or classes.
             - New slugs are short, lowercase, in English and with dashes (e.g. "home-intro", "footer-legal").
             - You cannot delete a block: the admin does it in the block list.
+            - The admin can join images to a message: you see them, and their URLs follow the message. To put one in an
+              HTML block, use its URL as is: <img src="URL" alt="short description of the image">; for an image block,
+              its URL is the whole content. Never write an image in base64 (data:).
             - When the request is ambiguous (which block, which language), ask before saving.
             - After saving, say in one or two sentences what you created or changed. Do not paste the saved HTML back.
             PROMPT;
+    }
+
+    /**
+     * Message of the admin with its images: their files, and their URLs to put them in the blocks
+     *
+     * @param list<string> $images URLs of the storage (ImageStorage)
+     */
+    private function userMessage(string $text, array $images): UserMessage
+    {
+        $files = array_filter(array_combine($images, array_map(fn (string $url) => $this->imageStorage->read($url), $images)));
+
+        if ([] === $files) {
+            return Message::ofUser($text);
+        }
+
+        return Message::ofUser(
+            $text."\n\n[Images joined, in this order: ".implode(', ', array_keys($files)).']',
+            ...array_map(fn (array $file) => new Image($file['content'], $file['type']), array_values($files)),
+        );
     }
 
     private function languageList(array $languages): string

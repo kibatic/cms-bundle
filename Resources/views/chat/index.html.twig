@@ -20,7 +20,13 @@
     </header>
 
     <div class="kcms-card kcms-chat" data-kcms-chat data-kcms-url="{{ path('cms_chat_message') }}" data-kcms-csrf="{{ csrf }}"
-         data-kcms-created="{{ 'chat.created'|trans }}" data-kcms-saved="{{ 'chat.saved'|trans }}" data-kcms-error="{{ 'chat.error.model'|trans }}">
+         data-kcms-created="{{ 'chat.created'|trans }}" data-kcms-saved="{{ 'chat.saved'|trans }}" data-kcms-error="{{ 'chat.error.model'|trans }}"
+         data-kcms-upload-url="{{ path('cms_upload_image') }}"
+         data-kcms-upload-csrf="{{ csrf_token(constant('Kibatic\\CmsBundle\\Controller\\UploadController::CSRF_TOKEN_ID')) }}"
+         data-kcms-max-images="4" data-kcms-max-size="{{ cms_upload_max_size() }}"
+         data-kcms-too-big="{{ 'editor.upload.too_big'|trans({size: (cms_upload_max_size() / 1024 / 1024)|round(1)}) }}"
+         data-kcms-not-image="{{ 'editor.upload.not_image'|trans }}" data-kcms-failed="{{ 'editor.upload.failed'|trans }}"
+         data-kcms-remove="{{ 'editor.upload.remove'|trans }}">
         <div class="kcms-chat-log" data-kcms-chat-log aria-live="polite">
             <div class="kcms-chat-empty" data-kcms-chat-empty {{ history is not empty ? 'hidden' }}>
                 <p>{{ 'chat.empty'|trans }}</p>
@@ -31,11 +37,23 @@
                 </div>
             </div>
             {% for message in history %}
-                <div class="kcms-message kcms-message-{{ message.role }}" data-kcms-markdown>{{ message.content }}</div>
+                <div class="kcms-message kcms-message-{{ message.role }}">
+                    <div data-kcms-markdown>{{ message.content }}</div>
+                    {% if message.images ?? [] is not empty %}
+                        <div class="kcms-message-images">
+                            {% for url in message.images %}<a href="{{ url }}" target="_blank"><img src="{{ url }}" alt=""></a>{% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
             {% endfor %}
         </div>
 
+        <div class="kcms-chat-attachments" data-kcms-chat-attachments hidden></div>
         <form class="kcms-chat-form" data-kcms-chat-form>
+            <input type="file" accept="image/png,image/jpeg,image/gif,image/webp" multiple hidden data-kcms-chat-file>
+            <button type="button" class="kcms-btn kcms-chat-attach" data-kcms-chat-attach title="{{ 'chat.attach'|trans }}" aria-label="{{ 'chat.attach'|trans }}">
+                <svg class="kcms-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m21.4 11.6-9.2 9.2a6 6 0 0 1-8.5-8.5l8.6-8.6a4 4 0 0 1 5.7 5.7l-8.6 8.6a2 2 0 0 1-2.8-2.8l8.5-8.5"/></svg>
+            </button>
             <textarea rows="2" placeholder="{{ 'chat.placeholder'|trans }}" aria-label="{{ 'chat.placeholder'|trans }}" data-kcms-chat-input
             >{{ slug ? 'chat.about_block'|trans({slug: slug}) }}</textarea>
             <button type="submit" class="kcms-btn kcms-btn-primary" data-kcms-chat-send>
@@ -82,29 +100,108 @@
                 return message;
             };
             log.querySelectorAll('[data-kcms-markdown]').forEach(message => message.innerHTML = markdown(message.textContent));
+
+            // Images joined to the next message: uploaded right away (UploadController), sent as their URLs
+            const tray = chat.querySelector('[data-kcms-chat-attachments]');
+            const fileInput = chat.querySelector('[data-kcms-chat-file]');
+            let attachments = [];
+            let uploading = 0;
+            const drawAttachments = () => {
+                tray.hidden = attachments.length === 0 && uploading === 0;
+                tray.innerHTML = attachments.map((image, index) =>
+                    `<span class="kcms-attachment"><img src="${escape(image.url)}" alt=""><button type="button" data-index="${index}" `
+                    + `title="${escape(chat.dataset.kcmsRemove)}" aria-label="${escape(chat.dataset.kcmsRemove)}">×</button></span>`
+                ).join('') + '<span class="kcms-attachment kcms-attachment-pending"></span>'.repeat(uploading);
+            };
+            tray.addEventListener('click', event => {
+                const button = event.target.closest('button[data-index]');
+                if (button) {
+                    attachments.splice(button.dataset.index, 1);
+                    drawAttachments();
+                }
+            });
+            const attach = async (files) => {
+                for (const file of files) {
+                    if (attachments.length + uploading >= chat.dataset.kcmsMaxImages) {
+                        break;
+                    }
+                    if (!file.type.startsWith('image/')) {
+                        add('error', escape(chat.dataset.kcmsNotImage));
+                        continue;
+                    }
+                    if (file.size > chat.dataset.kcmsMaxSize) {
+                        add('error', escape(chat.dataset.kcmsTooBig));
+                        continue;
+                    }
+                    uploading++;
+                    drawAttachments();
+                    try {
+                        const body = new FormData();
+                        body.append('file', file);
+                        const response = await fetch(chat.dataset.kcmsUploadUrl, {method: 'POST', headers: {'X-CSRF-Token': chat.dataset.kcmsUploadCsrf}, body});
+                        const data = await response.json();
+                        response.ok ? attachments.push({url: data.url}) : add('error', escape(data.error ?? chat.dataset.kcmsFailed));
+                    } catch (exception) {
+                        add('error', escape(chat.dataset.kcmsFailed));
+                    } finally {
+                        uploading--;
+                        drawAttachments();
+                    }
+                }
+            };
+            chat.querySelector('[data-kcms-chat-attach]').addEventListener('click', () => fileInput.click());
+            fileInput.addEventListener('change', () => {
+                attach([...fileInput.files]);
+                fileInput.value = '';
+            });
+            document.addEventListener('paste', event => {
+                const files = [...event.clipboardData.files].filter(file => file.type.startsWith('image/'));
+                if (files.length) {
+                    event.preventDefault();
+                    attach(files);
+                }
+            });
+            chat.addEventListener('dragover', event => {
+                event.preventDefault();
+                chat.classList.add('is-over');
+            });
+            chat.addEventListener('dragleave', event => chat.contains(event.relatedTarget) || chat.classList.remove('is-over'));
+            chat.addEventListener('drop', event => {
+                event.preventDefault();
+                chat.classList.remove('is-over');
+                attach([...event.dataTransfer.files]);
+            });
+            const thumbnails = images => images.length
+                ? '<div class="kcms-message-images">' + images.map(url => `<a href="${escape(url)}" target="_blank"><img src="${escape(url)}" alt=""></a>`).join('') + '</div>'
+                : '';
             log.lastElementChild?.scrollIntoView({block: 'end'});
 
             const submit = async () => {
                 const text = input.value.trim();
-                if (!text || send.disabled) {
+                const images = attachments.map(image => image.url);
+                if ((!text && !images.length) || send.disabled || uploading > 0) {
                     return;
                 }
-                add('user', markdown(text));
+                add('user', markdown(text) + thumbnails(images));
                 document.querySelector('[data-kcms-chat-reset]').disabled = false;
                 input.value = '';
+                attachments = [];
+                drawAttachments();
                 send.disabled = true;
                 const pending = add('assistant kcms-message-pending', '<span></span><span></span><span></span>');
                 try {
                     const response = await fetch(chat.dataset.kcmsUrl, {
                         method: 'POST',
                         headers: {'Content-Type': 'application/json', 'X-CSRF-Token': chat.dataset.kcmsCsrf},
-                        body: JSON.stringify({message: text}),
+                        body: JSON.stringify({message: text, images}),
                     });
                     const data = await response.json();
                     pending.remove();
                     if (!response.ok) {
                         add('error', escape(data.error ?? chat.dataset.kcmsError));
                         input.value = text;
+                        attachments = images.map(url => ({url}));
+                        drawAttachments();
                         return;
                     }
                     const changes = data.changes.map(change =>
@@ -116,6 +213,8 @@
                     pending.remove();
                     add('error', escape(chat.dataset.kcmsError));
                     input.value = text;
+                    attachments = images.map(url => ({url}));
+                    drawAttachments();
                 } finally {
                     send.disabled = false;
                     input.focus();
