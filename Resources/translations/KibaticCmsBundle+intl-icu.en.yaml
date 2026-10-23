@@ -143,7 +143,7 @@ form:
         add: Add
         up: Move up
         down: Move down
-        title_placeholder: Title of the tab (the slug by default)
+        title_placeholder: Title of the tab
         missing: Block not found
         help: Each block is shown in the page's language; editing it changes it in every metablock that shows it. A sub-metablock is saved in this metablock only, and contains existing blocks only.
         add_group: Add a sub-metablock

@@ -31,20 +31,15 @@ final class SaveMetablockTool
 
     /**
      * @param string $slug     Slug of the metablock: lowercase letters, digits, "-", "_" or "." (e.g. "home-sections")
-     * @param array  $items    What it shows, in order. Each item is either an existing block: {"slug": "home-intro", "title": "Tab title or null"}, or a sub-metablock: {"title": "Tab title or null", "layout": "columns", "columns": 2, "items": [{"slug": "…", "title": null}]}. A sub-metablock contains existing blocks only, at least one; no block of type "meta" anywhere
+     * @param array  $items    What it shows, in order. Each item is either an existing block: {"slug": "home-intro", "titles": {"fr": "Titre de l'onglet", "en": "Tab title"}}, or a sub-metablock: {"titles": {…}, "layout": "columns", "columns": 2, "items": [{"slug": "…", "titles": {}}]}. Titles (labels of the tabs) in each language of the site, {} without tabs. A sub-metablock contains existing blocks only, at least one; no block of type "meta" anywhere
      * @param string $layout   Layout of the metablock: "stack" (one after the other), "columns", "grid" (cards) or "tabs" (one tab per item, labelled with its title, else its slug)
      * @param int    $columns  Number of columns (2, 3 or 4) for the layout "columns"
-     * @param string $language Language code of the metablock (e.g. "fr"); empty for a metablock shared by every language (its blocks are shown in the page's language anyway)
      * @param ?string $styles  CSS of the metablock only, scoped to it (e.g. a background around its blocks); null keeps the current styles, a string replaces them, an empty string removes them
      */
-    public function __invoke(string $slug, array $items, string $layout = 'stack', int $columns = 2, string $language = '', ?string $styles = null): string
+    public function __invoke(string $slug, array $items, string $layout = 'stack', int $columns = 2, ?string $styles = null): string
     {
         if (!preg_match('/^[a-z0-9][a-z0-9._-]*$/', $slug)) {
             return \sprintf('Not saved: "%s" is not a valid slug (lowercase letters, digits, "-", "_" or ".").', $slug);
-        }
-
-        if ('' !== $language && !preg_match('/^[a-z]{2,3}(_[A-Z]{2})?$/', $language)) {
-            return \sprintf('Not saved: "%s" is not a language code (e.g. "fr", "en").', $language);
         }
 
         if (!\in_array($layout, MetaContent::LAYOUTS, true)) {
@@ -60,11 +55,12 @@ final class SaveMetablockTool
                 : 'Not saved: an item is not an existing block, or is a metablock (use a sub-metablock instead). Use cms_list_blocks to see the blocks.';
         }
 
-        $block = $this->blocks->findOneBy(['slug' => $slug, 'language' => '' !== $language ? $language : null]);
+        // Shared by every language (Block::SHARED_TYPES): its blocks are shown in the page's language, its titles are translated
+        $block = $this->blocks->findOneBy(['slug' => $slug, 'language' => null]);
         $created = null === $block;
 
         if ($created) {
-            $block = (new Block())->setSlug($slug)->setLanguage('' !== $language ? $language : null)->setType('meta');
+            $block = (new Block())->setSlug($slug)->setType('meta');
             $this->entityManager->persist($block);
         } elseif ('meta' !== $block->getType()) {
             return \sprintf('Not saved: the block "%s" is not a metablock (its type is "%s"); use cms_save_block for it.', $slug, $block->getType());
@@ -77,6 +73,6 @@ final class SaveMetablockTool
         $this->entityManager->flush();
         $this->changes->add($block, $created);
 
-        return \sprintf('Metablock "%s"%s %s.', $slug, '' !== $language ? ' ('.$language.')' : '', $created ? 'created' : 'saved');
+        return \sprintf('Metablock "%s" %s.', $slug, $created ? 'created' : 'saved');
     }
 }

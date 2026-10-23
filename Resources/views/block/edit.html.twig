@@ -21,7 +21,8 @@
         </div>
     </header>
 
-    {% if languages is not empty %}
+    {# A shared block (Block::SHARED_TYPES) has no translation #}
+    {% if languages is not empty and not block.shared %}
         {% set translatedLanguages = translations|map(t => t.language) %}
         <nav class="kcms-tabs" aria-label="{{ 'edit.translations'|trans }}">
             {% for translation in translations %}

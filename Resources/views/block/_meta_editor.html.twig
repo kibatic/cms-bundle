@@ -19,7 +19,7 @@
      data-kcms-choices="{{ labels|json_encode }}"
      data-kcms-up="{{ 'form.meta.up'|trans }}" data-kcms-down="{{ 'form.meta.down'|trans }}" data-kcms-remove="{{ 'editor.upload.remove'|trans }}"
      data-kcms-title-placeholder="{{ 'form.meta.title_placeholder'|trans }}" data-kcms-missing="{{ 'form.meta.missing'|trans }}"
-     data-kcms-layouts="{{ layouts|json_encode }}" data-kcms-columns-choices="{{ constant('Kibatic\\CmsBundle\\Meta\\MetaContent::COLUMNS')|json_encode }}"
+     data-kcms-languages="{{ cms_languages()|json_encode }}" data-kcms-layouts="{{ layouts|json_encode }}" data-kcms-columns-choices="{{ constant('Kibatic\\CmsBundle\\Meta\\MetaContent::COLUMNS')|json_encode }}"
      data-kcms-layout="{{ 'form.meta.layout'|trans }}" data-kcms-columns="{{ 'form.meta.columns'|trans }}"
      data-kcms-choose="{{ 'form.meta.choose'|trans }}" data-kcms-add="{{ 'form.meta.add'|trans }}" data-kcms-group="{{ 'form.meta.group'|trans }}"
      data-kcms-group-title-placeholder="{{ 'form.meta.group_title_placeholder'|trans }}" data-kcms-group-empty="{{ 'form.meta.group_empty'|trans }}">

@@ -155,12 +155,25 @@
             const list = editor.querySelector('[data-kcms-meta-items]');
             const columns = editor.querySelector('[data-kcms-meta-columns]');
             const choice = editor.querySelector('[data-kcms-meta-choice]');
+            const languages = JSON.parse(text.kcmsLanguages);
             let meta = {layout: 'stack', columns: 2, items: []};
             try {
                 meta = {...meta, ...JSON.parse(field.value || '{}')};
             } catch (exception) {}
             const escape = value => String(value).replace(/[&<>"']/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'})[c]);
             const isGroup = item => Array.isArray(item.items);
+            // Titles by language; a single title (metablock saved before the translated titles) is the title of every language
+            const withTitles = item => {
+                const single = item.titles?.[''] ?? (typeof item.title === 'string' ? item.title : null);
+                const titles = {...(item.titles ?? {})};
+                delete titles[''];
+                if (single) {
+                    languages.forEach(language => titles[language] ??= single);
+                }
+                const {title, ...rest} = item;
+                return {...rest, titles, ...(isGroup(item) ? {items: item.items.map(withTitles)} : {})};
+            };
+            meta.items = meta.items.map(withTitles);
             const save = () => {
                 field.value = JSON.stringify(meta);
                 field.dispatchEvent(new Event('input', {bubbles: true}));
@@ -178,9 +191,11 @@
                     <button type="button" data-action="down" data-path="${path}" title="${escape(text.kcmsDown)}" aria-label="${escape(text.kcmsDown)}" ${index === count - 1 ? 'disabled' : ''}>↓</button>
                     <button type="button" data-action="remove" data-path="${path}" title="${escape(text.kcmsRemove)}" aria-label="${escape(text.kcmsRemove)}">×</button>
                 </span>`;
-            // Title of an item: label of its tab, when its metablock is in tabs
-            const title = (item, path, tabs, placeholder) => `<input type="text" class="kcms-meta-title${tabs ? '' : ' is-hidden'}" data-action="title" data-path="${path}"
-                value="${escape(item.title ?? '')}" placeholder="${escape(placeholder)}" maxlength="80">`;
+            // Titles of an item, one per language: label of its tab, when its metablock is in tabs
+            const title = (item, path, tabs, placeholder) => `<span class="kcms-meta-titles${tabs ? '' : ' is-hidden'}">${languages.map(language => `
+                <label class="kcms-meta-title-label">${language ? `<span class="kcms-chip">${escape(language)}</span>` : ''}
+                    <input type="text" class="kcms-meta-title" data-action="title" data-path="${path}" data-language="${escape(language)}"
+                           value="${escape(item.titles[language] ?? '')}" placeholder="${escape(placeholder)}" maxlength="80"></label>`).join('')}</span>`;
             const blockRow = (item, path, index, count, tabs) => `
                 <li class="kcms-meta-item${item.slug in choices ? '' : ' is-missing'}">
                     <span class="kcms-meta-position">${index + 1}</span>
@@ -245,13 +260,13 @@
             });
             editor.querySelector('[data-kcms-meta-add]').addEventListener('click', () => {
                 if (choice.value) {
-                    meta.items.push({slug: choice.value, title: null});
+                    meta.items.push({slug: choice.value, titles: {}});
                     choice.value = '';
                     change();
                 }
             });
             editor.querySelector('[data-kcms-meta-add-group]').addEventListener('click', () => {
-                meta.items.push({title: null, layout: 'columns', columns: 2, items: []});
+                meta.items.push({titles: {}, layout: 'columns', columns: 2, items: []});
                 change();
             });
             list.addEventListener('click', event => {
@@ -263,7 +278,7 @@
                 if (button.dataset.action === 'add-to-group') {
                     const select = list.querySelector(`[data-group-choice="${path}"]`);
                     if (select.value) {
-                        meta.items[Number(path)].items.push({slug: select.value, title: null});
+                        meta.items[Number(path)].items.push({slug: select.value, titles: {}});
                         change();
                     }
                     return;
@@ -288,7 +303,8 @@
             list.addEventListener('input', event => {
                 if (event.target.dataset.action === 'title') {
                     const [items, index] = locate(event.target.dataset.path);
-                    items[index].title = event.target.value || null;
+                    const titles = items[index].titles;
+                    event.target.value.trim() ? titles[event.target.dataset.language] = event.target.value : delete titles[event.target.dataset.language];
                     save();
                 }
             });

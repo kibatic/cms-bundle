@@ -14,8 +14,9 @@ final class MetaContent
     public const COLUMNS = [2, 3, 4];
 
     /**
-     * @param list<array{slug: string, title: ?string}|array{title: ?string, meta: self}> $items title: label of the
-     *        tab (layout "tabs"); a sub-metablock is an item with "meta" instead of "slug"
+     * @param list<array{slug: string, titles: array<string, string>}|array{titles: array<string, string>, meta: self}> $items
+     *        titles: label of the tab (layout "tabs") by language code ("": any language, e.g. a metablock saved before the
+     *        translated titles); a sub-metablock is an item with "meta" instead of "slug"
      */
     public function __construct(
         public readonly string $layout = 'stack',
@@ -47,14 +48,19 @@ final class MetaContent
                 continue;
             }
 
-            $title = \is_string($item['title'] ?? null) ? trim($item['title']) : '';
-            $title = '' !== $title ? mb_substr($title, 0, 80) : null;
+            $titles = [];
+            // A single title: metablock saved before the translated titles
+            foreach (\is_array($item['titles'] ?? null) ? $item['titles'] : ['' => $item['title'] ?? null] as $language => $title) {
+                if (\is_string($title) && '' !== trim($title)) {
+                    $titles[(string) $language] = mb_substr(trim($title), 0, 80);
+                }
+            }
 
             // A sub-metablock: an item with its own items
             if ($groups && \is_array($item['items'] ?? null)) {
-                $items[] = ['title' => $title, 'meta' => self::fromArray($item, false)];
+                $items[] = ['titles' => $titles, 'meta' => self::fromArray($item, false)];
             } elseif (\is_string($item['slug'] ?? null) && '' !== $item['slug']) {
-                $items[] = ['slug' => $item['slug'], 'title' => $title];
+                $items[] = ['slug' => $item['slug'], 'titles' => $titles];
             }
         }
 
@@ -76,7 +82,7 @@ final class MetaContent
             'layout' => $this->layout,
             'columns' => $this->columns,
             'items' => array_map(fn (array $item) => isset($item['meta'])
-                ? ['title' => $item['title']] + $item['meta']->toArray()
+                ? ['titles' => $item['titles']] + $item['meta']->toArray()
                 : $item, $this->items),
         ];
     }

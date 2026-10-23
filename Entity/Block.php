@@ -12,6 +12,12 @@ use Gedmo\Mapping\Annotation as Gedmo;
 #[ORM\UniqueConstraint(name: 'block_unique', columns: ['slug', 'language'])]
 class Block
 {
+    /**
+     * Types whose blocks are always shared by every language: they hold the texts of every language themselves
+     * (labels of a navigation, titles of the tabs of a metablock), so a translation of them makes no sense
+     */
+    public const SHARED_TYPES = ['meta', 'navigation'];
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -119,6 +125,11 @@ class Block
     {
         $this->language = $language;
         return $this;
+    }
+
+    public function isShared(): bool
+    {
+        return \in_array($this->type, self::SHARED_TYPES, true);
     }
 
     public function getStyles(): ?string

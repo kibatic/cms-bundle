@@ -23,6 +23,8 @@ class NavigationBlockType extends AbstractBlockType implements BlockTypeInterfac
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         parent::buildForm($builder, $options);
+        // Shared by every language (Block::SHARED_TYPES): saved without language
+        $builder->remove('language');
 
         $builder->add('content', HiddenType::class, [
             'label' => false,

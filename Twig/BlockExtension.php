@@ -219,7 +219,7 @@ class BlockExtension extends AbstractExtension implements ResetInterface
         foreach ($meta->items as $item) {
             // Sub-metablock, saved inside this one
             if (isset($item['meta'])) {
-                $items[] = ['title' => $item['title'] ?? '…', 'html' => $this->renderMeta($item['meta'])];
+                $items[] = ['title' => $this->localized($item['titles']) ?? '…', 'html' => $this->renderMeta($item['meta'])];
 
                 continue;
             }
@@ -228,7 +228,7 @@ class BlockExtension extends AbstractExtension implements ResetInterface
 
             if (null !== $block && 'meta' !== $block->getType()) {
                 $items[] = [
-                    'title' => $item['title'] ?? $item['slug'],
+                    'title' => $this->localized($item['titles']) ?? $item['slug'],
                     // Shown as an image, as cms_block() gives the URL alone
                     'html' => 'image' === $block->getType()
                         ? '<img src="'.htmlspecialchars((string) $block->getContent()).'" alt="">'
@@ -299,23 +299,13 @@ class BlockExtension extends AbstractExtension implements ResetInterface
      */
     private function renderNavigation(NavigationContent $navigation): string
     {
-        $locales = [$this->translator->getLocale(), ...$this->translator->getFallbackLocales()];
         $request = $this->requestStack->getMainRequest();
         $currentSlug = 'cms_page' === $request?->attributes->get('_route') ? $request->attributes->get('slug') : null;
 
-        $label = function (array $labels) use ($locales): string {
-            foreach ([...$locales, ''] as $locale) {
-                if (isset($labels[$locale])) {
-                    return $labels[$locale];
-                }
-            }
-
-            return (string) reset($labels);
-        };
-        $list = function (array $items) use (&$list, $label, $currentSlug): string {
+        $list = function (array $items) use (&$list, $currentSlug): string {
             $html = '<ul>';
             foreach ($items as $item) {
-                $text = htmlspecialchars($label($item['labels']));
+                $text = htmlspecialchars((string) $this->localized($item['labels']));
                 $html .= '<li>'.(null !== $item['slug']
                     ? sprintf('<a href="%s"%s>%s</a>', htmlspecialchars($this->router->generate('cms_page', ['slug' => $item['slug']])), $item['slug'] === $currentSlug ? ' aria-current="page"' : '', $text)
                     : '<span>'.$text.'</span>');
@@ -330,6 +320,22 @@ class BlockExtension extends AbstractExtension implements ResetInterface
         $this->navigationStyled = true;
 
         return $styles.'<nav class="cms-nav">'.$list($navigation->items).'</nav>';
+    }
+
+    /**
+     * Text in the page's language, else in a fallback language, else for any language (""), else in any other one
+     *
+     * @param array<string, string> $texts by language code
+     */
+    private function localized(array $texts): ?string
+    {
+        foreach ([$this->translator->getLocale(), ...$this->translator->getFallbackLocales(), ''] as $locale) {
+            if (isset($texts[$locale])) {
+                return $texts[$locale];
+            }
+        }
+
+        return [] !== $texts ? reset($texts) : null;
     }
 
     /**

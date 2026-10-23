@@ -97,7 +97,7 @@
                                             {% for b in blocks %}
                                                 <a href="{{ path('cms_block_edit', {'id': b.id}) }}" class="kcms-chip">{{ b.language ?? 'language.all'|trans }}</a>
                                             {% endfor %}
-                                            {% for language in languages %}
+                                            {% for language in block.shared ? [] : languages %}
                                                 {% if language not in blocks|map(b => b.language) %}
                                                     <a href="{{ path('cms_block_new', {'typeName': block.type, 'slug': slug, 'language': language}) }}"
                                                        class="kcms-chip kcms-chip-missing" title="{{ 'index.add_translation'|trans({language: language}) }}">+ {{ language }}</a>

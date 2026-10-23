@@ -66,10 +66,10 @@ class BlockController extends AbstractController
             $block->setSlug($slug);
         }
 
-        // Prefilled by the "add translation" links
+        // Prefilled by the "add translation" links; never for a shared block (Block::SHARED_TYPES)
         $language = $request->query->get('language');
 
-        if ($language !== null) {
+        if ($language !== null && !\in_array($blockType::getBlockTypeName(), Block::SHARED_TYPES, true)) {
             $block->setLanguage($language);
         }
 

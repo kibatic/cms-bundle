@@ -46,7 +46,7 @@
                 <div class="kcms-card">
                     <h2 class="kcms-card-title">{{ 'editor.settings'|trans }}</h2>
                     {{ form_row(form.slug) }}
-                    {{ form_row(form.language) }}
+                    {% if form.language is defined %}{{ form_row(form.language) }}{% endif %}
                     {{ form_rest(form) }}
                 </div>
             {% else %}

@@ -143,7 +143,7 @@ form:
         add: Ajouter
         up: Monter
         down: Descendre
-        title_placeholder: Titre de l'onglet (le slug par défaut)
+        title_placeholder: Titre de l'onglet
         missing: Bloc introuvable
         help: Chaque bloc s'affiche dans la langue de la page ; le modifier le change dans tous les métablocs qui l'affichent. Un sous-métabloc n'est enregistré que dans ce métabloc, et ne contient que des blocs existants.
         add_group: Ajouter un sous-métabloc
