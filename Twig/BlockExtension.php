@@ -33,6 +33,7 @@ class BlockExtension extends AbstractExtension
     {
         return [
             new TwigFunction('cms_block', $this->cmsBlock(...), ['is_safe' => ['html']]),
+            new TwigFunction('cms_image', $this->cmsImage(...)),
             new TwigFunction('cms_version_preview', $this->versionPreview->current(...)),
             new TwigFunction('cms_published_version', $this->versionPreview->published(...)),
             new TwigFunction('cms_draft_changes', $this->versionPreview->draftChanges(...)),
@@ -42,6 +43,43 @@ class BlockExtension extends AbstractExtension
     }
 
     public function cmsBlock(string $slug, bool $strict = false): ?string
+    {
+        $block = $this->resolveBlock($slug);
+
+        if ($block === null) {
+            if ($strict) {
+                throw new \Exception('Block "' . $slug . '" does not exist');
+            }
+
+            if ($this->security->isGranted(BlockController::$role)) {
+                $url = $this->router->generate('cms_block_new', ['slug' => $slug, 'typeName' => 'html']);
+                return '<div class="alert alert-danger">' . $this->translator->trans('missing_block', [
+                    'slug' => htmlspecialchars($slug),
+                    'url' => htmlspecialchars($url),
+                ], 'KibaticCmsBundle') . '</div>';
+            }
+
+            return null;
+        }
+
+        return $this->render($block);
+    }
+
+    /**
+     * URL of the image of an image block, to use it in an attribute (src, background…); null when the block does not
+     * exist, e.g. {{ cms_image('home-photo') ?? asset('images/default.webp') }}
+     */
+    public function cmsImage(string $slug): ?string
+    {
+        $block = $this->resolveBlock($slug);
+
+        return null !== $block && 'image' === $block->getType() && '' !== (string) $block->getContent() ? $block->getContent() : null;
+    }
+
+    /**
+     * Block of the page's language, or of a fallback language, or shared by every language
+     */
+    private function resolveBlock(string $slug): ?Block
     {
         $locale = $this->translator->getLocale();
         $fallbackLocales = $this->translator->getFallbackLocales();
@@ -64,22 +102,11 @@ class BlockExtension extends AbstractExtension
             $block = $this->findBlock($slug);
         }
 
-        if ($block === null) {
-            if ($strict) {
-                throw new \Exception('Block "' . $slug . '" does not exist');
-            }
+        return $block;
+    }
 
-            if ($this->security->isGranted(BlockController::$role)) {
-                $url = $this->router->generate('cms_block_new', ['slug' => $slug, 'typeName' => 'html']);
-                return '<div class="alert alert-danger">' . $this->translator->trans('missing_block', [
-                    'slug' => htmlspecialchars($slug),
-                    'url' => htmlspecialchars($url),
-                ], 'KibaticCmsBundle') . '</div>';
-            }
-
-            return null;
-        }
-
+    private function render(Block $block): ?string
+    {
         $content = $block->getContent();
 
         // A text block is plain text: "&" or "<" are displayed as typed

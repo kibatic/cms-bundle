@@ -139,6 +139,9 @@ class ChatController extends AbstractController
             - HTML blocks are displayed inside the website's pages: write a clean HTML fragment (h2, h3, p, ul, ol, li, a,
               strong, em, img), without <html>, <body>, <style>, <script>, inline styles or classes.
             - New slugs are short, lowercase, in English and with dashes (e.g. "home-intro", "footer-legal").
+            - The pages show the blocks their templates ask for: a new block appears nowhere until a developer adds it to a
+              template. To change something on a page, modify its existing blocks (images included: the URL of an image
+              block); create a block only when the admin asks for a new one, and if no block matches, say so.
             - You cannot delete a block: the admin does it in the block list.
             - The admin can join images to a message: you see them, and their URLs follow the message. To put one in an
               HTML block, use its URL as is: <img src="URL" alt="short description of the image">; for an image block,
