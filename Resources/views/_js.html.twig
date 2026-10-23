@@ -453,6 +453,40 @@
             // Drawn hidden in a closed <details>: measured again when opened
             textarea.closest('details')?.addEventListener('toggle', () => editor.refresh());
         });
+        // Visual editor of an HTML block: shows its styles as they are typed, with the site's fonts and link color (the admin
+        // has its own), so that it looks as on the site
+        document.querySelectorAll('[data-kcms-styles]').forEach((textarea, index) => {
+            const editor = textarea.closest('form').querySelector('.wysi-editor');
+            if (!editor) {
+                return;
+            }
+            // The site's look, read on elements of the page outside the admin
+            const probe = tag => {
+                const element = document.createElement(tag);
+                element.style.cssText = 'position: absolute; visibility: hidden';
+                (document.querySelector('main') ?? document.body).append(element);
+                const style = getComputedStyle(element);
+                const values = {font: style.fontFamily, color: style.color};
+                element.remove();
+                return values;
+            };
+            const text = probe('p'), heading = probe('h2'), link = probe('a');
+            const id = 'kcms-preview-' + index;
+            editor.dataset.kcmsPreview = id;
+            const style = document.createElement('style');
+            document.body.append(style);
+            const update = () => style.textContent = `[data-kcms-preview="${id}"] {
+                font-family: ${text.font}; color: ${text.color};
+                :is(h1, h2, h3, h4) { font-family: ${heading.font}; }
+                a { color: ${link.color}; }
+                /* Not the editor's own look of the quotes */
+                blockquote { padding-left: 0; padding-right: 0; border-left: 0; font-style: normal; }
+                ${textarea.value.replace(/</g, '')}
+            }`;
+            update();
+            textarea.addEventListener('input', update);
+        });
+
         // JSON tab of a metablock or a navigation: its content field, indented, checked as it is typed
         document.querySelectorAll('[data-kcms-json-mode]').forEach(modes => {
             const form = modes.closest('form');

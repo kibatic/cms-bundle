@@ -279,7 +279,8 @@
     .kcms input:focus, .kcms select:focus, .kcms textarea:focus { outline: 0; border-color: var(--kcms-accent); box-shadow: 0 0 0 3px rgb(79 70 229 / 18%); }
     .kcms #kibatic_cmsbundle_imageblock_content, .kcms [id$=_slug] { font-family: var(--kcms-mono); font-size: 14px; }
     .kcms .kcms-form .help-text { margin-top: 6px; color: var(--kcms-muted); font-size: 13px; }
-    .kcms .kcms-form ul { margin: 6px 0 0; padding: 0; list-style: none; color: var(--kcms-danger); font-size: 13px; font-weight: 500; }
+    /* Errors of the fields (form_div_layout lists), not the lists written in the visual editor */
+    .kcms .kcms-form ul:not(.wysi-editor ul) { margin: 6px 0 0; padding: 0; list-style: none; color: var(--kcms-danger); font-size: 13px; font-weight: 500; }
     .kcms .kcms-form div:has(> ul) input, .kcms .kcms-form div:has(> ul) textarea { border-color: var(--kcms-danger); }
     .kcms .wysi-wrapper { border-radius: 8px; }
 
