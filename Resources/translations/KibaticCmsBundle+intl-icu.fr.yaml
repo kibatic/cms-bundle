@@ -82,6 +82,10 @@ editor:
         visual: Éditeur visuel
         json: JSON
         invalid: "JSON invalide, pas enregistré :"
+        html: HTML
+        preview: Aperçu
+        html_warning: "L'éditeur visuel simplifie le HTML : taper dedans retirerait %list% de ce bloc. Modifiez-le dans l'onglet HTML pour les garder."
+        html_confirm: "Enregistrer le HTML simplifié par l'éditeur visuel ? Il a retiré %list%, ce qui peut changer l'apparence du bloc. Annulez, puis utilisez l'onglet HTML, pour les garder."
         json_help: "Le contenu du bloc, tel qu'il est enregistré. Il est revérifié à l'enregistrement : blocs inconnus, entrées vides… sont refusés."
     alignment: Alignement du texte
     settings: Réglages

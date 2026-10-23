@@ -252,6 +252,11 @@
     .kcms .kcms-mode-tabs { display: inline-flex; gap: 2px; margin-bottom: 16px; padding: 3px; border-radius: 10px; background: var(--kcms-subtle); border: 1px solid var(--kcms-border); }
     .kcms .kcms-mode-tabs button { padding: 5px 14px; border: 0; border-radius: 7px; background: none; color: var(--kcms-muted); font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; }
     .kcms .kcms-mode-tabs button.is-active { background: var(--kcms-surface); color: var(--kcms-text); box-shadow: var(--kcms-shadow); }
+    .kcms .kcms-html-code { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+    .kcms .kcms-html-code[hidden] { display: none; }
+    .kcms .kcms-html-preview-label { margin-bottom: 6px; color: var(--kcms-muted); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; }
+    .kcms .kcms-html-preview { max-height: 560px; overflow: auto; padding: 8px; border: 1px dashed var(--kcms-border); border-radius: 8px; }
+    @media (max-width: 1100px) { .kcms .kcms-html-code { grid-template-columns: minmax(0, 1fr); } }
     .kcms .kcms-json-error { margin: 8px 0 0; color: var(--kcms-danger); font-size: 13px; font-weight: 600; }
     .kcms .kcms-json-error.is-shaking { animation: kcms-shake .3s; }
     @keyframes kcms-shake { 25% { transform: translateX(-4px); } 75% { transform: translateX(4px); } }

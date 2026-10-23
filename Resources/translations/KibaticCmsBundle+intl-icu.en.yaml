@@ -82,6 +82,10 @@ editor:
         visual: Visual editor
         json: JSON
         invalid: "Invalid JSON, not saved:"
+        html: HTML
+        preview: Preview
+        html_warning: "The visual editor simplifies the HTML: typing in it would remove %list% from this block. Edit it in the HTML tab to keep them."
+        html_confirm: "Save the HTML simplified by the visual editor? It removed %list%, which may change the look of the block. Cancel, then use the HTML tab, to keep them."
         json_help: "The content of the block, as saved. It is checked again when saved: unknown blocks, empty entries… are refused."
     alignment: Text alignment
     settings: Settings

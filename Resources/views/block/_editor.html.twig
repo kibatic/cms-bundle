@@ -32,7 +32,25 @@
                 </div>
             {% endif %}
 
-            {{ form_row(form.content) }}
+            {% if block.type == 'html' %}
+                {# Visual editor (simplifies the HTML), or the HTML kept as it is with a preview (see _js.html.twig) #}
+                <div class="kcms-mode-tabs" data-kcms-html-mode role="tablist">
+                    <button type="button" data-mode="visual" class="is-active">{{ 'editor.mode.visual'|trans }}</button>
+                    <button type="button" data-mode="code">{{ 'editor.mode.html'|trans }}</button>
+                </div>
+                <p class="kcms-warning" data-kcms-html-warning data-kcms-template="{{ 'editor.mode.html_warning'|trans }}"
+                   data-kcms-confirm="{{ 'editor.mode.html_confirm'|trans }}" hidden></p>
+                <div data-kcms-html-visual>{{ form_row(form.content) }}</div>
+                <div class="kcms-html-code" data-kcms-html-code hidden>
+                    <textarea aria-label="HTML"></textarea>
+                    <div>
+                        <div class="kcms-html-preview-label">{{ 'editor.mode.preview'|trans }}</div>
+                        <div class="kcms-html-preview" data-kcms-html-preview></div>
+                    </div>
+                </div>
+            {% else %}
+                {{ form_row(form.content) }}
+            {% endif %}
 
             {% if form.styles is defined and block.type != 'image' %}
                 <details class="kcms-styles"{{ form.styles.vars.value ? ' open' }}>

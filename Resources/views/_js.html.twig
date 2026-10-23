@@ -3,6 +3,8 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/css/css.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/javascript/javascript.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/xml/xml.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/htmlmixed/htmlmixed.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/matchbrackets.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/closebrackets.min.js"></script>
 <script>
@@ -485,6 +487,81 @@
             }`;
             update();
             textarea.addEventListener('input', update);
+        });
+
+        // HTML block: visual editor, or its HTML kept as it is (the visual editor rewrites the whole HTML as soon as it is
+        // typed in, with only what it knows: measured on Wysi, see SIMPLE_HTML), with a preview of the block and its styles
+        const SIMPLE_HTML = {
+            P: ['style'], H1: ['style'], H2: ['style'], H3: ['style'], H4: ['style'], UL: ['style'], OL: ['style'], LI: [],
+            BR: [], HR: [], STRONG: [], B: [], EM: [], I: [], U: [], S: [], STRIKE: [], DEL: [], BLOCKQUOTE: [],
+            A: ['href', 'target'], IMG: ['src', 'alt'],
+        };
+        // What the visual editor would remove from this HTML: "<div>", "class"…
+        const simplifications = html => {
+            const lost = new Set();
+            new DOMParser().parseFromString(`<body>${html}</body>`, 'text/html').body.querySelectorAll('*').forEach(element => {
+                const kept = SIMPLE_HTML[element.tagName];
+                if (!kept) {
+                    lost.add(`<${element.tagName.toLowerCase()}>`);
+                } else {
+                    [...element.attributes].filter(attribute => !kept.includes(attribute.name)).forEach(attribute => lost.add(attribute.name));
+                }
+            });
+            return [...lost];
+        };
+        document.querySelectorAll('[data-kcms-html-mode]').forEach(modes => {
+            const form = modes.closest('form');
+            const textarea = form.querySelector('textarea.wysiwyg');
+            const visual = form.querySelector('[data-kcms-html-visual]');
+            const code = form.querySelector('[data-kcms-html-code]');
+            const wysi = visual.querySelector('.wysi-editor');
+            const preview = code.querySelector('[data-kcms-html-preview]');
+            const warning = form.querySelector('[data-kcms-html-warning]');
+            const editor = codeEditor(code.querySelector('textarea'), 'htmlmixed');
+            const lost = simplifications(textarea.value);
+            let typedInVisual = false;
+            wysi.addEventListener('input', () => typedInVisual = true);
+            // Same styles as the visual editor (preview above)
+            preview.dataset.kcmsPreview = wysi.dataset.kcmsPreview ?? '';
+            const render = () => preview.innerHTML = textarea.value;
+            // One line per block element (the saved HTML is often on one line); no change to the rendering
+            const readable = html => html.replace(/(<\/(?:p|h[1-6]|li|ul|ol|div|section|article|figure|blockquote|table|tr)>|<(?:hr|br)\s*\/?>)(?=<)/gi, '$1\n');
+            editor.on('change', (instance, change) => {
+                if (change.origin === 'setValue') {
+                    return;
+                }
+                textarea.value = editor.getValue();
+                textarea.dispatchEvent(new Event('input', {bubbles: true}));
+                render();
+            });
+            const show = mode => {
+                modes.querySelectorAll('[data-mode]').forEach(button => button.classList.toggle('is-active', button.dataset.mode === mode));
+                visual.hidden = mode !== 'visual';
+                code.hidden = mode !== 'code';
+                if (mode === 'code') {
+                    editor.setValue(readable(textarea.value));
+                    render();
+                    editor.refresh();
+                } else {
+                    // Shown only: the HTML is rewritten (simplified) when something is typed in the visual editor
+                    wysi.innerHTML = textarea.value;
+                }
+                const simplified = simplifications(textarea.value);
+                warning.textContent = warning.dataset.kcmsTemplate.replace('%list%', simplified.join(', '));
+                warning.hidden = mode !== 'visual' || simplified.length === 0;
+            };
+            modes.addEventListener('click', event => {
+                const mode = event.target.closest('[data-mode]')?.dataset.mode;
+                mode && show(mode);
+            });
+            // Saved simplified only when confirmed
+            form.addEventListener('submit', event => {
+                if (typedInVisual && lost.length && !confirm(warning.dataset.kcmsConfirm.replace('%list%', lost.join(', ')))) {
+                    event.preventDefault();
+                    event.stopImmediatePropagation();
+                }
+            });
+            show(lost.length ? 'code' : 'visual');
         });
 
         // JSON tab of a metablock or a navigation: its content field, indented, checked as it is typed
