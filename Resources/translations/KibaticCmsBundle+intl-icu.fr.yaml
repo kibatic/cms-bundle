@@ -78,6 +78,11 @@ edit:
 missing_block: 'Le bloc <b>« {slug} »</b> n''existe pas, <a href="{url}">le créer</a>.'
 
 editor:
+    mode:
+        visual: Éditeur visuel
+        json: JSON
+        invalid: "JSON invalide, pas enregistré :"
+        json_help: "Le contenu du bloc, tel qu'il est enregistré. Il est revérifié à l'enregistrement : blocs inconnus, entrées vides… sont refusés."
     alignment: Alignement du texte
     settings: Réglages
     created: Créé le

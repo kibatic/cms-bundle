@@ -16,10 +16,20 @@
             {% endif %}
             {% if block.type == 'image' %}
                 {% include '@KibaticCms/block/_image_upload.html.twig' %}
-            {% elseif block.type == 'meta' %}
-                {% include '@KibaticCms/block/_meta_editor.html.twig' %}
-            {% elseif block.type == 'navigation' %}
-                {% include '@KibaticCms/block/_navigation_editor.html.twig' %}
+            {% elseif block.type in ['meta', 'navigation'] %}
+                {# Visual editor, or its JSON edited by hand (see the code editors in _js.html.twig) #}
+                <div class="kcms-mode-tabs" data-kcms-json-mode role="tablist">
+                    <button type="button" data-mode="visual" class="is-active">{{ 'editor.mode.visual'|trans }}</button>
+                    <button type="button" data-mode="json">{{ 'editor.mode.json'|trans }}</button>
+                </div>
+                <div data-kcms-visual>
+                    {% include '@KibaticCms/block/_' ~ (block.type == 'meta' ? 'meta' : 'navigation') ~ '_editor.html.twig' %}
+                </div>
+                <div data-kcms-json hidden>
+                    <textarea aria-label="JSON"></textarea>
+                    <p class="kcms-json-error" data-kcms-json-error data-kcms-invalid="{{ 'editor.mode.invalid'|trans }}" hidden></p>
+                    <p class="kcms-muted kcms-meta-help">{{ 'editor.mode.json_help'|trans }}</p>
+                </div>
             {% endif %}
 
             {{ form_row(form.content) }}

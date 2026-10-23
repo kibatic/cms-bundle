@@ -1,4 +1,10 @@
 <script src="https://cdn.jsdelivr.net/gh/mdbassit/Wysi@latest/dist/wysi.min.js"></script>
+{# Code editor of the CSS of the blocks and of the JSON of the metablocks and navigations #}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/css/css.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/javascript/javascript.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/matchbrackets.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/closebrackets.min.js"></script>
 <script>
     document.addEventListener("DOMContentLoaded", function() {
         Wysi({
@@ -308,6 +314,14 @@
                     save();
                 }
             });
+            // JSON edited by hand (JSON tab): read again
+            field.addEventListener('kcms:reload', () => {
+                try {
+                    meta = {layout: 'stack', columns: 2, items: [], ...JSON.parse(field.value || '{}')};
+                } catch (exception) {}
+                meta.items = (Array.isArray(meta.items) ? meta.items : []).filter(item => item && typeof item === 'object').map(withTitles);
+                draw();
+            });
             // Normalized right away, without marking the form as modified
             field.value = JSON.stringify(meta);
             draw();
@@ -408,9 +422,92 @@
                     save();
                 }
             });
+            // JSON edited by hand (JSON tab): read again, missing fields completed
+            const normalize = items => (Array.isArray(items) ? items : []).filter(item => item && typeof item === 'object').map(item => ({
+                labels: item.labels && typeof item.labels === 'object' ? item.labels : {},
+                slug: typeof item.slug === 'string' && item.slug ? item.slug : null,
+                children: normalize(item.children),
+            }));
+            field.addEventListener('kcms:reload', () => {
+                try {
+                    navigation = {items: normalize(JSON.parse(field.value || '{}').items)};
+                } catch (exception) {}
+                draw();
+            });
+            navigation.items = normalize(navigation.items);
             // Normalized right away, without marking the form as modified
             field.value = JSON.stringify(navigation);
             draw();
+        });
+
+        // Code editors (CodeMirror): CSS of the blocks, JSON of the metablocks and navigations
+        const codeEditor = (textarea, mode) => CodeMirror.fromTextArea(textarea, {
+            mode, lineNumbers: true, matchBrackets: true, autoCloseBrackets: true, tabSize: 2, indentUnit: 2, lineWrapping: true,
+        });
+        document.querySelectorAll('[data-kcms-styles]').forEach(textarea => {
+            const editor = codeEditor(textarea, 'css');
+            editor.on('change', () => {
+                editor.save();
+                textarea.dispatchEvent(new Event('input', {bubbles: true}));
+            });
+            // Drawn hidden in a closed <details>: measured again when opened
+            textarea.closest('details')?.addEventListener('toggle', () => editor.refresh());
+        });
+        // JSON tab of a metablock or a navigation: its content field, indented, checked as it is typed
+        document.querySelectorAll('[data-kcms-json-mode]').forEach(modes => {
+            const form = modes.closest('form');
+            const field = form.querySelector('[data-kcms-meta-content], [data-kcms-navigation-content]');
+            const visual = form.querySelector('[data-kcms-visual]');
+            const panel = form.querySelector('[data-kcms-json]');
+            const error = panel.querySelector('[data-kcms-json-error]');
+            const editor = codeEditor(panel.querySelector('textarea'), {name: 'javascript', json: true});
+            let valid = true;
+            editor.on('change', (instance, change) => {
+                if (change.origin === 'setValue') {
+                    return;
+                }
+                try {
+                    field.value = JSON.stringify(JSON.parse(editor.getValue()));
+                    field.dispatchEvent(new Event('input', {bubbles: true}));
+                    valid = true;
+                    error.hidden = true;
+                } catch (exception) {
+                    valid = false;
+                    error.textContent = error.dataset.kcmsInvalid + ' ' + exception.message;
+                    error.hidden = false;
+                }
+            });
+            const show = mode => {
+                modes.querySelectorAll('[data-mode]').forEach(button => button.classList.toggle('is-active', button.dataset.mode === mode));
+                visual.hidden = mode !== 'visual';
+                panel.hidden = mode !== 'json';
+            };
+            modes.addEventListener('click', event => {
+                const mode = event.target.closest('[data-mode]')?.dataset.mode;
+                if (mode === 'json') {
+                    editor.setValue(JSON.stringify(JSON.parse(field.value || '{}'), null, 2));
+                    valid = true;
+                    error.hidden = true;
+                    show('json');
+                    editor.refresh();
+                    editor.focus();
+                } else if (mode === 'visual' && valid) {
+                    field.dispatchEvent(new Event('kcms:reload'));
+                    show('visual');
+                } else if (mode === 'visual') {
+                    error.classList.add('is-shaking');
+                    setTimeout(() => error.classList.remove('is-shaking'), 400);
+                }
+            });
+            // Not saved with an invalid JSON: the last valid one would be saved instead
+            form.addEventListener('submit', event => {
+                if (!valid) {
+                    event.preventDefault();
+                    event.stopImmediatePropagation();
+                    show('json');
+                    error.scrollIntoView({block: 'center'});
+                }
+            });
         });
 
         // Image blocks: live preview of the URL

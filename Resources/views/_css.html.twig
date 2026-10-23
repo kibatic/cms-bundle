@@ -1,4 +1,5 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/mdbassit/Wysi@latest/dist/wysi.min.css"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css"/>
 <style>
     /* Admin of KibaticCmsBundle: everything is scoped to .kcms so the host application's styles are left alone.
        Override the --kcms-* variables in the application to match its colours. */
@@ -242,6 +243,18 @@
     .kcms .kcms-nav-label input { min-height: 32px; padding: 4px 8px; font-size: 14px; }
     .kcms .kcms-nav-row select { flex: 1; width: auto; min-width: 180px; min-height: 32px; padding: 4px 8px; font-size: 14px; }
     .kcms .kcms-form .kcms-grid div.kcms-nav-row, .kcms .kcms-form .kcms-grid div.kcms-nav-labels { margin-bottom: 0; }
+
+    /* Code editors (CodeMirror): CSS of the blocks, JSON of the metablocks and navigations */
+    .kcms .CodeMirror { height: auto; min-height: 160px; border: 1px solid #cbd5e1; border-radius: 8px; font-family: var(--kcms-mono); font-size: 13px; line-height: 1.5; }
+    .kcms .CodeMirror-scroll { min-height: 160px; max-height: 520px; }
+    .kcms .CodeMirror-focused { border-color: var(--kcms-accent); box-shadow: 0 0 0 3px rgb(79 70 229 / 18%); }
+    .kcms .CodeMirror-gutters { border-right: 1px solid var(--kcms-border); background: var(--kcms-subtle); border-radius: 8px 0 0 8px; }
+    .kcms .kcms-mode-tabs { display: inline-flex; gap: 2px; margin-bottom: 16px; padding: 3px; border-radius: 10px; background: var(--kcms-subtle); border: 1px solid var(--kcms-border); }
+    .kcms .kcms-mode-tabs button { padding: 5px 14px; border: 0; border-radius: 7px; background: none; color: var(--kcms-muted); font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; }
+    .kcms .kcms-mode-tabs button.is-active { background: var(--kcms-surface); color: var(--kcms-text); box-shadow: var(--kcms-shadow); }
+    .kcms .kcms-json-error { margin: 8px 0 0; color: var(--kcms-danger); font-size: 13px; font-weight: 600; }
+    .kcms .kcms-json-error.is-shaking { animation: kcms-shake .3s; }
+    @keyframes kcms-shake { 25% { transform: translateX(-4px); } 75% { transform: translateX(4px); } }
 
     /* Styles of a block (block/_editor.html.twig) */
     .kcms .kcms-styles { margin-top: 16px; border-top: 1px solid var(--kcms-border); padding-top: 12px; }

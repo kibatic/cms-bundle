@@ -78,6 +78,11 @@ edit:
 missing_block: 'CMS block <b>"{slug}"</b> does not exist, <a href="{url}">create it</a>.'
 
 editor:
+    mode:
+        visual: Visual editor
+        json: JSON
+        invalid: "Invalid JSON, not saved:"
+        json_help: "The content of the block, as saved. It is checked again when saved: unknown blocks, empty entries… are refused."
     alignment: Text alignment
     settings: Settings
     created: Created
