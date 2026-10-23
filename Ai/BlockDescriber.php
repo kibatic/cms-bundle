@@ -23,6 +23,7 @@ final class BlockDescriber
             'language' => $block->getLanguage(),
             'type' => $block->getType(),
             'updated_at' => $block->getUpdatedAt()->format(\DATE_ATOM),
+            'has_styles' => null !== $block->getStyles(),
         ] + ($withContent
             ? ['content' => $content, 'styles' => $block->getStyles()]
             : ['excerpt' => mb_strimwidth(trim(preg_replace('/\s+/', ' ', strip_tags($content))), 0, 100, '…')]);

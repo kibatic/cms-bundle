@@ -8,7 +8,7 @@ use Symfony\AI\Agent\Toolbox\Attribute\AsTool;
 
 #[AsTool(
     name: 'cms_list_blocks',
-    description: 'Lists every content block of the CMS: slug, language (null: shared by every language), type, last update and the beginning of its text.',
+    description: 'Lists every content block of the CMS: slug, language (null: shared by every language), type, last update, whether it has its own styles, and the beginning of its text.',
 )]
 final class ListBlocksTool
 {

@@ -35,7 +35,7 @@ final class SaveMetablockTool
      * @param string $layout   Layout of the metablock: "stack" (one after the other), "columns", "grid" (cards) or "tabs" (one tab per item, labelled with its title, else its slug)
      * @param int    $columns  Number of columns (2, 3 or 4) for the layout "columns"
      * @param string $language Language code of the metablock (e.g. "fr"); empty for a metablock shared by every language (its blocks are shown in the page's language anyway)
-     * @param ?string $styles  CSS of the metablock only, scoped to it; null keeps the current styles, an empty string removes them
+     * @param ?string $styles  CSS of the metablock only, scoped to it (e.g. a background around its blocks); null keeps the current styles, a string replaces them, an empty string removes them
      */
     public function __invoke(string $slug, array $items, string $layout = 'stack', int $columns = 2, string $language = '', ?string $styles = null): string
     {

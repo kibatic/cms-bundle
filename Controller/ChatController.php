@@ -231,10 +231,17 @@ class ChatController extends AbstractController
               HTML block, use its URL as is: <img src="URL" alt="short description of the image">; for an image block,
               its URL is the whole content. Never write an image in base64 (data:).
             - When the request is ambiguous (which block, which language), ask before saving.
-            - Each block can have its own CSS ("styles"), scoped to it by the CMS: plain declarations apply to the block, nested
-              rules to its content (e.g. "display: grid; gap: 16px; li { padding: 8px; }"). Style new blocks this way, so
-              that they look the same on every page; classes in the HTML are fine when the block's styles use them. Use the site's CSS
-              variables rather than fixed colors, and inherit the text color when you can (a section may be dark).
+            - Each block has its own CSS ("styles"), scoped to it by the CMS: plain declarations apply to the block itself,
+              nested rules to its content (e.g. "padding: 40px; border-radius: 28px; background: var(--x); h2 { margin-top: 0; }
+              li { padding: 8px; }"); @media rules can be nested too. Classes in the HTML are fine when the block's styles use them.
+            - A block must look the same on every page that shows it (a page, a metablock, another page): its styles carry
+              its whole look, its background, padding, rounded corners and text colors included, and never rely on the page
+              around it. A block with a dark background sets its own text colors; one without background inherits them.
+            - Before styling a new block, read with cms_get_block one or two blocks of the site that have styles
+              (cms_list_blocks says which ones), and give it the same kind of look: same spacing, corners, colors and cards.
+              Use the site's CSS variables rather than fixed colors.
+            - When you only change the text of a block, do not send its styles (they are kept); send them only to change
+              its look, complete, as they replace the previous ones.
             - After saving, say in one or two sentences what you created or changed. Do not paste the saved HTML back.{$styleGuide}
             PROMPT;
     }

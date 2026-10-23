@@ -34,7 +34,7 @@ final class SaveBlockTool
      * @param string $content  Content of the block: an HTML fragment for "html" (no <html>, <head> or <body>), plain text for "text", the image URL for "image"
      * @param string $type     Type of a new block: "html" (rich text, the default), "text" (plain text) or "image"; ignored for an existing block, which keeps its type
      * @param string $language Language code of the block (e.g. "fr", "en"); empty for a block shared by every language
-     * @param ?string $styles  CSS of this block only, scoped to it (declarations for the block, nested rules for its content); null keeps the current styles, an empty string removes them
+     * @param ?string $styles  CSS of this block only, scoped to it: its whole look, background and padding included (declarations for the block, nested rules for its content); null keeps the current styles (to change the text only), a string replaces them, an empty string removes them
      */
     public function __invoke(string $slug, string $content, string $type = 'html', string $language = '', ?string $styles = null): string
     {
