@@ -139,3 +139,9 @@ cms_version_edit_block:
     methods: GET|POST
     requirements:
         id: '\d+'
+
+# Page of a block, public: where the entries of a navigation block lead
+cms_page:
+    path: /page/{slug}
+    controller: Kibatic\CmsBundle\Controller\PageController::show
+    methods: GET

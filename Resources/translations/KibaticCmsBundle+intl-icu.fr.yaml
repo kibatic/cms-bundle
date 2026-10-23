@@ -46,6 +46,10 @@ type:
         name: Image
         description: Une image de l'ordinateur ou à partir de son adresse
         new: Nouveau bloc image
+    navigation:
+        name: Navigation
+        description: Un menu d'entrées, chacune menant à la page d'un bloc
+        new: Nouvelle navigation
     meta:
         name: Métabloc
         description: Des blocs existants affichés ensemble, avec une disposition
@@ -116,6 +120,15 @@ form:
     image_url:
         label: Ou l'adresse de l'image
         placeholder: https://… ou /images/…
+    navigation:
+        entries: Entrées du menu
+        no_entry: Aucune entrée pour l'instant.
+        add: Ajouter une entrée
+        add_child: Ajouter une sous-entrée
+        label: Libellé
+        heading: "— Titre seul (sans page) —"
+        block: Page du bloc
+        help: "Chaque entrée mène à la page de son bloc (/page/…), dans la mise en page du site ; une entrée sans bloc est le titre de ses sous-entrées. Les sous-entrées s'affichent dans des menus déroulants."
     meta:
         layout: Disposition
         layouts:

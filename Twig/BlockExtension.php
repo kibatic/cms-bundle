@@ -5,6 +5,7 @@ namespace Kibatic\CmsBundle\Twig;
 use Kibatic\CmsBundle\Controller\BlockController;
 use Kibatic\CmsBundle\Entity\Block;
 use Kibatic\CmsBundle\Meta\MetaContent;
+use Kibatic\CmsBundle\Navigation\NavigationContent;
 use Kibatic\CmsBundle\Repository\BlockRepository;
 use Kibatic\CmsBundle\Upload\ImageStorage;
 use Kibatic\CmsBundle\Version\VersionPreview;
@@ -24,6 +25,32 @@ class BlockExtension extends AbstractExtension implements ResetInterface
     private int $metablocks = 0;
     /** @var array<string, true> slugs of the blocks whose styles were added to the page */
     private array $styled = [];
+    /** Whether the styles of the navigation menus were added to the page */
+    private bool $navigationStyled = false;
+
+    /**
+     * Styles of the navigation menus: entries side by side, sub-entries in drop-down menus (the next levels on the side),
+     * one below the other on a phone; neutral, overridable with the --cms-nav-* variables
+     */
+    private const NAVIGATION_STYLES = <<<'CSS'
+        .cms-nav ul { margin: 0; padding: 0; list-style: none; }
+        .cms-nav > ul { display: flex; flex-wrap: wrap; gap: var(--cms-nav-gap, 4px); }
+        .cms-nav li { position: relative; }
+        .cms-nav a, .cms-nav span { display: block; padding: var(--cms-nav-padding, 8px 12px); border-radius: 8px; color: inherit; text-decoration: none; white-space: nowrap; }
+        .cms-nav a:hover, .cms-nav a:focus-visible, .cms-nav [aria-current="page"] { background: var(--cms-nav-hover, rgb(127 127 127 / 15%)); }
+        .cms-nav [aria-current="page"] { font-weight: 700; }
+        .cms-nav li:has(> ul) > :first-child::after { content: " ▾"; font-size: .8em; opacity: .7; }
+        .cms-nav li li:has(> ul) > :first-child::after { content: " ▸"; }
+        .cms-nav li > ul { display: none; position: absolute; top: 100%; left: 0; z-index: 1000; min-width: 200px; padding: 6px; border-radius: 10px; background: var(--cms-nav-menu-background, #fff); color: var(--cms-nav-menu-color, #1f2937); box-shadow: 0 12px 32px rgb(0 0 0 / 18%); }
+        .cms-nav li li > ul { top: -6px; left: 100%; }
+        .cms-nav li:hover > ul, .cms-nav li:focus-within > ul { display: block; }
+        @media (max-width: 768px) {
+            .cms-nav { flex-basis: 100%; }
+            .cms-nav > ul { flex-direction: column; }
+            .cms-nav li > ul, .cms-nav li li > ul { display: block; position: static; min-width: 0; padding: 0 0 0 16px; background: none; color: inherit; box-shadow: none; }
+            .cms-nav li:has(> ul) > :first-child::after, .cms-nav li li:has(> ul) > :first-child::after { content: none; }
+        }
+        CSS;
 
     /** Styles of the layouts of the metablocks, neutral (colors of the site), overridable with the --cms-meta-* variables */
     private const META_STYLES = <<<'CSS'
@@ -59,6 +86,8 @@ class BlockExtension extends AbstractExtension implements ResetInterface
             new TwigFunction('cms_block', $this->cmsBlock(...), ['is_safe' => ['html']]),
             new TwigFunction('cms_image', $this->cmsImage(...)),
             new TwigFunction('cms_meta_choices', $this->metaChoices(...)),
+            new TwigFunction('cms_navigation_choices', $this->navigationChoices(...)),
+            new TwigFunction('cms_languages', $this->languages(...)),
             new TwigFunction('cms_version_preview', $this->versionPreview->current(...)),
             new TwigFunction('cms_published_version', $this->versionPreview->published(...)),
             new TwigFunction('cms_draft_changes', $this->versionPreview->draftChanges(...)),
@@ -136,6 +165,7 @@ class BlockExtension extends AbstractExtension implements ResetInterface
             // A text block is plain text: "&" or "<" are displayed as typed
             'text' => nl2br(htmlspecialchars((string) $block->getContent())),
             'meta' => $this->renderMeta(MetaContent::fromJson($block->getContent())),
+            'navigation' => $this->renderNavigation(NavigationContent::fromJson($block->getContent())),
             default => $block->getContent(),
         };
 
@@ -255,10 +285,85 @@ class BlockExtension extends AbstractExtension implements ResetInterface
         return $choices;
     }
 
+    /**
+     * Whether a block exists in the displayed version (page of a block: PageController)
+     */
+    public function exists(string $slug): bool
+    {
+        return null !== $this->resolveBlock($slug);
+    }
+
+    /**
+     * Menu of a navigation block: each entry in the page's language (else another one), linked to the page of its
+     * block; the entry of the current page is marked
+     */
+    private function renderNavigation(NavigationContent $navigation): string
+    {
+        $locales = [$this->translator->getLocale(), ...$this->translator->getFallbackLocales()];
+        $request = $this->requestStack->getMainRequest();
+        $currentSlug = 'cms_page' === $request?->attributes->get('_route') ? $request->attributes->get('slug') : null;
+
+        $label = function (array $labels) use ($locales): string {
+            foreach ([...$locales, ''] as $locale) {
+                if (isset($labels[$locale])) {
+                    return $labels[$locale];
+                }
+            }
+
+            return (string) reset($labels);
+        };
+        $list = function (array $items) use (&$list, $label, $currentSlug): string {
+            $html = '<ul>';
+            foreach ($items as $item) {
+                $text = htmlspecialchars($label($item['labels']));
+                $html .= '<li>'.(null !== $item['slug']
+                    ? sprintf('<a href="%s"%s>%s</a>', htmlspecialchars($this->router->generate('cms_page', ['slug' => $item['slug']])), $item['slug'] === $currentSlug ? ' aria-current="page"' : '', $text)
+                    : '<span>'.$text.'</span>');
+                $html .= [] !== $item['children'] ? $list($item['children']) : '';
+                $html .= '</li>';
+            }
+
+            return $html.'</ul>';
+        };
+
+        $styles = $this->navigationStyled ? '' : '<style>'.self::NAVIGATION_STYLES.'</style>';
+        $this->navigationStyled = true;
+
+        return $styles.'<nav class="cms-nav">'.$list($navigation->items).'</nav>';
+    }
+
+    /**
+     * Blocks a navigation entry can link to, for its editor: one per slug, navigation blocks excluded
+     *
+     * @return array<string, string> type by slug
+     */
+    public function navigationChoices(): array
+    {
+        $choices = [];
+        foreach ($this->blockRepository->findAll() as $block) {
+            if ('navigation' !== $block->getType()) {
+                $choices[$block->getSlug()] ??= $block->getType();
+            }
+        }
+
+        return $choices;
+    }
+
+    /**
+     * Languages of the labels of a navigation entry: those of the blocks, or "" when the site has none
+     *
+     * @return list<string>
+     */
+    public function languages(): array
+    {
+        return $this->blockRepository->getExistingLanguages() ?: [''];
+    }
+
     public function reset(): void
     {
         $this->metablocks = 0;
         $this->styled = [];
+        $this->navigationStyled = false;
     }
 
     /**

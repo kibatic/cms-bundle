@@ -19,6 +19,9 @@ services:
     Kibatic\CmsBundle\Controller\UploadController:
         tags: ['controller.service_arguments']
 
+    Kibatic\CmsBundle\Controller\PageController:
+        tags: ['controller.service_arguments']
+
     Kibatic\CmsBundle\Upload\ImageStorage: ~
     Kibatic\CmsBundle\Meta\MetaValidator: ~
     Kibatic\CmsBundle\Command\CleanUploadsCommand: ~
@@ -36,6 +39,7 @@ services:
     Kibatic\CmsBundle\Form\HtmlBlockType: ~
     Kibatic\CmsBundle\Form\AlertBlockType: ~
     Kibatic\CmsBundle\Form\MetaBlockType: ~
+    Kibatic\CmsBundle\Form\NavigationBlockType: ~
 
     _instanceof:
         Kibatic\CmsBundle\Form\BlockTypeInterface:

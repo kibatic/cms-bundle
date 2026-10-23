@@ -3,3 +3,6 @@ kibatic_cms:
     meta:
         empty: Add at least one block, to the metablock and to each sub-metablock.
         invalid: "A block of the list does not exist or is a metablock."
+    navigation:
+        empty: "Add at least one entry, each one with a label."
+        invalid: "An entry links to a block that does not exist, or to a navigation block."

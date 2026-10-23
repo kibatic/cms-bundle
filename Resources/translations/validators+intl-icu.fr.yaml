@@ -3,3 +3,6 @@ kibatic_cms:
     meta:
         empty: Ajoutez au moins un bloc, au métabloc et à chaque sous-métabloc.
         invalid: "Un bloc de la liste n'existe pas ou est un métabloc."
+    navigation:
+        empty: "Ajoutez au moins une entrée, chacune avec un libellé."
+        invalid: "Une entrée pointe vers un bloc qui n'existe pas, ou vers un bloc de navigation."

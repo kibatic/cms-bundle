@@ -297,6 +297,106 @@
             draw();
         });
 
+        // Navigation blocks: tree of entries, written in JSON in the hidden content field (block/_navigation_editor.html.twig).
+        // An entry: {labels: {language: label}, slug (block of its page, null: heading only), children: [entries]}
+        document.querySelectorAll('[data-kcms-navigation-editor]').forEach(editor => {
+            const field = editor.closest('form').querySelector('[data-kcms-navigation-content]');
+            const text = editor.dataset;
+            const choices = JSON.parse(text.kcmsChoices);
+            const languages = JSON.parse(text.kcmsLanguages);
+            const tree = editor.querySelector('[data-kcms-navigation-items]');
+            let navigation = {items: []};
+            try {
+                navigation = {...navigation, ...JSON.parse(field.value || '{}')};
+            } catch (exception) {}
+            const escape = value => String(value).replace(/[&<>"']/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'})[c]);
+            const newEntry = () => ({labels: {}, slug: null, children: []});
+            // List and index of the entry of a path ("0.2.1": entry 1 of the entry 2 of the entry 0)
+            const locate = path => {
+                const indexes = path.split('.').map(Number);
+                let list = navigation.items;
+                indexes.slice(0, -1).forEach(index => list = list[index].children);
+                return [list, indexes.at(-1)];
+            };
+            const button = (action, path, label, symbol, disabled = false) =>
+                `<button type="button" data-action="${action}" data-path="${path}" title="${escape(label)}" aria-label="${escape(label)}"${disabled ? ' disabled' : ''}>${symbol}</button>`;
+            const entries = (items, prefix) => items.map((item, index) => {
+                const path = prefix + index;
+                const slugOptions = [`<option value="">${escape(text.kcmsHeading)}</option>`,
+                    ...Object.entries(choices).map(([slug, label]) => `<option value="${escape(slug)}"${slug === item.slug ? ' selected' : ''}>${escape(label)}</option>`)];
+                if (item.slug && !(item.slug in choices)) {
+                    slugOptions.push(`<option value="${escape(item.slug)}" selected>${escape(item.slug)} (${escape(text.kcmsMissing)})</option>`);
+                }
+                return `
+                    <li class="kcms-nav-entry">
+                        <div class="kcms-nav-row${item.slug && !(item.slug in choices) ? ' is-missing' : ''}">
+                            <div class="kcms-nav-labels">
+                                ${languages.map(language => `<label class="kcms-nav-label">${language ? `<span class="kcms-chip">${escape(language)}</span>` : ''}
+                                    <input type="text" maxlength="80" data-action="label" data-path="${path}" data-language="${escape(language)}"
+                                           value="${escape(item.labels[language] ?? '')}" placeholder="${escape(text.kcmsLabel)}"></label>`).join('')}
+                            </div>
+                            <select data-action="slug" data-path="${path}" aria-label="${escape(text.kcmsBlockLabel)}">${slugOptions.join('')}</select>
+                            <span class="kcms-meta-actions">
+                                ${button('add-child', path, text.kcmsAddChild, '+')}
+                                ${button('up', path, text.kcmsUp, '↑', index === 0)}
+                                ${button('down', path, text.kcmsDown, '↓', index === items.length - 1)}
+                                ${button('remove', path, text.kcmsRemove, '×')}
+                            </span>
+                        </div>
+                        ${item.children.length ? `<ol class="kcms-nav-tree">${entries(item.children, path + '.')}</ol>` : ''}
+                    </li>`;
+            }).join('');
+            const save = () => {
+                field.value = JSON.stringify(navigation);
+                field.dispatchEvent(new Event('input', {bubbles: true}));
+            };
+            const draw = () => {
+                tree.innerHTML = entries(navigation.items, '');
+                editor.querySelector('[data-kcms-navigation-empty]').hidden = navigation.items.length > 0;
+            };
+            editor.querySelector('[data-kcms-navigation-add]').addEventListener('click', () => {
+                navigation.items.push(newEntry());
+                save();
+                draw();
+                tree.querySelector(':scope > li:last-child input')?.focus();
+            });
+            tree.addEventListener('click', event => {
+                const target = event.target.closest('button[data-action]');
+                if (!target) {
+                    return;
+                }
+                const [list, index] = locate(target.dataset.path);
+                const move = {up: -1, down: 1}[target.dataset.action];
+                if (target.dataset.action === 'add-child') {
+                    list[index].children.push(newEntry());
+                } else if (move) {
+                    [list[index], list[index + move]] = [list[index + move], list[index]];
+                } else {
+                    list.splice(index, 1);
+                }
+                save();
+                draw();
+            });
+            tree.addEventListener('input', event => {
+                if (event.target.dataset.action === 'label') {
+                    const [list, index] = locate(event.target.dataset.path);
+                    const labels = list[index].labels;
+                    event.target.value.trim() ? labels[event.target.dataset.language] = event.target.value : delete labels[event.target.dataset.language];
+                    save();
+                }
+            });
+            tree.addEventListener('change', event => {
+                if (event.target.dataset.action === 'slug') {
+                    const [list, index] = locate(event.target.dataset.path);
+                    list[index].slug = event.target.value || null;
+                    save();
+                }
+            });
+            // Normalized right away, without marking the form as modified
+            field.value = JSON.stringify(navigation);
+            draw();
+        });
+
         // Image blocks: live preview of the URL
         document.querySelectorAll('[data-kcms-image-preview]').forEach(preview => {
             const input = preview.closest('form').querySelector('[data-kcms-image-url]');

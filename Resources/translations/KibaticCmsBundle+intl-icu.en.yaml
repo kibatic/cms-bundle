@@ -46,6 +46,10 @@ type:
         name: Image
         description: An image from the computer or from its URL
         new: New image block
+    navigation:
+        name: Navigation
+        description: A menu of entries, each one leading to the page of a block
+        new: New navigation
     meta:
         name: Metablock
         description: Existing blocks shown together, with a layout
@@ -116,6 +120,15 @@ form:
     image_url:
         label: Or the image URL
         placeholder: https://… or /images/…
+    navigation:
+        entries: Entries of the menu
+        no_entry: No entry yet.
+        add: Add an entry
+        add_child: Add a sub-entry
+        label: Label
+        heading: "— Heading only (no page) —"
+        block: Page of the block
+        help: "Each entry leads to the page of its block (/page/…), in the site's layout; an entry without block is the heading of its sub-entries. Sub-entries are shown in drop-down menus."
     meta:
         layout: Layout
         layouts:

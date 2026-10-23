@@ -1,0 +1,28 @@
+{#
+    Editor of a navigation block: a tree of entries (label in each language, block of the page it leads to), written in
+    JSON in the hidden content field (Navigation\NavigationContent, see the navigation part of _js.html.twig)
+#}
+{% trans_default_domain 'KibaticCmsBundle' %}
+{% import '@KibaticCms/_macros.html.twig' as kcms %}
+{% set labels = {} %}
+{% for slug, type in cms_navigation_choices() %}
+    {% set labels = labels|merge({(slug): slug ~ ' (' ~ kcms.type_label(type) ~ ')'}) %}
+{% endfor %}
+
+<div class="kcms-nav-editor" data-kcms-navigation-editor
+     data-kcms-choices="{{ labels|json_encode }}" data-kcms-languages="{{ cms_languages()|json_encode }}"
+     data-kcms-label="{{ 'form.navigation.label'|trans }}" data-kcms-heading="{{ 'form.navigation.heading'|trans }}"
+     data-kcms-add-child="{{ 'form.navigation.add_child'|trans }}" data-kcms-up="{{ 'form.meta.up'|trans }}"
+     data-kcms-down="{{ 'form.meta.down'|trans }}" data-kcms-remove="{{ 'editor.upload.remove'|trans }}"
+     data-kcms-missing="{{ 'form.meta.missing'|trans }}" data-kcms-block-label="{{ 'form.navigation.block'|trans }}">
+    <div class="kcms-meta-label">{{ 'form.navigation.entries'|trans }}</div>
+    <ol class="kcms-nav-tree" data-kcms-navigation-items></ol>
+    <p class="kcms-muted kcms-meta-empty" data-kcms-navigation-empty>{{ 'form.navigation.no_entry'|trans }}</p>
+    <div>
+        <button type="button" class="kcms-btn" data-kcms-navigation-add>
+            <svg class="kcms-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+            {{ 'form.navigation.add'|trans }}
+        </button>
+    </div>
+    <p class="kcms-muted kcms-meta-help">{{ 'form.navigation.help'|trans }}</p>
+</div>

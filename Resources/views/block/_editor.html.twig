@@ -18,6 +18,8 @@
                 {% include '@KibaticCms/block/_image_upload.html.twig' %}
             {% elseif block.type == 'meta' %}
                 {% include '@KibaticCms/block/_meta_editor.html.twig' %}
+            {% elseif block.type == 'navigation' %}
+                {% include '@KibaticCms/block/_navigation_editor.html.twig' %}
             {% endif %}
 
             {{ form_row(form.content) }}
