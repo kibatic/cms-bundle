@@ -515,7 +515,8 @@
             const visual = form.querySelector('[data-kcms-html-visual]');
             const code = form.querySelector('[data-kcms-html-code]');
             const wysi = visual.querySelector('.wysi-editor');
-            const preview = code.querySelector('[data-kcms-html-preview]');
+            const preview = form.querySelector('[data-kcms-html-preview]');
+            const previewCard = form.querySelector('[data-kcms-html-preview-card]');
             const warning = form.querySelector('[data-kcms-html-warning]');
             const editor = codeEditor(code.querySelector('textarea'), 'htmlmixed');
             const lost = simplifications(textarea.value);
@@ -538,6 +539,7 @@
                 modes.querySelectorAll('[data-mode]').forEach(button => button.classList.toggle('is-active', button.dataset.mode === mode));
                 visual.hidden = mode !== 'visual';
                 code.hidden = mode !== 'code';
+                previewCard.hidden = mode !== 'code';
                 if (mode === 'code') {
                     editor.setValue(readable(textarea.value));
                     render();

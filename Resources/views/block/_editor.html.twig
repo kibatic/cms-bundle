@@ -43,10 +43,6 @@
                 <div data-kcms-html-visual>{{ form_row(form.content) }}</div>
                 <div class="kcms-html-code" data-kcms-html-code hidden>
                     <textarea aria-label="HTML"></textarea>
-                    <div>
-                        <div class="kcms-html-preview-label">{{ 'editor.mode.preview'|trans }}</div>
-                        <div class="kcms-html-preview" data-kcms-html-preview></div>
-                    </div>
                 </div>
             {% else %}
                 {{ form_row(form.content) }}
@@ -98,6 +94,14 @@
             {% endif %}
         </aside>
     </div>
+
+    {% if block.type == 'html' %}
+        {# Preview of the HTML tab, on the whole width of the page, as the block on the site #}
+        <section class="kcms-card kcms-html-preview-card" data-kcms-html-preview-card hidden>
+            <h2 class="kcms-card-title">{{ 'editor.mode.preview'|trans }}</h2>
+            <div class="kcms-html-preview" data-kcms-html-preview></div>
+        </section>
+    {% endif %}
 {{ form_end(form, {'render_rest': false}) }}
 
 {% if delete_form %}
