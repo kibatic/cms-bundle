@@ -31,13 +31,15 @@ final class MetaContent
     {
         $data = json_decode((string) $json, true);
 
-        return self::fromArray(\is_array($data) ? $data : [], true);
+        return self::fromArray(\is_array($data) ? $data : []);
     }
 
     /**
+     * From decoded JSON ({layout, columns, items}), e.g. the arguments of the assistant's tool
+     *
      * @param bool $groups whether its items may be sub-metablocks (only at the first level)
      */
-    private static function fromArray(array $data, bool $groups): self
+    public static function fromArray(array $data, bool $groups = true): self
     {
         $items = [];
         foreach (\is_array($data['items'] ?? null) ? $data['items'] : [] as $item) {

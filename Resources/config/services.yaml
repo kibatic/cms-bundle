@@ -19,6 +19,7 @@ services:
         tags: ['controller.service_arguments']
 
     Kibatic\CmsBundle\Upload\ImageStorage: ~
+    Kibatic\CmsBundle\Meta\MetaValidator: ~
     Kibatic\CmsBundle\Command\CleanUploadsCommand: ~
 
     Kibatic\CmsBundle\Controller\VersionController:

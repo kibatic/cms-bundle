@@ -3,7 +3,7 @@
 namespace Kibatic\CmsBundle\Form;
 
 use Kibatic\CmsBundle\Meta\MetaContent;
-use Kibatic\CmsBundle\Repository\BlockRepository;
+use Kibatic\CmsBundle\Meta\MetaValidator;
 use Symfony\Component\Form\CallbackTransformer;
 use Symfony\Component\Form\Exception\TransformationFailedException;
 use Symfony\Component\Form\Extension\Core\Type\HiddenType;
@@ -16,7 +16,7 @@ use Symfony\Component\Form\FormBuilderInterface;
 class MetaBlockType extends AbstractBlockType implements BlockTypeInterface
 {
     public function __construct(
-        private readonly BlockRepository $blocks,
+        private readonly MetaValidator $validator,
     ) {
     }
 
@@ -31,25 +31,14 @@ class MetaBlockType extends AbstractBlockType implements BlockTypeInterface
             'invalid_message' => 'kibatic_cms.meta.invalid',
         ]);
 
-        // Saved normalized; only existing blocks, no metablock block (only sub-metablocks made in the editor), and no
-        // empty sub-metablock
+        // Saved normalized, if valid (MetaValidator)
         $builder->get('content')->addModelTransformer(new CallbackTransformer(
             fn (?string $content) => $content,
             function (?string $json): string {
                 $meta = MetaContent::fromJson($json);
-                $types = [];
-                foreach ($this->blocks->findBy(['slug' => $meta->slugs()]) as $block) {
-                    $types[$block->getSlug()] = $block->getType();
-                }
 
-                if ([] === $meta->items || $meta->hasEmptyGroup()) {
-                    throw new TransformationFailedException('No block', invalidMessage: 'kibatic_cms.meta.empty');
-                }
-
-                foreach ($meta->slugs() as $slug) {
-                    if (!isset($types[$slug]) || self::getBlockTypeName() === $types[$slug]) {
-                        throw new TransformationFailedException('Unknown block', invalidMessage: 'kibatic_cms.meta.invalid');
-                    }
+                if (null !== $error = $this->validator->validate($meta)) {
+                    throw new TransformationFailedException('Invalid metablock', invalidMessage: 'kibatic_cms.meta.'.$error);
                 }
 
                 return $meta->toJson();

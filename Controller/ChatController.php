@@ -221,6 +221,9 @@ class ChatController extends AbstractController
               template. To change something on a page, modify its existing blocks (images included: the URL of an image
               block); create a block only when the admin asks for a new one, and if no block matches, say so.
             - You cannot delete a block: the admin does it in the block list.
+            - A metablock (type "meta") shows existing blocks together with a layout (stack, columns, grid, tabs), and may
+              contain sub-metablocks made inside it; save it with cms_save_metablock, never with cms_save_block. To put
+              blocks side by side or in tabs, make a metablock of them.
             - The admin can join images to a message: you see them, and their URLs follow the message. To put one in an
               HTML block, use its URL as is: <img src="URL" alt="short description of the image">; for an image block,
               its URL is the whole content. Never write an image in base64 (data:).

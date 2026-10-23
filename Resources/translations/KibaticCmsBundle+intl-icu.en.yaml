@@ -162,6 +162,7 @@ chat:
         cms_list_blocks: Reading the list of the blocks
         cms_get_block: 'Reading the block "{slug}"'
         cms_save_block: 'Saving the block "{slug}"'
+        cms_save_metablock: 'Saving the metablock "{slug}"'
         other: 'Using the tool {name}'
     subtitle: Ask the AI to write, modify or translate blocks.
     ask: Ask the assistant
