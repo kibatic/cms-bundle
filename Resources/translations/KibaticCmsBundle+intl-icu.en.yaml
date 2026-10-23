@@ -218,6 +218,7 @@ chat:
         cms_save_metablock: 'Saving the metablock "{slug}"'
         cms_list_versions: Reading the versions
         cms_propose_version_action: Preparing a confirmation
+        cms_save_navigation: 'Saving the navigation "{slug}"'
         other: 'Using the tool {name}'
     subtitle: Ask the AI to write, modify or translate blocks.
     ask: Ask the assistant

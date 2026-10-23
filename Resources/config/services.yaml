@@ -24,6 +24,7 @@ services:
 
     Kibatic\CmsBundle\Upload\ImageStorage: ~
     Kibatic\CmsBundle\Meta\MetaValidator: ~
+    Kibatic\CmsBundle\Navigation\NavigationValidator: ~
     Kibatic\CmsBundle\Command\CleanUploadsCommand: ~
 
     Kibatic\CmsBundle\Controller\VersionController:

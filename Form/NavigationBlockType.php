@@ -3,7 +3,7 @@
 namespace Kibatic\CmsBundle\Form;
 
 use Kibatic\CmsBundle\Navigation\NavigationContent;
-use Kibatic\CmsBundle\Repository\BlockRepository;
+use Kibatic\CmsBundle\Navigation\NavigationValidator;
 use Symfony\Component\Form\CallbackTransformer;
 use Symfony\Component\Form\Exception\TransformationFailedException;
 use Symfony\Component\Form\Extension\Core\Type\HiddenType;
@@ -16,7 +16,7 @@ use Symfony\Component\Form\FormBuilderInterface;
 class NavigationBlockType extends AbstractBlockType implements BlockTypeInterface
 {
     public function __construct(
-        private readonly BlockRepository $blocks,
+        private readonly NavigationValidator $validator,
     ) {
     }
 
@@ -33,25 +33,14 @@ class NavigationBlockType extends AbstractBlockType implements BlockTypeInterfac
             'invalid_message' => 'kibatic_cms.navigation.invalid',
         ]);
 
-        // Saved normalized: at least one entry, each one with a label, linking to existing blocks (no navigation block)
+        // Saved normalized, if valid (NavigationValidator)
         $builder->get('content')->addModelTransformer(new CallbackTransformer(
             fn (?string $content) => $content,
             function (?string $json): string {
                 $navigation = NavigationContent::fromJson($json);
 
-                if ([] === $navigation->items || $navigation->hasUnlabelledItem()) {
-                    throw new TransformationFailedException('Empty navigation', invalidMessage: 'kibatic_cms.navigation.empty');
-                }
-
-                $types = [];
-                foreach ($this->blocks->findBy(['slug' => $navigation->slugs()]) as $block) {
-                    $types[$block->getSlug()] = $block->getType();
-                }
-
-                foreach ($navigation->slugs() as $slug) {
-                    if (!isset($types[$slug]) || self::getBlockTypeName() === $types[$slug]) {
-                        throw new TransformationFailedException('Unknown block', invalidMessage: 'kibatic_cms.navigation.invalid');
-                    }
+                if (null !== $error = $this->validator->validate($navigation)) {
+                    throw new TransformationFailedException('Invalid navigation', invalidMessage: 'kibatic_cms.navigation.'.$error);
                 }
 
                 return $navigation->toJson();

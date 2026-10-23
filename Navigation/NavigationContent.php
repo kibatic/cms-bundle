@@ -28,6 +28,14 @@ final class NavigationContent
         return new self(self::items(\is_array($data['items'] ?? null) ? $data['items'] : []));
     }
 
+    /**
+     * From decoded entries, e.g. the arguments of the assistant's tool
+     */
+    public static function fromItems(array $items): self
+    {
+        return new self(self::items($items));
+    }
+
     private static function items(array $items): array
     {
         $normalized = [];

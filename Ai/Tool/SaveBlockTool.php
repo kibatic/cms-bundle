@@ -60,9 +60,11 @@ final class SaveBlockTool
                 ->setType($type);
             $this->entityManager->persist($block);
         } elseif (!\in_array($block->getType(), self::TYPES, true)) {
-            return 'meta' === $block->getType()
-                ? sprintf('Not saved: "%s" is a metablock, save it with cms_save_metablock.', $slug)
-                : sprintf('Not saved: blocks of type "%s" are edited in the admin only.', $block->getType());
+            return match ($block->getType()) {
+                'meta' => sprintf('Not saved: "%s" is a metablock, save it with cms_save_metablock.', $slug),
+                'navigation' => sprintf('Not saved: "%s" is a navigation, save it with cms_save_navigation.', $slug),
+                default => sprintf('Not saved: blocks of type "%s" are edited in the admin only.', $block->getType()),
+            };
         }
 
         if ('image' === $block->getType() && str_starts_with($content, 'data:')) {

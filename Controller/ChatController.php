@@ -256,6 +256,11 @@ class ChatController extends AbstractController
               contain sub-metablocks made inside it; save it with cms_save_metablock, never with cms_save_block. To put
               blocks side by side or in tabs, make a metablock of them. A metablock is shared by every language, with the
               titles of its tabs in each language.
+            - A navigation (type "navigation") is a menu: a tree of entries, each one with its label in each language of the
+              site, leading to the page of a block (/page/its-slug) or heading its sub-entries. It is shared by every
+              language; save it with cms_save_navigation. To add a page to a menu, read the menu with cms_get_block and
+              save it back with the new entry, every other entry kept. The menus the site shows are those its templates
+              ask for (e.g. "header-nav"): modify them rather than creating a new one.
             - The admin can join images to a message: you see them, and their URLs follow the message. To put one in an
               HTML block, use its URL as is: <img src="URL" alt="short description of the image">; for an image block,
               its URL is the whole content. Never write an image in base64 (data:).

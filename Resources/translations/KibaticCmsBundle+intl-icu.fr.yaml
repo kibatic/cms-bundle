@@ -218,6 +218,7 @@ chat:
         cms_save_metablock: 'Enregistrement du métabloc « {slug} »'
         cms_list_versions: Lecture des versions
         cms_propose_version_action: Préparation d'une confirmation
+        cms_save_navigation: 'Enregistrement de la navigation « {slug} »'
         other: 'Utilisation de l''outil {name}'
     subtitle: Demandez à l'IA d'écrire, de modifier ou de traduire des blocs.
     ask: Demander à l'assistant
