@@ -62,6 +62,13 @@
                     <svg class="kcms-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
                     <input type="search" placeholder="{{ 'index.filter'|trans }}" data-kcms-filter aria-label="{{ 'index.filter'|trans }}">
                 </label>
+                {# Types of the blocks of the list only #}
+                <select class="kcms-type-filter" data-kcms-type-filter aria-label="{{ 'index.type_filter'|trans }}">
+                    <option value="">{{ 'index.all_types'|trans }}</option>
+                    {% for type in blocks|map(b => b.type)|reduce((types, type) => type in types ? types : types|merge([type]), []) %}
+                        <option value="{{ type }}">{{ kcms.type_label(type) }}</option>
+                    {% endfor %}
+                </select>
             </div>
 
             <div class="kcms-table-wrap">
@@ -79,7 +86,7 @@
                         {% for slug, blocks in blocksBySlug %}
                             {% set block = blocks[0] %}
                             {% set updatedAt = blocks|map(b => b.updatedAt)|reduce((max, date) => max is null or date > max ? date : max) %}
-                            <tr data-kcms-slug="{{ slug }}">
+                            <tr data-kcms-slug="{{ slug }}" data-kcms-type="{{ block.type }}">
                                 <td>
                                     <a href="{{ path('cms_block_edit', {'id': block.id}) }}" class="kcms-slug">{{ slug }}</a>
                                 </td>

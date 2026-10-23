@@ -19,21 +19,24 @@
             onChange: (content) => {}
         });
 
-        // Block list: filter by slug
+        // Block list: filter by slug and by type
         const filter = document.querySelector('[data-kcms-filter]');
         if (filter) {
+            const typeFilter = document.querySelector('[data-kcms-type-filter]');
             const rows = document.querySelectorAll('[data-kcms-slug]');
             const noMatch = document.querySelector('[data-kcms-no-match]');
-            filter.addEventListener('input', () => {
+            const apply = () => {
                 const query = filter.value.trim().toLowerCase();
                 let visible = 0;
                 rows.forEach(row => {
-                    const match = row.dataset.kcmsSlug.toLowerCase().includes(query);
+                    const match = row.dataset.kcmsSlug.toLowerCase().includes(query) && (!typeFilter.value || row.dataset.kcmsType === typeFilter.value);
                     row.hidden = !match;
                     visible += match;
                 });
                 noMatch.hidden = visible > 0;
-            });
+            };
+            filter.addEventListener('input', apply);
+            typeFilter.addEventListener('change', apply);
         }
 
         // "New block" menu: closes on a click outside or with Escape

@@ -20,6 +20,8 @@ index:
     edit: Edit
     add_translation: 'Add the {language} translation'
     published: 'Public site: {name}'
+    type_filter: Filter by type
+    all_types: All types
     no_match: No block matches this filter.
     empty:
         title: No content block yet
