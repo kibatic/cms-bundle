@@ -224,6 +224,13 @@
     .kcms .kcms-meta-add select { flex: 1; }
     @media (max-width: 600px) { .kcms .kcms-meta-layout-list { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 
+    /* Styles of a block (block/_editor.html.twig) */
+    .kcms .kcms-styles { margin-top: 16px; border-top: 1px solid var(--kcms-border); padding-top: 12px; }
+    .kcms .kcms-styles summary { cursor: pointer; font-size: 14px; font-weight: 600; color: var(--kcms-muted); }
+    .kcms .kcms-styles[open] summary { margin-bottom: 12px; color: var(--kcms-text); }
+    .kcms .kcms-compare-styles { margin: 10px 0 4px; color: var(--kcms-muted); font-size: 12px; font-weight: 600; }
+    .kcms .kcms-styles textarea { min-height: 160px; font-family: var(--kcms-mono); font-size: 13px; tab-size: 4; }
+
     /* Form fields (plain form_div_layout markup, see block/_editor.html.twig) */
     .kcms .kcms-form > .kcms-grid div:has(> label) { margin-bottom: 16px; }
     .kcms .kcms-form div:has(> label):last-child { margin-bottom: 0; }

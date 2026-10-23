@@ -107,6 +107,10 @@ form:
         help: Leave empty for a block shared by every language.
         placeholder: All languages
     content: Content
+    styles:
+        summary: Styles of the block (CSS)
+        label: CSS of this block only
+        help: "Declarations apply to the block itself, rules to its content (e.g. h2 '{' … '}'): it looks the same on every page that shows it. Use the site's CSS variables for its colors and fonts."
     image_url:
         label: Or the image URL
         placeholder: https://… or /images/…

@@ -69,7 +69,7 @@ final class Versions
                 $this->entityManager->persist($block);
             }
 
-            $block->setType($saved->getType())->setContent($saved->getContent());
+            $block->setType($saved->getType())->setContent($saved->getContent())->setStyles($saved->getStyles());
         }
 
         foreach ($current as $block) {
@@ -102,7 +102,8 @@ final class Versions
                 'status' => match (true) {
                     null === $before => 'added',
                     null === $now => 'removed',
-                    $before->getContent() !== $now->getContent() || $before->getType() !== $now->getType() => 'modified',
+                    $before->getContent() !== $now->getContent() || $before->getType() !== $now->getType()
+                        || $before->getStyles() !== $now->getStyles() => 'modified',
                     default => 'unchanged',
                 },
                 'version' => $before,

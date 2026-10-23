@@ -24,7 +24,7 @@ final class BlockDescriber
             'type' => $block->getType(),
             'updated_at' => $block->getUpdatedAt()->format(\DATE_ATOM),
         ] + ($withContent
-            ? ['content' => $content]
+            ? ['content' => $content, 'styles' => $block->getStyles()]
             : ['excerpt' => mb_strimwidth(trim(preg_replace('/\s+/', ' ', strip_tags($content))), 0, 100, '…')]);
     }
 }

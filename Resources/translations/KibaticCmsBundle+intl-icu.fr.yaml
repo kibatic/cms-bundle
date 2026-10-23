@@ -107,6 +107,10 @@ form:
         help: Laisser vide pour un bloc commun à toutes les langues.
         placeholder: Toutes les langues
     content: Contenu
+    styles:
+        summary: Styles du bloc (CSS)
+        label: CSS de ce bloc uniquement
+        help: "Les déclarations s'appliquent au bloc lui-même, les règles à son contenu (ex. h2 '{' … '}') : il s'affiche pareil sur toutes les pages qui le montrent. Utilisez les variables CSS du site pour ses couleurs et polices."
     image_url:
         label: Ou l'adresse de l'image
         placeholder: https://… ou /images/…

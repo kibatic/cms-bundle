@@ -22,6 +22,8 @@ class BlockExtension extends AbstractExtension implements ResetInterface
 {
     /** Metablocks displayed during the request: the first one adds their styles, each one numbers its tabs */
     private int $metablocks = 0;
+    /** @var array<string, true> slugs of the blocks whose styles were added to the page */
+    private array $styled = [];
 
     /** Styles of the layouts of the metablocks, neutral (colors of the site), overridable with the --cms-meta-* variables */
     private const META_STYLES = <<<'CSS'
@@ -137,6 +139,19 @@ class BlockExtension extends AbstractExtension implements ResetInterface
             default => $block->getContent(),
         };
 
+        // Styles of the block, scoped to it with CSS nesting; not for an image block, whose URL goes in an attribute
+        if (null !== $block->getStyles() && 'image' !== $block->getType()) {
+            $attribute = htmlspecialchars($block->getSlug());
+            $styles = isset($this->styled[$block->getSlug()]) ? '' : sprintf(
+                '<style>[data-cms-block="%s"] { %s }</style>',
+                addcslashes($block->getSlug(), '"\\'),
+                // No "<": the CSS cannot close its <style>
+                str_replace('<', '', $block->getStyles()),
+            );
+            $this->styled[$block->getSlug()] = true;
+            $content = $styles.'<div data-cms-block="'.$attribute.'">'.$content.'</div>';
+        }
+
         $mainRequest = $this->requestStack->getMainRequest();
         $debug = false;
 
@@ -243,6 +258,7 @@ class BlockExtension extends AbstractExtension implements ResetInterface
     public function reset(): void
     {
         $this->metablocks = 0;
+        $this->styled = [];
     }
 
     /**

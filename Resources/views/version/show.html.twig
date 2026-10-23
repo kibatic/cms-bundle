@@ -9,6 +9,10 @@
     {%- else -%}
         <pre class="kcms-code">{{ block.content }}</pre>
     {%- endif -%}
+    {%- if block and block.styles -%}
+        <p class="kcms-compare-styles">{{ 'form.styles.summary'|trans({}, 'KibaticCmsBundle') }}</p>
+        <pre class="kcms-code">{{ block.styles }}</pre>
+    {%- endif -%}
 {% endmacro %}
 
 {% block kcms_body %}

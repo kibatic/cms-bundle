@@ -22,6 +22,15 @@
 
             {{ form_row(form.content) }}
 
+            {% if form.styles is defined and block.type != 'image' %}
+                <details class="kcms-styles"{{ form.styles.vars.value ? ' open' }}>
+                    <summary>{{ 'form.styles.summary'|trans }}</summary>
+                    {{ form_row(form.styles) }}
+                </details>
+            {% elseif form.styles is defined %}
+                {% do form.styles.setRendered() %}
+            {% endif %}
+
             {% if block.type == 'image' %}
                 <figure class="kcms-image-preview" data-kcms-image-preview data-kcms-broken="{{ 'editor.preview.broken'|trans }}">
                     <img alt="{{ 'editor.preview.alt'|trans }}">

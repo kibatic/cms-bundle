@@ -37,6 +37,13 @@ class Block
     #[ORM\Column(type: 'text', nullable: true)]
     private ?string $language = null;
 
+    /**
+     * CSS of this block only: cms_block() scopes it to the block (Twig\BlockExtension::render()), so that it looks the
+     * same on every page; declarations apply to the block itself, nested rules to its content
+     */
+    #[ORM\Column(type: 'text', nullable: true)]
+    private ?string $styles = null;
+
 
     public function getId(): ?int
     {
@@ -111,6 +118,19 @@ class Block
     public function setLanguage(?string $language): static
     {
         $this->language = $language;
+        return $this;
+    }
+
+    public function getStyles(): ?string
+    {
+        return $this->styles;
+    }
+
+    public function setStyles(?string $styles): static
+    {
+        $styles = trim((string) $styles);
+        $this->styles = '' !== $styles ? $styles : null;
+
         return $this;
     }
 }

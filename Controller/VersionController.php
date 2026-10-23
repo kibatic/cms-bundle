@@ -105,7 +105,7 @@ class VersionController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $version->setBlockContent($slug, $language, $block->getContent());
+            $version->setBlockContent($slug, $language, $block->getContent(), $block->getStyles());
             $this->entityManager->flush();
             $this->addFlash('kibatic_cms', 'flash.version_block_saved');
 

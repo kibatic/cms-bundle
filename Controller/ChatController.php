@@ -52,6 +52,8 @@ class ChatController extends AbstractController
         private readonly ImageStorage $imageStorage,
         #[Autowire(service: 'cache.app')]
         private readonly CacheItemPoolInterface $cache,
+        #[Autowire(param: 'kibatic_cms.ai.style_guide')]
+        private readonly ?string $styleGuide,
     ) {
     }
 
@@ -205,6 +207,7 @@ class ChatController extends AbstractController
     private function systemPrompt(string $locale): string
     {
         $languages = $this->blockRepository->getExistingLanguages();
+        $styleGuide = null !== $this->styleGuide ? "\n\nStyle guide of the website, for the styles of the blocks:\n".trim($this->styleGuide) : '';
 
         return <<<PROMPT
             You are the assistant of the administration of a website's CMS. The website displays content blocks, each
@@ -215,7 +218,7 @@ class ChatController extends AbstractController
               every language; a translation is a block with the same slug in another language.
             - Before modifying a block, read it with cms_get_block. Saving replaces the whole content of the block.
             - HTML blocks are displayed inside the website's pages: write a clean HTML fragment (h2, h3, p, ul, ol, li, a,
-              strong, em, img), without <html>, <body>, <style>, <script>, inline styles or classes.
+              strong, em, img), without <html>, <body>, <style>, <script> or inline styles.
             - New slugs are short, lowercase, in English and with dashes (e.g. "home-intro", "footer-legal").
             - The pages show the blocks their templates ask for: a new block appears nowhere until a developer adds it to a
               template. To change something on a page, modify its existing blocks (images included: the URL of an image
@@ -228,7 +231,11 @@ class ChatController extends AbstractController
               HTML block, use its URL as is: <img src="URL" alt="short description of the image">; for an image block,
               its URL is the whole content. Never write an image in base64 (data:).
             - When the request is ambiguous (which block, which language), ask before saving.
-            - After saving, say in one or two sentences what you created or changed. Do not paste the saved HTML back.
+            - Each block can have its own CSS ("styles"), scoped to it by the CMS: plain declarations apply to the block, nested
+              rules to its content (e.g. "display: grid; gap: 16px; li { padding: 8px; }"). Style new blocks this way, so
+              that they look the same on every page; classes in the HTML are fine when the block's styles use them. Use the site's CSS
+              variables rather than fixed colors, and inherit the text color when you can (a section may be dark).
+            - After saving, say in one or two sentences what you created or changed. Do not paste the saved HTML back.{$styleGuide}
             PROMPT;
     }
 

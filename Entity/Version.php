@@ -28,7 +28,7 @@ class Version
     private ?\DateTimeImmutable $publishedAt = null;
 
     /**
-     * @var list<array{slug: string, language: ?string, type: string, content: ?string, created_at: string, updated_at: string}>
+     * @var list<array{slug: string, language: ?string, type: string, content: ?string, styles?: ?string, created_at: string, updated_at: string}>
      */
     #[ORM\Column(type: 'json')]
     private array $blocks;
@@ -48,6 +48,7 @@ class Version
             'language' => $block->getLanguage(),
             'type' => $block->getType(),
             'content' => $block->getContent(),
+            'styles' => $block->getStyles(),
             'created_at' => $block->getCreatedAt()->format(\DATE_ATOM),
             'updated_at' => $block->getUpdatedAt()->format(\DATE_ATOM),
         ], $blocks);
@@ -104,6 +105,8 @@ class Version
             ->setLanguage($data['language'])
             ->setType($data['type'])
             ->setContent($data['content'])
+            // Versions saved before the styles of the blocks have none
+            ->setStyles($data['styles'] ?? null)
             ->setCreatedAt(new \DateTime($data['created_at']))
             ->setUpdatedAt(new \DateTime($data['updated_at'])), $this->blocks);
     }
@@ -123,13 +126,15 @@ class Version
     }
 
     /**
-     * Replaces the content of a block of the version (VersionController::editBlock()); its slug, language and type stay
+     * Replaces the content and the styles of a block of the version (VersionController::editBlock()); its slug,
+     * language and type stay
      */
-    public function setBlockContent(string $slug, ?string $language, ?string $content): void
+    public function setBlockContent(string $slug, ?string $language, ?string $content, ?string $styles): void
     {
         foreach ($this->blocks as $i => $data) {
             if ($data['slug'] === $slug && $data['language'] === $language) {
                 $this->blocks[$i]['content'] = $content;
+                $this->blocks[$i]['styles'] = $styles;
                 $this->blocks[$i]['updated_at'] = (new \DateTimeImmutable())->format(\DATE_ATOM);
                 $this->blockObjects = null;
 

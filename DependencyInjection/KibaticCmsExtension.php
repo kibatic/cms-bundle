@@ -60,6 +60,7 @@ class KibaticCmsExtension extends Extension
 
         $agent = $config['ai']['agent'];
         $container->setParameter('kibatic_cms.ai.enabled', null !== $agent);
+        $container->setParameter('kibatic_cms.ai.style_guide', $config['ai']['style_guide']);
 
         if (null !== $agent) {
             if (!interface_exists(AgentInterface::class)) {

@@ -34,8 +34,9 @@ final class SaveBlockTool
      * @param string $content  Content of the block: an HTML fragment for "html" (no <html>, <head> or <body>), plain text for "text", the image URL for "image"
      * @param string $type     Type of a new block: "html" (rich text, the default), "text" (plain text) or "image"; ignored for an existing block, which keeps its type
      * @param string $language Language code of the block (e.g. "fr", "en"); empty for a block shared by every language
+     * @param ?string $styles  CSS of this block only, scoped to it (declarations for the block, nested rules for its content); null keeps the current styles, an empty string removes them
      */
-    public function __invoke(string $slug, string $content, string $type = 'html', string $language = ''): string
+    public function __invoke(string $slug, string $content, string $type = 'html', string $language = '', ?string $styles = null): string
     {
         if (!preg_match('/^[a-z0-9][a-z0-9._-]*$/', $slug)) {
             return sprintf('Not saved: "%s" is not a valid slug (lowercase letters, digits, "-", "_" or ".").', $slug);
@@ -69,6 +70,9 @@ final class SaveBlockTool
         }
 
         $block->setContent($content);
+        if (null !== $styles) {
+            $block->setStyles($styles);
+        }
         $this->entityManager->flush();
         $this->changes->add($block, $created);
 
