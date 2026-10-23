@@ -510,6 +510,37 @@
             });
         });
 
+        // Name of a new version suggested by the AI (version/index.html.twig)
+        document.querySelectorAll('[data-kcms-suggest-name]').forEach(button => {
+            const input = button.closest('.kcms-version-name').querySelector('input');
+            const status = button.closest('.kcms-version-name').querySelector('[data-kcms-suggest-status]');
+            const label = button.querySelector('span');
+            const text = label.textContent;
+            button.addEventListener('click', async () => {
+                button.disabled = true;
+                label.textContent = button.dataset.kcmsThinking;
+                status.hidden = true;
+                try {
+                    const response = await fetch(button.dataset.kcmsSuggestName, {headers: {Accept: 'application/json'}});
+                    const data = response.ok ? await response.json() : {};
+                    if (data.name) {
+                        input.value = data.name;
+                        input.focus();
+                        input.select();
+                    } else {
+                        status.textContent = button.dataset.kcmsNone;
+                        status.hidden = false;
+                    }
+                } catch (exception) {
+                    status.textContent = button.dataset.kcmsNone;
+                    status.hidden = false;
+                } finally {
+                    button.disabled = false;
+                    label.textContent = text;
+                }
+            });
+        });
+
         // Image blocks: live preview of the URL
         document.querySelectorAll('[data-kcms-image-preview]').forEach(preview => {
             const input = preview.closest('form').querySelector('[data-kcms-image-url]');

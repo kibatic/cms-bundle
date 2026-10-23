@@ -253,6 +253,10 @@ version:
     take: Enregistrer une version
     take_publish: Enregistrer et publier
     name: Nom (facultatif)
+    suggest: Suggérer
+    suggest_thinking: Recherche d'un nom…
+    suggest_help: L'IA propose un nom court d'après ce qui a changé depuis la dernière version
+    suggest_none: Pas de suggestion (rien n'a changé depuis la dernière version, ou l'IA n'a pas répondu).
     name_placeholder: ex. Avant la refonte de l'été
     unnamed: Version
     before_restore: 'Avant la restauration de « {name} »'

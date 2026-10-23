@@ -31,6 +31,8 @@ class VersionController extends AbstractController
         private readonly TranslatorInterface $translator,
         #[Autowire(param: 'kibatic_cms.preview_path')]
         private readonly string $previewPath,
+        #[Autowire(param: 'kibatic_cms.ai.enabled')]
+        private readonly bool $aiEnabled,
     ) {
     }
 
@@ -40,6 +42,7 @@ class VersionController extends AbstractController
 
         return $this->render('@KibaticCms/version/index.html.twig', [
             'versions' => $this->versionRepository->findAllByDate(),
+            'aiEnabled' => $this->aiEnabled,
         ]);
     }
 
@@ -155,7 +158,10 @@ class VersionController extends AbstractController
     {
         $this->denyAccessUnlessGranted(BlockController::$role);
 
-        return $this->json(['name' => $namer->suggestDraftName($request->getLocale())]);
+        // ?since=latest: a new version (its changes since the last version), else the draft published
+        return $this->json(['name' => 'latest' === $request->query->get('since')
+            ? $namer->suggestNewVersionName($request->getLocale())
+            : $namer->suggestDraftName($request->getLocale())]);
     }
 
     /**

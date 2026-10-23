@@ -3,6 +3,8 @@
 namespace Kibatic\CmsBundle\Ai;
 
 use Kibatic\CmsBundle\Entity\Block;
+use Kibatic\CmsBundle\Entity\Version;
+use Kibatic\CmsBundle\Repository\VersionRepository;
 use Kibatic\CmsBundle\Version\VersionPreview;
 use Kibatic\CmsBundle\Version\Versions;
 use Psr\Log\LoggerInterface;
@@ -14,8 +16,8 @@ use Symfony\AI\Platform\Message\MessageBag;
 use Symfony\Contracts\HttpClient\Exception\ExceptionInterface as HttpClientException;
 
 /**
- * Very short name of the draft (the changes since the published version), suggested by the assistant's agent when it
- * is published (VersionController::draftName())
+ * Very short name of a new version, suggested by the assistant's agent from what changed (VersionController::draftName()):
+ * since the published version for the publication of the draft, since the last version for a new version
  */
 final class VersionNamer
 {
@@ -26,22 +28,42 @@ final class VersionNamer
         private readonly ?AgentInterface $agent,
         private readonly Versions $versions,
         private readonly VersionPreview $preview,
+        private readonly VersionRepository $versionRepository,
         private readonly LoggerInterface $logger,
     ) {
     }
 
     /**
-     * @return string|null null without assistant, without draft, or when the model does not answer
+     * Name of the draft published: its changes since the published version
+     *
+     * @return string|null null without assistant, without change, or when the model does not answer
      */
     public function suggestDraftName(string $locale): ?string
     {
-        $published = $this->preview->published();
+        return $this->suggestName($locale, $this->preview->published());
+    }
 
-        if (null === $this->agent || null === $published) {
+    /**
+     * Name of a new version of the current blocks: their changes since the last version
+     */
+    public function suggestNewVersionName(string $locale): ?string
+    {
+        return $this->suggestName($locale, $this->versionRepository->findAllByDate()[0] ?? null);
+    }
+
+    /**
+     * @param Version|null $since null: every current block is new
+     */
+    private function suggestName(string $locale, ?Version $since): ?string
+    {
+        if (null === $this->agent) {
             return null;
         }
 
-        $changes = array_filter($this->versions->compare($published), fn (array $change) => 'unchanged' !== $change['status']);
+        $changes = array_filter(
+            $this->versions->compare($since ?? new Version(null, [])),
+            fn (array $change) => 'unchanged' !== $change['status'],
+        );
 
         if ([] === $changes) {
             return null;
@@ -62,7 +84,7 @@ final class VersionNamer
                 Message::ofUser(<<<PROMPT
                     Give a very short name (2 to 5 words, in the language "{$locale}") for the version of the website's content
                     made of these changes, that says what changed (e.g. "Theme dogs", "New kitten recipe"). Answer with the
-                    name only: no quotes, no final punctuation.
+                    name only, without introduction, quotes, Markdown or final punctuation.
 
                     {$list}
                     PROMPT),
@@ -73,8 +95,10 @@ final class VersionNamer
             return null;
         }
 
-        // First line, without the quotes or the final dot the model may add anyway
-        $name = trim(strtok(trim($name), "\n") ?: '', " \t\"'«»“”.");
+        // First line, without what the model may add anyway: an introduction ("Suggested name: …"), Markdown, quotes, a dot
+        $name = strtok(trim($name), "\n") ?: '';
+        $name = str_contains($name, ':') ? substr($name, strrpos($name, ':') + 1) : $name;
+        $name = trim(str_replace(['**', '__', '`'], '', $name), " \t\"'«»“”.*_");
 
         return '' !== $name ? mb_substr($name, 0, 80) : null;
     }

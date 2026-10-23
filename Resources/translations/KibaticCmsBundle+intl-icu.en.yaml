@@ -253,6 +253,10 @@ version:
     take: Save a version
     take_publish: Save and publish
     name: Name (optional)
+    suggest: Suggest
+    suggest_thinking: Looking for a name…
+    suggest_help: The AI suggests a short name from what changed since the last version
+    suggest_none: No suggestion (no change since the last version, or the AI did not answer).
     name_placeholder: e.g. Before the summer redesign
     unnamed: Version
     before_restore: 'Before restoring "{name}"'

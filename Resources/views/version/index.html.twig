@@ -32,10 +32,21 @@
 
     <form method="post" action="{{ path('cms_version_create') }}" class="kcms-card kcms-version-take">
         <input type="hidden" name="_token" value="{{ csrf }}">
-        <label class="kcms-version-name">
-            <span>{{ 'version.name'|trans }}</span>
-            <input type="text" name="name" maxlength="255" placeholder="{{ 'version.name_placeholder'|trans }}">
-        </label>
+        <div class="kcms-version-name">
+            <label for="kcms-version-name">{{ 'version.name'|trans }}</label>
+            <div class="kcms-version-name-field">
+                <input type="text" name="name" id="kcms-version-name" maxlength="255" placeholder="{{ 'version.name_placeholder'|trans }}">
+                {% if aiEnabled %}
+                    {# Name suggested by the AI from the changes since the last version (VersionController::draftName()) #}
+                    <button type="button" class="kcms-btn kcms-btn-sm" data-kcms-suggest-name="{{ path('cms_version_draft_name', {since: 'latest'}) }}"
+                            data-kcms-thinking="{{ 'version.suggest_thinking'|trans }}" data-kcms-none="{{ 'version.suggest_none'|trans }}" title="{{ 'version.suggest_help'|trans }}">
+                        <svg class="kcms-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M9.9 15.5A2 2 0 0 0 8.5 14.1l-6.1-1.6a.5.5 0 0 1 0-1l6.1-1.6a2 2 0 0 0 1.4-1.4l1.6-6.1a.5.5 0 0 1 1 0l1.6 6.1a2 2 0 0 0 1.4 1.4l6.1 1.6a.5.5 0 0 1 0 1l-6.1 1.6a2 2 0 0 0-1.4 1.4l-1.6 6.1a.5.5 0 0 1-1 0Z"/></svg>
+                        <span>{{ 'version.suggest'|trans }}</span>
+                    </button>
+                {% endif %}
+            </div>
+            <small class="kcms-version-name-status" data-kcms-suggest-status hidden></small>
+        </div>
         <button type="submit" class="kcms-btn kcms-btn-primary kcms-btn-xl">
             {{ kcms.save_icon() }}
             {{ 'version.take'|trans }}
