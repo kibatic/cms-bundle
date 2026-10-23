@@ -202,8 +202,18 @@
                         ${actions(String(index), index, count)}
                     </div>
                     <div class="kcms-meta-group-settings">
-                        <select data-action="group-layout" data-path="${index}" aria-label="${escape(text.kcmsLayout)}">${options(Object.keys(layouts), item.layout, layout => layouts[layout])}</select>
-                        <select data-action="group-columns" data-path="${index}" aria-label="${escape(text.kcmsColumns)}"${item.layout === 'columns' ? '' : ' hidden'}>${options(columnsChoices, item.columns, n => n + ' ' + text.kcmsColumnsUnit)}</select>
+                        <div class="kcms-meta-layout-list is-small" role="radiogroup" aria-label="${escape(text.kcmsLayout)}">
+                            ${Object.keys(layouts).map(layout => `
+                                <label class="kcms-meta-layout">
+                                    <input type="radio" name="kcms-meta-group-layout-${index}" value="${layout}" data-action="group-layout" data-path="${index}"${layout === item.layout ? ' checked' : ''}>
+                                    <span class="kcms-meta-preview kcms-meta-preview-${layout}" aria-hidden="true"><i></i><i></i><i></i></span>
+                                    <strong>${escape(layouts[layout])}</strong>
+                                </label>`).join('')}
+                        </div>
+                        <label class="kcms-meta-columns"${item.layout === 'columns' ? '' : ' hidden'}>
+                            ${escape(text.kcmsColumns)}
+                            <select data-action="group-columns" data-path="${index}">${options(columnsChoices, item.columns, n => n)}</select>
+                        </label>
                     </div>
                     <ol class="kcms-meta-items">${item.items.map((child, sub) => blockRow(child, index + '.' + sub, sub, item.items.length, item.layout === 'tabs')).join('')}</ol>
                     ${item.items.length ? '' : `<p class="kcms-meta-missing kcms-meta-group-empty">${escape(text.kcmsGroupEmpty)}</p>`}

@@ -127,7 +127,6 @@ form:
         title_placeholder: Titre de l'onglet (le slug par défaut)
         missing: Bloc introuvable
         help: Chaque bloc s'affiche dans la langue de la page ; le modifier le change dans tous les métablocs qui l'affichent. Un sous-métabloc n'est enregistré que dans ce métabloc, et ne contient que des blocs existants.
-        columns_unit: colonnes
         add_group: Ajouter un sous-métabloc
         group: Sous-métabloc
         group_title_placeholder: Titre de l'onglet

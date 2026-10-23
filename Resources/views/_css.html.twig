@@ -202,9 +202,17 @@
     .kcms .kcms-meta-group-head { display: flex; align-items: center; gap: 10px; }
     .kcms .kcms-meta-group-head strong { color: var(--kcms-accent); font-size: 14px; white-space: nowrap; }
     .kcms .kcms-meta-group-head .kcms-meta-title { flex: 1; min-height: 30px; padding: 4px 10px; font-size: 14px; }
-    .kcms .kcms-meta-group-settings { display: flex; gap: 8px; }
+    .kcms .kcms-meta-group-settings { display: grid; gap: 10px; }
     .kcms .kcms-meta-group-settings select { width: auto; min-height: 32px; padding: 4px 10px; font-size: 14px; }
-    .kcms .kcms-meta-group-settings select[hidden] { display: none; }
+    .kcms .kcms-meta-group-settings .kcms-meta-columns { font-size: 14px; }
+    /* Not the margin of the form's fields (.kcms-form > .kcms-grid div:has(> label)) */
+    .kcms .kcms-form .kcms-grid div.kcms-meta-group-settings, .kcms .kcms-form .kcms-grid div.kcms-meta-layout-list { margin-bottom: 0; }
+    /* Layouts of a sub-metablock: the same choice, smaller */
+    .kcms .kcms-meta-layout-list.is-small { gap: 6px; }
+    .kcms .kcms-form .kcms-meta-layout-list.is-small .kcms-meta-layout { flex-direction: row; gap: 8px; padding: 6px 8px; background: var(--kcms-surface); font-size: 13px; text-align: left; }
+    .kcms .kcms-meta-layout-list.is-small .kcms-meta-layout:has(input:checked) { background: var(--kcms-accent-soft); }
+    .kcms .kcms-meta-layout-list.is-small .kcms-meta-preview { flex: none; gap: 2px; width: 26px; height: 18px; }
+    .kcms .kcms-meta-layout-list.is-small .kcms-meta-preview i { border-radius: 2px; }
     .kcms .kcms-meta-group .kcms-meta-add select { min-height: 32px; padding: 4px 10px; font-size: 14px; }
     .kcms .kcms-meta-group-empty { margin: 0; }
     .kcms .kcms-meta-actions { display: flex; gap: 4px; margin-left: auto; }

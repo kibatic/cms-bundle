@@ -127,7 +127,6 @@ form:
         title_placeholder: Title of the tab (the slug by default)
         missing: Block not found
         help: Each block is shown in the page's language; editing it changes it in every metablock that shows it. A sub-metablock is saved in this metablock only, and contains existing blocks only.
-        columns_unit: columns
         add_group: Add a sub-metablock
         group: Sub-metablock
         group_title_placeholder: Title of the tab
