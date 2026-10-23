@@ -3,6 +3,7 @@
 namespace Kibatic\CmsBundle\Controller;
 
 use Kibatic\CmsBundle\Ai\BlockChanges;
+use Kibatic\CmsBundle\Ai\VersionProposals;
 use Kibatic\CmsBundle\Repository\BlockRepository;
 use Kibatic\CmsBundle\Upload\ImageStorage;
 use Psr\Cache\CacheItemPoolInterface;
@@ -47,6 +48,7 @@ class ChatController extends AbstractController
         private readonly ?AgentInterface $agent,
         private readonly BlockRepository $blockRepository,
         private readonly BlockChanges $changes,
+        private readonly VersionProposals $proposals,
         private readonly TranslatorInterface $translator,
         private readonly LoggerInterface $logger,
         private readonly ImageStorage $imageStorage,
@@ -148,6 +150,7 @@ class ChatController extends AbstractController
                     'created' => $change['created'],
                     'url' => $this->generateUrl('cms_block_edit', ['id' => $change['block']->getId()]),
                 ], $this->changes->all()),
+                'proposals' => array_map($this->proposalCard(...), $this->proposals->all()),
             ]);
         });
 
@@ -168,6 +171,31 @@ class ChatController extends AbstractController
         }
 
         return $this->redirectToRoute('cms_chat');
+    }
+
+    /**
+     * Confirmation card of an action proposed by the assistant: the admin's form posts to the VersionController route
+     */
+    private function proposalCard(array $proposal): array
+    {
+        $version = $proposal['version'];
+        $versionName = null !== $version ? ($version['name'] ?? $this->trans('version.unnamed')) : '';
+
+        return [
+            'action' => $proposal['action'],
+            'url' => match ($proposal['action']) {
+                'save' => $this->generateUrl('cms_version_create'),
+                'publish_draft' => $this->generateUrl('cms_version_publish_draft'),
+                'publish' => $this->generateUrl('cms_version_publish', ['id' => $version['id']]),
+                'restore' => $this->generateUrl('cms_version_restore', ['id' => $version['id']]),
+                'unpublish' => $this->generateUrl('cms_version_unpublish'),
+            },
+            'name' => $proposal['name'],
+            'title' => $this->translator->trans('chat.proposal.'.$proposal['action'].'.title', ['name' => $versionName, 'count' => $proposal['changes']], 'KibaticCmsBundle'),
+            'help' => $this->translator->trans('chat.proposal.'.$proposal['action'].'.help', ['count' => $proposal['changes']], 'KibaticCmsBundle'),
+            'button' => $this->translator->trans('chat.proposal.'.$proposal['action'].'.button', [], 'KibaticCmsBundle'),
+            'done' => $this->translator->trans('chat.proposal.'.$proposal['action'].'.done', [], 'KibaticCmsBundle'),
+        ];
     }
 
     /**
@@ -242,6 +270,17 @@ class ChatController extends AbstractController
               Use the site's CSS variables rather than fixed colors.
             - When you only change the text of a block, do not send its styles (they are kept); send them only to change
               its look, complete, as they replace the previous ones.
+            - Versions: a version is a copy of every block. When a version is published, the visitors see it, and the changes
+              made since (the draft) are not online until a new publication; without published version, every change is
+              online right away. Read them with cms_list_versions.
+            - You never save, publish, restore or unpublish a version yourself: propose it with cms_propose_version_action,
+              which shows the admin a confirmation card under your answer. Publishing makes content public: always propose it,
+              never say it is done. For a new version ("save" or "publish_draft"), suggest a very short name (2 to 5 words)
+              saying what changed (read the changes of the draft first), and tell the admin it can be changed in the card.
+              When the admin asks for one of these actions, propose it right away: the card is the confirmation, do not ask
+              before proposing. Propose one action per answer. In French, the draft is called « brouillon ».
+            - The card exists only if you call cms_propose_version_action in this answer: never say you proposed an action
+              without calling it, even if you proposed the same one before.
             - After saving, say in one or two sentences what you created or changed. Do not paste the saved HTML back.{$styleGuide}
             PROMPT;
     }

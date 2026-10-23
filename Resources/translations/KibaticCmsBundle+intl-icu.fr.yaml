@@ -160,12 +160,44 @@ flash:
 
 
 chat:
+    proposal:
+        name: Nom de la version
+        cancel: Annuler
+        cancelled: Annulé.
+        failed: L'action a échoué. Réessayez depuis la page des versions.
+        save:
+            title: Enregistrer une version
+            help: Les blocs actuels seront enregistrés dans une nouvelle version, sans la publier.
+            button: Enregistrer la version
+            done: Version enregistrée.
+        publish_draft:
+            title: Publier le brouillon
+            help: '{count, plural, =0 {Les visiteurs verront les blocs actuels.} one {# modification sera mise en ligne : les visiteurs verront les blocs actuels.} other {# modifications seront mises en ligne : les visiteurs verront les blocs actuels.}}'
+            button: Publier
+            done: "Brouillon publié : les visiteurs le voient."
+        publish:
+            title: 'Publier la version « {name} »'
+            help: Les visiteurs verront les blocs de cette version.
+            button: Publier
+            done: Version publiée.
+        restore:
+            title: 'Restaurer la version « {name} »'
+            help: Ses blocs remplaceront les blocs actuels (le brouillon) ; les blocs actuels sont d'abord enregistrés dans une version.
+            button: Restaurer
+            done: Version restaurée.
+        unpublish:
+            title: Dépublier
+            help: Les visiteurs verront les blocs actuels, avec toutes les modifications faites depuis.
+            button: Dépublier
+            done: Version dépubliée.
     title: Assistant
     tool:
         cms_list_blocks: Lecture de la liste des blocs
         cms_get_block: 'Lecture du bloc « {slug} »'
         cms_save_block: 'Enregistrement du bloc « {slug} »'
         cms_save_metablock: 'Enregistrement du métabloc « {slug} »'
+        cms_list_versions: Lecture des versions
+        cms_propose_version_action: Préparation d'une confirmation
         other: 'Utilisation de l''outil {name}'
     subtitle: Demandez à l'IA d'écrire, de modifier ou de traduire des blocs.
     ask: Demander à l'assistant

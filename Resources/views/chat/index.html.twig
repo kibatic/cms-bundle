@@ -26,7 +26,10 @@
          data-kcms-max-images="4" data-kcms-max-size="{{ cms_upload_max_size() }}"
          data-kcms-too-big="{{ 'editor.upload.too_big'|trans({size: (cms_upload_max_size() / 1024 / 1024)|round(1)}) }}"
          data-kcms-not-image="{{ 'editor.upload.not_image'|trans }}" data-kcms-failed="{{ 'editor.upload.failed'|trans }}"
-         data-kcms-remove="{{ 'editor.upload.remove'|trans }}" data-kcms-cut="{{ 'chat.error.cut'|trans }}">
+         data-kcms-remove="{{ 'editor.upload.remove'|trans }}" data-kcms-cut="{{ 'chat.error.cut'|trans }}"
+         data-kcms-version-csrf="{{ csrf_token(constant('Kibatic\\CmsBundle\\Controller\\VersionController::CSRF_TOKEN_ID')) }}"
+         data-kcms-proposal-name="{{ 'chat.proposal.name'|trans }}" data-kcms-proposal-cancel-label="{{ 'chat.proposal.cancel'|trans }}"
+         data-kcms-proposal-cancelled="{{ 'chat.proposal.cancelled'|trans }}" data-kcms-proposal-failed="{{ 'chat.proposal.failed'|trans }}">
         <div class="kcms-chat-log" data-kcms-chat-log aria-live="polite">
             <div class="kcms-chat-empty" data-kcms-chat-empty {{ history is not empty ? 'hidden' }}>
                 <p>{{ 'chat.empty'|trans }}</p>
@@ -82,6 +85,13 @@
                 .replace(/\[([^\]]+)\]\(((?:https?:\/)?\/[^)\s]+)\)/g, '<a href="$2">$1</a>');
             const markdown = text => text.trim().split(/\n{2,}/).map(paragraph => {
                 const lines = paragraph.split('\n');
+                // Table: its lines start with "|", the second one separates the header ("|---|---|")
+                if (lines.length > 1 && lines.every(line => line.trim().startsWith('|'))) {
+                    const cells = line => line.trim().replace(/^\||\|$/g, '').split('|').map(cell => inline(cell.trim()));
+                    const rows = lines.filter(line => !/^\s*\|?[\s:|-]+\|?\s*$/.test(line)).map(cells);
+                    return '<table class="kcms-chat-table"><thead><tr>' + rows[0].map(cell => `<th>${cell}</th>`).join('') + '</tr></thead><tbody>'
+                        + rows.slice(1).map(row => '<tr>' + row.map(cell => `<td>${cell}</td>`).join('') + '</tr>').join('') + '</tbody></table>';
+                }
                 if (lines.every(line => /^\s*([-*]|\d+\.)\s+/.test(line))) {
                     const tag = /^\s*\d+\./.test(lines[0]) ? 'ol' : 'ul';
                     return `<${tag}>` + lines.map(line => '<li>' + inline(line.replace(/^\s*([-*]|\d+\.)\s+/, '')) + '</li>').join('') + `</${tag}>`;
@@ -219,9 +229,20 @@
                             `<a class="kcms-change" href="${escape(change.url)}">${escape(change.created ? chat.dataset.kcmsCreated : chat.dataset.kcmsSaved)}`
                             + ` <span class="kcms-slug">${escape(change.slug)}</span>${change.language ? ' · ' + escape(change.language) : ''}</a>`
                         ).join('');
+                        // Actions on the versions proposed by the assistant: done only when the admin confirms them
+                        const proposals = (event.proposals ?? []).map(proposal => `
+                            <form class="kcms-proposal" data-kcms-proposal data-url="${escape(proposal.url)}" data-done="${escape(proposal.done)}">
+                                <strong>${escape(proposal.title)}</strong>
+                                <p>${escape(proposal.help)}</p>
+                                ${proposal.name !== null ? `<label>${escape(chat.dataset.kcmsProposalName)}<input type="text" name="name" maxlength="255" required value="${escape(proposal.name)}"></label>` : ''}
+                                <div class="kcms-proposal-actions">
+                                    <button type="submit" class="kcms-btn kcms-btn-sm kcms-btn-${proposal.action.startsWith('publish') ? 'success' : 'primary'}">${escape(proposal.button)}</button>
+                                    <button type="button" class="kcms-btn kcms-btn-sm" data-kcms-proposal-cancel>${escape(chat.dataset.kcmsProposalCancelLabel)}</button>
+                                </div>
+                            </form>`).join('');
                         bubble.classList.remove('kcms-message-working');
                         bubble.innerHTML = (activity.children.length ? activity.outerHTML : '') + markdown(event.answer)
-                            + (changes ? '<div class="kcms-changes">' + changes + '</div>' : '');
+                            + (changes ? '<div class="kcms-changes">' + changes + '</div>' : '') + proposals;
                     } else if (event.type === 'error') {
                         finished = true;
                         bubble.remove();
@@ -280,6 +301,29 @@
             form.addEventListener('submit', event => {
                 event.preventDefault();
                 submit();
+            });
+            // Confirmation of a proposed action (VersionController routes, which answer with a redirection)
+            log.addEventListener('submit', async event => {
+                const card = event.target.closest('[data-kcms-proposal]');
+                if (!card) {
+                    return;
+                }
+                event.preventDefault();
+                const body = new FormData(card);
+                body.append('_token', chat.dataset.kcmsVersionCsrf);
+                card.querySelectorAll('button, input').forEach(element => element.disabled = true);
+                try {
+                    const response = await fetch(card.dataset.url, {method: 'POST', body});
+                    card.outerHTML = `<p class="kcms-proposal-result${response.ok ? '' : ' is-error'}">${escape(response.ok ? '✓ ' + card.dataset.done : chat.dataset.kcmsProposalFailed)}</p>`;
+                } catch (error) {
+                    card.outerHTML = `<p class="kcms-proposal-result is-error">${escape(chat.dataset.kcmsProposalFailed)}</p>`;
+                }
+            });
+            log.addEventListener('click', event => {
+                const cancel = event.target.closest('[data-kcms-proposal-cancel]');
+                if (cancel) {
+                    cancel.closest('[data-kcms-proposal]').outerHTML = `<p class="kcms-proposal-result is-cancelled">${escape(chat.dataset.kcmsProposalCancelled)}</p>`;
+                }
             });
             // Enter sends, Shift+Enter goes to a new line
             input.addEventListener('keydown', event => {

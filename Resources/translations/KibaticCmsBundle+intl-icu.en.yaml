@@ -160,12 +160,44 @@ flash:
 
 
 chat:
+    proposal:
+        name: Name of the version
+        cancel: Cancel
+        cancelled: Cancelled.
+        failed: The action failed. Try again from the versions page.
+        save:
+            title: Save a version
+            help: The current blocks will be saved in a new version, not published.
+            button: Save the version
+            done: Version saved.
+        publish_draft:
+            title: Publish the draft
+            help: '{count, plural, =0 {The visitors will see the current blocks.} one {# change will be online: the visitors will see the current blocks.} other {# changes will be online: the visitors will see the current blocks.}}'
+            button: Publish
+            done: "Draft published: the visitors see it."
+        publish:
+            title: 'Publish the version "{name}"'
+            help: The visitors will see the blocks of this version.
+            button: Publish
+            done: Version published.
+        restore:
+            title: 'Restore the version "{name}"'
+            help: Its blocks will replace the current blocks (the draft); the current blocks are saved in a version first.
+            button: Restore
+            done: Version restored.
+        unpublish:
+            title: Unpublish
+            help: The visitors will see the current blocks, with every change made since.
+            button: Unpublish
+            done: Version unpublished.
     title: Assistant
     tool:
         cms_list_blocks: Reading the list of the blocks
         cms_get_block: 'Reading the block "{slug}"'
         cms_save_block: 'Saving the block "{slug}"'
         cms_save_metablock: 'Saving the metablock "{slug}"'
+        cms_list_versions: Reading the versions
+        cms_propose_version_action: Preparing a confirmation
         other: 'Using the tool {name}'
     subtitle: Ask the AI to write, modify or translate blocks.
     ask: Ask the assistant

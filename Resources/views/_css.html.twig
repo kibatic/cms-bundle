@@ -281,6 +281,16 @@
     .kcms .kcms-change { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 999px; background: var(--kcms-success-soft); color: var(--kcms-success); font-size: 13px; font-weight: 550; }
     .kcms .kcms-change:hover { color: var(--kcms-success); text-decoration: underline; }
     .kcms .kcms-change .kcms-slug { font-weight: 600; }
+    .kcms .kcms-chat-table { margin: 0 0 8px; border-collapse: collapse; font-size: 14px; }
+    .kcms .kcms-chat-table th, .kcms .kcms-chat-table td { padding: 4px 10px; border-bottom: 1px solid var(--kcms-border); text-align: left; }
+    .kcms .kcms-proposal { display: grid; gap: 8px; margin-top: 12px; padding: 14px 16px; border: 1px solid #a5b4fc; border-radius: var(--kcms-radius); background: var(--kcms-surface); }
+    .kcms .kcms-proposal p { margin: 0; color: var(--kcms-muted); font-size: 14px; }
+    .kcms .kcms-proposal label { display: grid; gap: 4px; margin: 0; font-size: 13px; font-weight: 600; }
+    .kcms .kcms-proposal input { min-height: 34px; padding: 4px 10px; }
+    .kcms .kcms-proposal-actions { display: flex; gap: 8px; }
+    .kcms .kcms-proposal-result { margin: 12px 0 0; color: var(--kcms-success); font-weight: 600; font-size: 14px; }
+    .kcms .kcms-proposal-result.is-cancelled { color: var(--kcms-muted); }
+    .kcms .kcms-proposal-result.is-error { color: var(--kcms-danger); }
     .kcms .kcms-chat-form { display: flex; gap: 10px; align-items: flex-end; padding: 12px 20px 0; border-top: 1px solid var(--kcms-border); }
     .kcms .kcms-chat-attachments:not([hidden]) + .kcms-chat-form { border-top: 0; }
     .kcms .kcms-chat.is-over { outline: 2px dashed var(--kcms-accent); outline-offset: -6px; }
