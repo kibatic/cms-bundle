@@ -3,6 +3,7 @@
 namespace Kibatic\CmsBundle\Controller;
 
 use Doctrine\ORM\EntityManagerInterface;
+use Kibatic\CmsBundle\BlockTypeChain;
 use Kibatic\CmsBundle\Entity\Version;
 use Kibatic\CmsBundle\Repository\VersionRepository;
 use Kibatic\CmsBundle\Version\VersionPreview;
@@ -67,6 +68,52 @@ class VersionController extends AbstractController
         return $this->render('@KibaticCms/version/show.html.twig', [
             'version' => $version,
             'changes' => $this->versions->compare($version),
+        ]);
+    }
+
+    public function rename(Request $request, Version $version): Response
+    {
+        $this->denyAccessUnlessGranted(BlockController::$role);
+
+        if ($this->isCsrfTokenValid(self::CSRF_TOKEN_ID, $request->getPayload()->getString('_token'))) {
+            $name = trim($request->getPayload()->getString('name'));
+            $version->setName('' !== $name ? mb_substr($name, 0, 255) : null);
+            $this->entityManager->flush();
+            $this->addFlash('kibatic_cms', 'flash.version_renamed');
+        }
+
+        return $this->redirectToRoute('cms_version_show', ['id' => $version->getId()]);
+    }
+
+    /**
+     * Edits the content of a block of the version (?slug=…&language=…, no language: shared by every language), with
+     * the block editor without its slug and language fields
+     */
+    public function editBlock(Request $request, Version $version, BlockTypeChain $blockTypes): Response
+    {
+        $this->denyAccessUnlessGranted(BlockController::$role);
+
+        $slug = $request->query->getString('slug');
+        $language = '' !== $request->query->getString('language') ? $request->query->getString('language') : null;
+        $block = $version->getBlock($slug, $language) ?? throw $this->createNotFoundException();
+
+        $form = $this->createForm($blockTypes->getBlockType($block->getType())::class, $block)
+            ->remove('slug')
+            ->remove('language');
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $version->setBlockContent($slug, $language, $block->getContent());
+            $this->entityManager->flush();
+            $this->addFlash('kibatic_cms', 'flash.version_block_saved');
+
+            return $this->redirectToRoute('cms_version_show', ['id' => $version->getId()]);
+        }
+
+        return $this->render('@KibaticCms/version/edit_block.html.twig', [
+            'version' => $version,
+            'block' => $block,
+            'form' => $form->createView(),
         ]);
     }
 

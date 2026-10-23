@@ -63,6 +63,13 @@ class Version
         return $this->name;
     }
 
+    public function setName(?string $name): static
+    {
+        $this->name = $name;
+
+        return $this;
+    }
+
     public function getCreatedAt(): \DateTimeImmutable
     {
         return $this->createdAt;
@@ -99,6 +106,36 @@ class Version
             ->setContent($data['content'])
             ->setCreatedAt(new \DateTime($data['created_at']))
             ->setUpdatedAt(new \DateTime($data['updated_at'])), $this->blocks);
+    }
+
+    /**
+     * Block of the version with this slug and language (null: shared by every language)
+     */
+    public function getBlock(string $slug, ?string $language): ?Block
+    {
+        foreach ($this->getBlocks() as $block) {
+            if ($block->getSlug() === $slug && $block->getLanguage() === $language) {
+                return $block;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Replaces the content of a block of the version (VersionController::editBlock()); its slug, language and type stay
+     */
+    public function setBlockContent(string $slug, ?string $language, ?string $content): void
+    {
+        foreach ($this->blocks as $i => $data) {
+            if ($data['slug'] === $slug && $data['language'] === $language) {
+                $this->blocks[$i]['content'] = $content;
+                $this->blocks[$i]['updated_at'] = (new \DateTimeImmutable())->format(\DATE_ATOM);
+                $this->blockObjects = null;
+
+                return;
+            }
+        }
     }
 
     public function getBlockCount(): int

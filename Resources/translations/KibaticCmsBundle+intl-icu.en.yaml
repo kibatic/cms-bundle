@@ -122,6 +122,8 @@ flash:
     version_taken: Version saved.
     version_restored: Version restored. The previous blocks are in the version "Before restoring…".
     version_deleted: Version deleted.
+    version_renamed: Version renamed.
+    version_block_saved: Block of the version saved.
     draft_published: "Draft published: the visitors see it."
     version_taken_published: Version saved and published.
     version_published: "Version published: the site shows its blocks."
@@ -152,6 +154,12 @@ chat:
 
 version:
     title: Versions
+    rename: Rename
+    edit_block:
+        button: Edit
+        back: Back to the version
+        subtitle: 'In the version "{name}"'
+        published_warning: "This version is published: your changes are online as soon as they are saved."
     subtitle: Save every block at once, to compare, preview, publish or restore them later.
     take: Save a version
     take_publish: Save and publish

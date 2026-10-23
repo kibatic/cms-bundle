@@ -122,6 +122,8 @@ flash:
     version_taken: Version enregistrée.
     version_restored: Version restaurée. Les blocs d'avant sont dans la version « Avant la restauration… ».
     version_deleted: Version supprimée.
+    version_renamed: Version renommée.
+    version_block_saved: Bloc de la version enregistré.
     draft_published: "Brouillon publié : les visiteurs le voient."
     version_taken_published: Version enregistrée et publiée.
     version_published: "Version publiée : le site affiche ses blocs."
@@ -152,6 +154,12 @@ chat:
 
 version:
     title: Versions
+    rename: Renommer
+    edit_block:
+        button: Modifier
+        back: Retour à la version
+        subtitle: 'Dans la version « {name} »'
+        published_warning: "Cette version est publiée : vos modifications sont en ligne dès l'enregistrement."
     subtitle: Enregistrez tous les blocs d'un coup, pour les comparer, les prévisualiser, les publier ou les restaurer plus tard.
     take: Enregistrer une version
     take_publish: Enregistrer et publier

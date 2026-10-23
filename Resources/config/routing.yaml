@@ -120,3 +120,17 @@ cms_upload_image:
     path: /cms/uploads/image
     controller: Kibatic\CmsBundle\Controller\UploadController::image
     methods: POST
+
+cms_version_rename:
+    path: /cms/versions/{id}/rename
+    controller: Kibatic\CmsBundle\Controller\VersionController::rename
+    methods: POST
+    requirements:
+        id: '\d+'
+
+cms_version_edit_block:
+    path: /cms/versions/{id}/block
+    controller: Kibatic\CmsBundle\Controller\VersionController::editBlock
+    methods: GET|POST
+    requirements:
+        id: '\d+'

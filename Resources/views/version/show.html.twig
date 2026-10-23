@@ -33,6 +33,11 @@
             <p class="kcms-subtitle">
                 {{ version.createdAt|date('format.datetime'|trans) }} · {{ 'index.blocks'|trans({count: version.blockCount}) }}
             </p>
+            <form method="post" action="{{ path('cms_version_rename', {id: version.id}) }}" class="kcms-rename">
+                <input type="hidden" name="_token" value="{{ csrf }}">
+                <input type="text" name="name" value="{{ version.name }}" maxlength="255" placeholder="{{ 'version.name_placeholder'|trans }}" aria-label="{{ 'version.column.name'|trans }}">
+                <button type="submit" class="kcms-btn kcms-btn-sm">{{ 'version.rename'|trans }}</button>
+            </form>
         </div>
         <div class="kcms-head-actions">
             {% include '@KibaticCms/version/_actions.html.twig' with {details: false} %}
@@ -56,6 +61,9 @@
                     <span class="kcms-slug">{{ change.slug }}</span>
                     <span class="kcms-chip">{{ change.language ?? 'language.all'|trans }}</span>
                     <span class="kcms-status kcms-status-{{ change.status }}">{{ ('version.row_status.' ~ change.status)|trans }}</span>
+                    {% if change.version %}
+                        <a href="{{ path('cms_version_edit_block', {id: version.id, slug: change.slug, language: change.language}) }}" class="kcms-btn kcms-btn-sm">{{ 'version.edit_block.button'|trans }}</a>
+                    {% endif %}
                 </summary>
                 <div class="kcms-compare">
                     <div>

@@ -1,6 +1,7 @@
 {#
     Block form: content on the left, settings and actions on the right.
-    Variables: form, block, delete_form (null when creating), submit_label
+    Variables: form, block, delete_form (null when creating), submit_label, back_url and back_label (default: the block list).
+    Without slug field (block of a version: VersionController::editBlock()), no settings card.
 #}
 {% trans_default_domain 'KibaticCmsBundle' %}
 {# The admin styles plain form markup, whatever form theme the application uses #}
@@ -24,12 +25,16 @@
         </section>
 
         <aside class="kcms-side">
-            <div class="kcms-card">
-                <h2 class="kcms-card-title">{{ 'editor.settings'|trans }}</h2>
-                {{ form_row(form.slug) }}
-                {{ form_row(form.language) }}
+            {% if form.slug is defined %}
+                <div class="kcms-card">
+                    <h2 class="kcms-card-title">{{ 'editor.settings'|trans }}</h2>
+                    {{ form_row(form.slug) }}
+                    {{ form_row(form.language) }}
+                    {{ form_rest(form) }}
+                </div>
+            {% else %}
                 {{ form_rest(form) }}
-            </div>
+            {% endif %}
 
             {% if delete_form %}
                 <dl class="kcms-meta">
@@ -40,7 +45,7 @@
 
             <div class="kcms-actions">
                 <button type="submit" class="kcms-btn kcms-btn-primary" title="Ctrl+S">{{ submit_label|trans }}</button>
-                <a href="{{ path('cms_block_index') }}" class="kcms-btn">{{ 'editor.back'|trans }}</a>
+                <a href="{{ back_url ?? path('cms_block_index') }}" class="kcms-btn">{{ (back_label ?? 'editor.back')|trans }}</a>
             </div>
 
             {% if delete_form %}
