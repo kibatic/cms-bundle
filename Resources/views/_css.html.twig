@@ -18,14 +18,18 @@
         --kcms-radius: 10px;
         --kcms-shadow: 0 1px 2px rgb(15 23 42 / 6%), 0 1px 3px rgb(15 23 42 / 4%);
         --kcms-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        /* Its own font: the admin does not take the site's (headings included) */
+        --kcms-font: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 
         color: var(--kcms-text);
+        font-family: var(--kcms-font);
         font-size: 15px;
         line-height: 1.5;
         margin: 0 auto 48px;
         max-width: 1200px;
     }
     .kcms *, .kcms *::before, .kcms *::after { box-sizing: border-box; }
+    .kcms :is(h1, h2, h3, h4) { font-family: var(--kcms-font); }
     .kcms a { color: var(--kcms-accent); text-decoration: none; }
     .kcms a:hover { color: var(--kcms-accent-hover); }
     .kcms code { font-family: var(--kcms-mono); font-size: .88em; background: var(--kcms-subtle); border: 1px solid var(--kcms-border); border-radius: 4px; padding: 1px 5px; }
