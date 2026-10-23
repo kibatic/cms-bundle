@@ -201,10 +201,16 @@
     .kcms .kcms-message-user code { background: rgb(255 255 255 / 15%); border-color: transparent; color: inherit; }
     .kcms .kcms-message-assistant { align-self: flex-start; background: var(--kcms-subtle); border: 1px solid var(--kcms-border); border-bottom-left-radius: 4px; }
     .kcms .kcms-message-error { align-self: flex-start; background: var(--kcms-danger-soft); color: var(--kcms-danger); font-weight: 500; }
-    .kcms .kcms-message-pending { display: flex; gap: 5px; padding: 14px 16px; }
-    .kcms .kcms-message-pending span { width: 7px; height: 7px; border-radius: 50%; background: var(--kcms-muted); animation: kcms-typing 1.2s infinite ease-in-out; }
-    .kcms .kcms-message-pending span:nth-child(2) { animation-delay: .15s; }
-    .kcms .kcms-message-pending span:nth-child(3) { animation-delay: .3s; }
+    .kcms .kcms-typing { display: flex; gap: 5px; padding: 4px 0; }
+    .kcms .kcms-message:not(.kcms-message-working) .kcms-typing { display: none; }
+    .kcms .kcms-typing span { width: 7px; height: 7px; border-radius: 50%; background: var(--kcms-muted); animation: kcms-typing 1.2s infinite ease-in-out; }
+    .kcms .kcms-typing span:nth-child(2) { animation-delay: .15s; }
+    .kcms .kcms-typing span:nth-child(3) { animation-delay: .3s; }
+    .kcms .kcms-activity { margin: 0 0 8px; padding: 0; list-style: none; color: var(--kcms-muted); font-size: 13px; }
+    .kcms .kcms-activity:empty { display: none; }
+    .kcms .kcms-activity li::before { content: "✓ "; color: var(--kcms-success); }
+    .kcms .kcms-message-working .kcms-activity li:last-child::before { content: "… "; color: var(--kcms-muted); }
+    .kcms .kcms-stream { margin-bottom: 4px; }
     @keyframes kcms-typing { 0%, 60%, 100% { opacity: .3; transform: translateY(0); } 30% { opacity: 1; transform: translateY(-3px); } }
     .kcms .kcms-changes { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
     .kcms .kcms-change { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 999px; background: var(--kcms-success-soft); color: var(--kcms-success); font-size: 13px; font-weight: 550; }

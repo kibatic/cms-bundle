@@ -5,28 +5,38 @@ namespace Kibatic\CmsBundle\Controller;
 use Kibatic\CmsBundle\Ai\BlockChanges;
 use Kibatic\CmsBundle\Repository\BlockRepository;
 use Kibatic\CmsBundle\Upload\ImageStorage;
+use Psr\Cache\CacheItemPoolInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\AI\Agent\AgentInterface;
 use Symfony\AI\Agent\Exception\ExceptionInterface as AgentException;
+use Symfony\AI\Agent\Execution\Update\Progress;
+use Symfony\AI\Agent\Execution\Update\Result;
 use Symfony\AI\Platform\Exception\ExceptionInterface as PlatformException;
 use Symfony\AI\Platform\Message\Content\Image;
 use Symfony\AI\Platform\Message\Message;
 use Symfony\AI\Platform\Message\MessageBag;
 use Symfony\AI\Platform\Message\UserMessage;
+use Symfony\AI\Platform\Result\Stream\Delta\TextDelta;
+use Symfony\AI\Platform\Result\ToolCall;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 use Symfony\Contracts\HttpClient\Exception\ExceptionInterface as HttpClientException;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**
  * Assistant of the admin: a chat with the Symfony AI agent of kibatic_cms.ai.agent, which creates and modifies blocks
- * with the tools of Kibatic\CmsBundle\Ai\Tool. The conversation is kept in the session.
+ * with the tools of Kibatic\CmsBundle\Ai\Tool. The answer is streamed as it is produced (message()), the conversation
+ * is kept in the cache, for the admin's session (not in the session itself: it would stay locked during the answer).
  */
 class ChatController extends AbstractController
 {
-    private const SESSION_KEY = 'kibatic_cms_chat';
+    private const CACHE_KEY = 'kibatic_cms_chat_';
+    private const CACHE_LIFETIME = 86400;
+    /** Seconds without news after which a line is sent anyway, so that no proxy cuts the connection */
+    private const KEEP_ALIVE = 2;
     /** Messages of the conversation sent back to the model (the oldest ones are forgotten) */
     private const HISTORY_SIZE = 20;
     /** Images joined to a message (uploaded first: UploadController) */
@@ -40,6 +50,8 @@ class ChatController extends AbstractController
         private readonly TranslatorInterface $translator,
         private readonly LoggerInterface $logger,
         private readonly ImageStorage $imageStorage,
+        #[Autowire(service: 'cache.app')]
+        private readonly CacheItemPoolInterface $cache,
     ) {
     }
 
@@ -48,12 +60,17 @@ class ChatController extends AbstractController
         $this->denyUnlessAvailable();
 
         return $this->render('@KibaticCms/chat/index.html.twig', [
-            'history' => $request->getSession()->get(self::SESSION_KEY, []),
+            'history' => $this->history($request),
             'slug' => $request->query->get('slug'),
         ]);
     }
 
-    public function message(Request $request): JsonResponse
+    /**
+     * Streamed answer, one JSON object per line: {type: "status"} (model working), {type: "tool", label} (a tool used),
+     * {type: "text", text} (piece of the answer), {type: "ping"} (keep-alive), then {type: "done", answer, changes} or
+     * {type: "error", error}. The request goes on to the end even if the connection is cut.
+     */
+    public function message(Request $request): Response
     {
         $this->denyUnlessAvailable();
 
@@ -72,8 +89,10 @@ class ChatController extends AbstractController
             return $this->json(['error' => $this->trans('chat.error.empty')], Response::HTTP_BAD_REQUEST);
         }
 
-        $session = $request->getSession();
-        $history = $session->get(self::SESSION_KEY, []);
+        $history = $this->history($request);
+        $cacheItem = $this->cache->getItem($this->cacheKey($request));
+        // The answer is saved in the cache, not in the session: release it for the other pages of the admin
+        $request->getSession()->save();
 
         $messages = new MessageBag(Message::forSystem($this->systemPrompt($request->getLocale())));
         foreach ($history as $message) {
@@ -81,27 +100,61 @@ class ChatController extends AbstractController
         }
         $messages->add($this->userMessage($text, $images));
 
-        try {
-            $answer = trim((string) $this->agent->call($messages)->getContent());
-        } catch (AgentException|PlatformException|HttpClientException $e) {
-            $this->logger->error('CMS assistant: {message}', ['message' => $e->getMessage(), 'exception' => $e]);
+        $response = new StreamedResponse(function () use ($messages, $history, $text, $images, $cacheItem): void {
+            ignore_user_abort(true);
+            $send = function (array $event): void {
+                echo json_encode($event, \JSON_UNESCAPED_UNICODE | \JSON_UNESCAPED_SLASHES)."\n";
+                flush();
+            };
+            $lastSent = time();
 
-            return $this->json(['error' => $this->trans('chat.error.model')], Response::HTTP_BAD_GATEWAY);
-        }
+            try {
+                $answer = null;
+                foreach ($this->agent->call($messages, ['stream' => true]) as $update) {
+                    $event = match (true) {
+                        $update instanceof Result => null,
+                        'model_request' === $update->getStage() => ['type' => 'status'],
+                        'tool_call' === $update->getStage() => ['type' => 'tool', 'label' => $this->toolLabel($update->getPayload())],
+                        $update->getPayload() instanceof TextDelta => ['type' => 'text', 'text' => $update->getPayload()->getText()],
+                        default => time() - $lastSent >= self::KEEP_ALIVE ? ['type' => 'ping'] : null,
+                    };
 
-        $history[] = ['role' => 'user', 'content' => $text, 'images' => $images];
-        $history[] = ['role' => 'assistant', 'content' => $answer];
-        $session->set(self::SESSION_KEY, \array_slice($history, -self::HISTORY_SIZE));
+                    if ($update instanceof Result) {
+                        $answer = trim((string) $update->getResult()->getContent());
+                    } elseif (null !== $event) {
+                        $send($event);
+                        $lastSent = time();
+                    }
+                }
+            } catch (AgentException|PlatformException|HttpClientException $e) {
+                $this->logger->error('CMS assistant: {message}', ['message' => $e->getMessage(), 'exception' => $e]);
+                $send(['type' => 'error', 'error' => $this->trans('chat.error.model')]);
 
-        return $this->json([
-            'answer' => $answer,
-            'changes' => array_map(fn (array $change) => [
-                'slug' => $change['block']->getSlug(),
-                'language' => $change['block']->getLanguage(),
-                'created' => $change['created'],
-                'url' => $this->generateUrl('cms_block_edit', ['id' => $change['block']->getId()]),
-            ], $this->changes->all()),
-        ]);
+                return;
+            }
+
+            $history[] = ['role' => 'user', 'content' => $text, 'images' => $images];
+            $history[] = ['role' => 'assistant', 'content' => $answer];
+            $this->cache->save($cacheItem->set(\array_slice($history, -self::HISTORY_SIZE))->expiresAfter(self::CACHE_LIFETIME));
+
+            $send([
+                'type' => 'done',
+                'answer' => $answer,
+                'changes' => array_map(fn (array $change) => [
+                    'slug' => $change['block']->getSlug(),
+                    'language' => $change['block']->getLanguage(),
+                    'created' => $change['created'],
+                    'url' => $this->generateUrl('cms_block_edit', ['id' => $change['block']->getId()]),
+                ], $this->changes->all()),
+            ]);
+        });
+
+        // Not buffered by a proxy (nginx), not cached
+        $response->headers->set('Content-Type', 'application/x-ndjson');
+        $response->headers->set('X-Accel-Buffering', 'no');
+        $response->headers->set('Cache-Control', 'no-cache');
+
+        return $response;
     }
 
     public function reset(Request $request): Response
@@ -109,10 +162,35 @@ class ChatController extends AbstractController
         $this->denyUnlessAvailable();
 
         if ($this->isCsrfTokenValid(self::CSRF_TOKEN_ID, $request->getPayload()->getString('_token'))) {
-            $request->getSession()->remove(self::SESSION_KEY);
+            $this->cache->deleteItem($this->cacheKey($request));
         }
 
         return $this->redirectToRoute('cms_chat');
+    }
+
+    /**
+     * @return list<array{role: 'user'|'assistant', content: string, images?: list<string>}>
+     */
+    private function history(Request $request): array
+    {
+        return $this->cache->getItem($this->cacheKey($request))->get() ?? [];
+    }
+
+    private function cacheKey(Request $request): string
+    {
+        return self::CACHE_KEY.hash('sha256', $request->getSession()->getId());
+    }
+
+    /**
+     * What a tool call does, for the admin (shown while the answer is produced)
+     */
+    private function toolLabel(ToolCall $toolCall): string
+    {
+        $key = 'chat.tool.'.$toolCall->getName();
+        $label = $this->translator->trans($key, ['slug' => $toolCall->getArguments()['slug'] ?? ''], 'KibaticCmsBundle');
+
+        // Tool added by the application, without translation
+        return $label !== $key ? $label : $this->translator->trans('chat.tool.other', ['name' => $toolCall->getName()], 'KibaticCmsBundle');
     }
 
     private function denyUnlessAvailable(): void

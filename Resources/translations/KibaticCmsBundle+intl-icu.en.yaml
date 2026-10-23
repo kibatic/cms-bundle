@@ -132,6 +132,11 @@ flash:
 
 chat:
     title: Assistant
+    tool:
+        cms_list_blocks: Reading the list of the blocks
+        cms_get_block: 'Reading the block "{slug}"'
+        cms_save_block: 'Saving the block "{slug}"'
+        other: 'Using the tool {name}'
     subtitle: Ask the AI to write, modify or translate blocks.
     ask: Ask the assistant
     about_block: 'About the block "{slug}": '
@@ -151,6 +156,7 @@ chat:
         csrf: The page has expired, reload it.
         empty: Write a message.
         model: The AI did not answer. Try again in a moment.
+        cut: "The connection was cut, but your request goes on: reload the page in a moment to see the answer."
 
 version:
     title: Versions

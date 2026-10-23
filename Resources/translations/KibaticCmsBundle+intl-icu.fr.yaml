@@ -132,6 +132,11 @@ flash:
 
 chat:
     title: Assistant
+    tool:
+        cms_list_blocks: Lecture de la liste des blocs
+        cms_get_block: 'Lecture du bloc « {slug} »'
+        cms_save_block: 'Enregistrement du bloc « {slug} »'
+        other: 'Utilisation de l''outil {name}'
     subtitle: Demandez à l'IA d'écrire, de modifier ou de traduire des blocs.
     ask: Demander à l'assistant
     about_block: 'À propos du bloc « {slug} » : '
@@ -151,6 +156,7 @@ chat:
         csrf: La page a expiré, rechargez-la.
         empty: Écrivez un message.
         model: L'IA n'a pas répondu. Réessayez dans un instant.
+        cut: "La connexion a été coupée, mais votre demande continue : rechargez la page dans un moment pour voir la réponse."
 
 version:
     title: Versions
