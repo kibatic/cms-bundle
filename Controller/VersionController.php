@@ -3,6 +3,7 @@
 namespace Kibatic\CmsBundle\Controller;
 
 use Doctrine\ORM\EntityManagerInterface;
+use Kibatic\CmsBundle\Ai\VersionNamer;
 use Kibatic\CmsBundle\BlockTypeChain;
 use Kibatic\CmsBundle\Entity\Version;
 use Kibatic\CmsBundle\Repository\VersionRepository;
@@ -10,6 +11,7 @@ use Kibatic\CmsBundle\Version\VersionPreview;
 use Kibatic\CmsBundle\Version\Versions;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Contracts\Translation\TranslatorInterface;
@@ -147,16 +149,25 @@ class VersionController extends AbstractController
     }
 
     /**
-     * Publishes the draft (the current blocks) in a new version
+     * Name of the draft suggested by the AI (VersionNamer), asked by the publication dialog (version/_publish_dialog.html.twig)
+     */
+    public function draftName(Request $request, VersionNamer $namer): JsonResponse
+    {
+        $this->denyAccessUnlessGranted(BlockController::$role);
+
+        return $this->json(['name' => $namer->suggestDraftName($request->getLocale())]);
+    }
+
+    /**
+     * Publishes the draft (the current blocks) in a new version, with the name chosen in the publication dialog
      */
     public function publishDraft(Request $request): Response
     {
         $this->denyAccessUnlessGranted(BlockController::$role);
 
         if ($this->isCsrfTokenValid(self::CSRF_TOKEN_ID, $request->getPayload()->getString('_token'))) {
-            $version = $this->versions->take($this->translator->trans('version.draft_name', [
-                'date' => (new \DateTimeImmutable())->format($this->translator->trans('format.datetime', [], 'KibaticCmsBundle')),
-            ], 'KibaticCmsBundle'));
+            $name = trim($request->getPayload()->getString('name'));
+            $version = $this->versions->take('' !== $name ? mb_substr($name, 0, 255) : $this->defaultDraftName());
             $this->versions->publish($version);
             $this->preview->stop();
             $this->addFlash('kibatic_cms', 'flash.draft_published');
@@ -235,6 +246,16 @@ class VersionController extends AbstractController
         }
 
         return $this->redirectBack($request);
+    }
+
+    /**
+     * Name of a published draft when the dialog's field is empty (and before the AI's suggestion)
+     */
+    private function defaultDraftName(): string
+    {
+        return $this->translator->trans('version.draft_name', [
+            'date' => (new \DateTimeImmutable())->format($this->translator->trans('format.datetime', [], 'KibaticCmsBundle')),
+        ], 'KibaticCmsBundle');
     }
 
     /**

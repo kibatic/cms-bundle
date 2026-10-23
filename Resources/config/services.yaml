@@ -12,6 +12,8 @@ services:
         tags: ['controller.service_arguments']
 
     Kibatic\CmsBundle\Ai\BlockChanges: ~
+    # Its agent is set by KibaticCmsExtension, like the assistant's
+    Kibatic\CmsBundle\Ai\VersionNamer: ~
 
     Kibatic\CmsBundle\Controller\UploadController:
         tags: ['controller.service_arguments']

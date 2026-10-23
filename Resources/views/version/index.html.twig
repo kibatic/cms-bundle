@@ -78,11 +78,7 @@
                                             <input type="hidden" name="site" value="1">
                                             <button type="submit" class="kcms-btn kcms-btn-sm">{{ 'version.preview'|trans }}</button>
                                         </form>
-                                        <form method="post" action="{{ path('cms_version_publish_draft') }}"
-                                              onsubmit="return confirm('{{ 'version.draft.publish_confirm'|trans|e('js') }}')">
-                                            <input type="hidden" name="_token" value="{{ csrf }}">
-                                            <button type="submit" class="kcms-btn kcms-btn-sm kcms-btn-success">{{ 'version.publish'|trans }}</button>
-                                        </form>
+                                        <button type="button" class="kcms-btn kcms-btn-sm kcms-btn-success" data-kcms-publish-draft>{{ 'version.publish'|trans }}</button>
                                     </div>
                                 </td>
                             </tr>
@@ -111,5 +107,8 @@
             <h2>{{ 'version.empty.title'|trans }}</h2>
             <p>{{ 'version.empty.text'|trans }}</p>
         </div>
+    {% endif %}
+    {% if cms_draft_changes() > 0 %}
+        {% include '@KibaticCms/version/_publish_dialog.html.twig' with {changes: cms_draft_changes()} %}
     {% endif %}
 {% endblock %}

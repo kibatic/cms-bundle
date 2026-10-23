@@ -216,6 +216,12 @@ version:
         publish_confirm: Publier le brouillon ? Les visiteurs verront les blocs actuels, enregistrés dans une nouvelle version.
         see_published: Voir la version publiée
         see_draft: Voir le brouillon
+        dialog_help: '{count, plural, one {# modification depuis la version publiée. Les visiteurs verront les blocs actuels.} other {# modifications depuis la version publiée. Les visiteurs verront les blocs actuels.}}'
+        dialog_name: Nom de la version
+        dialog_thinking: L'IA cherche un nom…
+        dialog_suggested: Nom proposé par l'IA, modifiez-le si vous voulez.
+        dialog_no_suggestion: Pas de proposition de l'IA, modifiez le nom si vous voulez.
+        dialog_cancel: Annuler
     draft_name: 'Publication du {date}'
     status:
         modified: Modifiés

@@ -1,0 +1,62 @@
+{#
+    Dialog of the publication of the draft: name of the new version, the AI's suggestion (VersionController::draftName())
+    filled in as soon as it arrives, unless the admin typed one. Opened by the buttons [data-kcms-publish-draft]; on the
+    admin pages and on the site's pages (draft banner): self-contained styles. Variable: changes (number of changes)
+#}
+{% trans_default_domain 'KibaticCmsBundle' %}
+{% set csrf = csrf_token(constant('Kibatic\\CmsBundle\\Controller\\VersionController::CSRF_TOKEN_ID')) %}
+{% set button = 'min-height: 38px; padding: 0 16px; border-radius: 8px; font: inherit; font-weight: 600; cursor: pointer;' %}
+<dialog data-kcms-publish-dialog data-kcms-name-url="{{ path('cms_version_draft_name') }}"
+        style="width: min(460px, calc(100vw - 32px)); padding: 0; border: 0; border-radius: 14px; box-shadow: 0 24px 60px rgb(0 0 0 / 30%);
+               color: #0f172a; font: 15px/1.5 system-ui, sans-serif;">
+    <form method="post" action="{{ path('cms_version_publish_draft') }}" style="display: grid; gap: 14px; margin: 0; padding: 22px 24px;">
+        <input type="hidden" name="_token" value="{{ csrf }}">
+        <div>
+            <h2 style="margin: 0 0 4px; font-size: 19px; font-weight: 650;">{{ 'version.draft.publish'|trans }}</h2>
+            <p style="margin: 0; color: #64748b; font-size: 14px;">{{ 'version.draft.dialog_help'|trans({count: changes}) }}</p>
+        </div>
+        <label style="display: grid; gap: 6px; margin: 0; font-size: 14px; font-weight: 600;">
+            {{ 'version.draft.dialog_name'|trans }}
+            <input type="text" name="name" maxlength="255" required data-kcms-publish-name
+                   value="{{ 'version.draft_name'|trans({date: 'now'|date('format.datetime'|trans)}) }}"
+                   style="min-height: 40px; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font: inherit; font-weight: 400;">
+        </label>
+        <small data-kcms-publish-status data-kcms-suggested="{{ 'version.draft.dialog_suggested'|trans }}"
+               data-kcms-no-suggestion="{{ 'version.draft.dialog_no_suggestion'|trans }}" style="margin-top: -8px; color: #64748b; font-size: 13px;">
+            {{ 'version.draft.dialog_thinking'|trans }}
+        </small>
+        <div style="display: flex; justify-content: flex-end; gap: 8px;">
+            <button type="button" data-kcms-publish-cancel style="{{ button }} border: 1px solid #e2e8f0; background: #fff; color: #0f172a;">{{ 'version.draft.dialog_cancel'|trans }}</button>
+            <button type="submit" style="{{ button }} border: 0; background: #15803d; color: #fff;">{{ 'version.publish'|trans }}</button>
+        </div>
+    </form>
+</dialog>
+<script>
+    (() => {
+        const dialog = document.currentScript.previousElementSibling;
+        const name = dialog.querySelector('[data-kcms-publish-name]');
+        const status = dialog.querySelector('[data-kcms-publish-status]');
+        let asked = false;
+        let typed = false;
+        name.addEventListener('input', () => typed = true);
+        dialog.querySelector('[data-kcms-publish-cancel]').addEventListener('click', () => dialog.close());
+        document.querySelectorAll('[data-kcms-publish-draft]').forEach(button => button.addEventListener('click', () => {
+            dialog.showModal();
+            name.select();
+            if (asked) {
+                return;
+            }
+            asked = true;
+            fetch(dialog.dataset.kcmsNameUrl, {headers: {Accept: 'application/json'}})
+                .then(response => response.ok ? response.json() : {})
+                .then(data => {
+                    if (data.name && !typed) {
+                        name.value = data.name;
+                        name.select();
+                    }
+                    status.textContent = data.name ? status.dataset.kcmsSuggested : status.dataset.kcmsNoSuggestion;
+                })
+                .catch(() => status.textContent = status.dataset.kcmsNoSuggestion);
+        }));
+    })();
+</script>

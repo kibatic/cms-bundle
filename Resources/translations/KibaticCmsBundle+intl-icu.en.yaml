@@ -216,6 +216,12 @@ version:
         publish_confirm: Publish the draft? The visitors will see the current blocks, saved in a new version.
         see_published: See the published version
         see_draft: See the draft
+        dialog_help: '{count, plural, one {# change since the published version. The visitors will see the current blocks.} other {# changes since the published version. The visitors will see the current blocks.}}'
+        dialog_name: Name of the version
+        dialog_thinking: The AI is looking for a name…
+        dialog_suggested: Name suggested by the AI, change it if you want.
+        dialog_no_suggestion: No suggestion from the AI, change the name if you want.
+        dialog_cancel: Cancel
     draft_name: 'Publication of {date}'
     status:
         modified: Modified

@@ -61,6 +61,11 @@ cms_version_create:
     controller: Kibatic\CmsBundle\Controller\VersionController::create
     methods: POST
 
+cms_version_draft_name:
+    path: /cms/versions/draft/name
+    controller: Kibatic\CmsBundle\Controller\VersionController::draftName
+    methods: GET
+
 cms_version_publish_draft:
     path: /cms/versions/draft/publish
     controller: Kibatic\CmsBundle\Controller\VersionController::publishDraft

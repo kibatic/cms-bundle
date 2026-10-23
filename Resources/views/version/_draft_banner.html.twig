@@ -19,11 +19,7 @@
         <a href="{{ path('cms_version_show', {id: published.id}) }}" style="color: #fde68a; font-weight: 700; text-decoration: underline;">{{ published.name ?? published.createdAt|date('format.datetime'|trans) }}</a>
     </span>
     {% if mode == 'draft' %}
-        <form method="post" action="{{ path('cms_version_publish_draft') }}" style="margin: 0;"
-              onsubmit="return confirm('{{ 'version.draft.publish_confirm'|trans|e('js') }}')">
-            <input type="hidden" name="_token" value="{{ csrf }}">
-            <button type="submit" style="{{ button }} border: 0; background: #16a34a; color: #fff;">{{ 'version.draft.publish'|trans }}</button>
-        </form>
+        <button type="button" data-kcms-publish-draft style="{{ button }} border: 0; background: #16a34a; color: #fff;">{{ 'version.draft.publish'|trans }}</button>
         <form method="post" action="{{ path('cms_version_show_published') }}" style="margin: 0;">
             <input type="hidden" name="_token" value="{{ csrf }}">
             <button type="submit" style="{{ button }} border: 1px solid rgb(255 255 255 / 35%); background: transparent; color: #fff;">{{ 'version.draft.see_published'|trans }}</button>
@@ -35,3 +31,6 @@
         </form>
     {% endif %}
 </div>
+{% if mode == 'draft' %}
+    {% include '@KibaticCms/version/_publish_dialog.html.twig' %}
+{% endif %}

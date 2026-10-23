@@ -2,6 +2,7 @@
 
 namespace Kibatic\CmsBundle\DependencyInjection;
 
+use Kibatic\CmsBundle\Ai\VersionNamer;
 use Kibatic\CmsBundle\Controller\ChatController;
 use Symfony\AI\Agent\AgentInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -68,8 +69,9 @@ class KibaticCmsExtension extends Extension
             $loader->load('ai.yaml');
         }
 
-        // Without an agent, the assistant's routes answer 404
-        $container->getDefinition(ChatController::class)
-            ->setArgument('$agent', null !== $agent ? new Reference($agent) : null);
+        // Without an agent, the assistant's routes answer 404 and no version name is suggested
+        foreach ([ChatController::class, VersionNamer::class] as $service) {
+            $container->getDefinition($service)->setArgument('$agent', null !== $agent ? new Reference($agent) : null);
+        }
     }
 }
