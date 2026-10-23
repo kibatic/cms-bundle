@@ -161,14 +161,24 @@ class BlockExtension extends AbstractExtension implements ResetInterface
     }
 
     /**
-     * Blocks of a metablock with their layout; each one in the page's language, the missing ones (or metablocks) left out
+     * Blocks of a metablock with their layout; each one in the page's language, the missing ones (or metablocks) left
+     * out; its sub-metablocks with their own layout
      */
     private function renderMeta(MetaContent $meta): string
     {
         $id = 'cms-meta-'.++$this->metablocks;
+        // Read before the sub-metablocks are rendered: they count too
+        $html = 1 === $this->metablocks ? '<style>'.self::META_STYLES.$this->tabStyles().'</style>' : '';
         $items = [];
 
         foreach ($meta->items as $item) {
+            // Sub-metablock, saved inside this one
+            if (isset($item['meta'])) {
+                $items[] = ['title' => $item['title'] ?? '…', 'html' => $this->renderMeta($item['meta'])];
+
+                continue;
+            }
+
             $block = $this->resolveBlock($item['slug']);
 
             if (null !== $block && 'meta' !== $block->getType()) {
@@ -181,8 +191,6 @@ class BlockExtension extends AbstractExtension implements ResetInterface
                 ];
             }
         }
-
-        $html = 1 === $this->metablocks ? '<style>'.self::META_STYLES.$this->tabStyles().'</style>' : '';
 
         if ('tabs' === $meta->layout) {
             $html .= '<div class="cms-meta cms-meta-tabs">';

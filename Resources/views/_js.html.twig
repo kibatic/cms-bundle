@@ -141,10 +141,14 @@
             show();
         });
 
-        // Metablocks: layout and blocks, written in JSON in the hidden content field (block/_meta_editor.html.twig)
+        // Metablocks: layout and blocks, written in JSON in the hidden content field (block/_meta_editor.html.twig).
+        // An item is an existing block {slug, title}, or a sub-metablock {title, layout, columns, items} with blocks only
         document.querySelectorAll('[data-kcms-meta-editor]').forEach(editor => {
             const field = editor.closest('form').querySelector('[data-kcms-meta-content]');
             const choices = JSON.parse(editor.dataset.kcmsChoices);
+            const layouts = JSON.parse(editor.dataset.kcmsLayouts);
+            const columnsChoices = JSON.parse(editor.dataset.kcmsColumnsChoices);
+            const text = editor.dataset;
             const list = editor.querySelector('[data-kcms-meta-items]');
             const columns = editor.querySelector('[data-kcms-meta-columns]');
             const choice = editor.querySelector('[data-kcms-meta-choice]');
@@ -152,34 +156,75 @@
             try {
                 meta = {...meta, ...JSON.parse(field.value || '{}')};
             } catch (exception) {}
-            const escape = text => text.replace(/[&<>"']/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'})[c]);
+            const escape = value => String(value).replace(/[&<>"']/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'})[c]);
+            const isGroup = item => Array.isArray(item.items);
             const save = () => {
                 field.value = JSON.stringify(meta);
                 field.dispatchEvent(new Event('input', {bubbles: true}));
             };
+            // List and index of the item of a path ("2" or "2.1": block 1 of the sub-metablock 2)
+            const locate = path => {
+                const [index, sub] = path.split('.').map(Number);
+                return sub === undefined || Number.isNaN(sub) ? [meta.items, index] : [meta.items[index].items, sub];
+            };
+            const options = (values, selected, label) => values.map(value =>
+                `<option value="${escape(value)}"${String(value) === String(selected) ? ' selected' : ''}>${escape(label(value))}</option>`).join('');
+            const actions = (path, index, count) => `
+                <span class="kcms-meta-actions">
+                    <button type="button" data-action="up" data-path="${path}" title="${escape(text.kcmsUp)}" aria-label="${escape(text.kcmsUp)}" ${index === 0 ? 'disabled' : ''}>↑</button>
+                    <button type="button" data-action="down" data-path="${path}" title="${escape(text.kcmsDown)}" aria-label="${escape(text.kcmsDown)}" ${index === count - 1 ? 'disabled' : ''}>↓</button>
+                    <button type="button" data-action="remove" data-path="${path}" title="${escape(text.kcmsRemove)}" aria-label="${escape(text.kcmsRemove)}">×</button>
+                </span>`;
+            // Title of an item: label of its tab, when its metablock is in tabs
+            const title = (item, path, tabs, placeholder) => `<input type="text" class="kcms-meta-title${tabs ? '' : ' is-hidden'}" data-action="title" data-path="${path}"
+                value="${escape(item.title ?? '')}" placeholder="${escape(placeholder)}" maxlength="80">`;
+            const blockRow = (item, path, index, count, tabs) => `
+                <li class="kcms-meta-item${item.slug in choices ? '' : ' is-missing'}">
+                    <span class="kcms-meta-position">${index + 1}</span>
+                    <span class="kcms-slug">${escape(item.slug)}</span>
+                    ${item.slug in choices ? `<span class="kcms-badge">${escape(choices[item.slug])}</span>` : `<span class="kcms-meta-missing">${escape(text.kcmsMissing)}</span>`}
+                    ${title(item, path, tabs, text.kcmsTitlePlaceholder)}
+                    ${actions(path, index, count)}
+                </li>`;
+            const addRow = path => `
+                <div class="kcms-meta-add">
+                    <select data-group-choice="${path}" aria-label="${escape(text.kcmsChoose)}">
+                        <option value="">${escape(text.kcmsChoose)}</option>${options(Object.keys(choices), '', slug => slug + ' (' + choices[slug] + ')')}
+                    </select>
+                    <button type="button" class="kcms-btn kcms-btn-sm" data-action="add-to-group" data-path="${path}">${escape(text.kcmsAdd)}</button>
+                </div>`;
+            const groupRow = (item, index, count, tabs) => `
+                <li class="kcms-meta-group">
+                    <div class="kcms-meta-group-head">
+                        <span class="kcms-meta-position">${index + 1}</span>
+                        <strong>${escape(text.kcmsGroup)}</strong>
+                        ${title(item, String(index), tabs, text.kcmsGroupTitlePlaceholder)}
+                        ${actions(String(index), index, count)}
+                    </div>
+                    <div class="kcms-meta-group-settings">
+                        <select data-action="group-layout" data-path="${index}" aria-label="${escape(text.kcmsLayout)}">${options(Object.keys(layouts), item.layout, layout => layouts[layout])}</select>
+                        <select data-action="group-columns" data-path="${index}" aria-label="${escape(text.kcmsColumns)}"${item.layout === 'columns' ? '' : ' hidden'}>${options(columnsChoices, item.columns, n => n + ' ' + text.kcmsColumnsUnit)}</select>
+                    </div>
+                    <ol class="kcms-meta-items">${item.items.map((child, sub) => blockRow(child, index + '.' + sub, sub, item.items.length, item.layout === 'tabs')).join('')}</ol>
+                    ${item.items.length ? '' : `<p class="kcms-meta-missing kcms-meta-group-empty">${escape(text.kcmsGroupEmpty)}</p>`}
+                    ${addRow(index)}
+                </li>`;
             const draw = () => {
                 editor.querySelectorAll('[data-kcms-meta-layout]').forEach(radio => radio.checked = radio.value === meta.layout);
                 editor.querySelector('[data-kcms-meta-columns-row]').hidden = meta.layout !== 'columns';
                 columns.value = meta.columns;
-                editor.dataset.layout = meta.layout;
                 editor.querySelector('[data-kcms-meta-empty]').hidden = meta.items.length > 0;
-                list.innerHTML = meta.items.map((item, index) => `
-                    <li class="kcms-meta-item${item.slug in choices ? '' : ' is-missing'}" data-index="${index}">
-                        <span class="kcms-meta-position">${index + 1}</span>
-                        <span class="kcms-slug">${escape(item.slug)}</span>
-                        ${item.slug in choices ? `<span class="kcms-badge">${escape(choices[item.slug])}</span>` : `<span class="kcms-meta-missing">${escape(editor.dataset.kcmsMissing)}</span>`}
-                        <input type="text" class="kcms-meta-title" data-action="title" value="${escape(item.title ?? '')}" placeholder="${escape(editor.dataset.kcmsTitlePlaceholder)}" maxlength="80">
-                        <span class="kcms-meta-actions">
-                            <button type="button" data-action="up" title="${escape(editor.dataset.kcmsUp)}" aria-label="${escape(editor.dataset.kcmsUp)}" ${index === 0 ? 'disabled' : ''}>↑</button>
-                            <button type="button" data-action="down" title="${escape(editor.dataset.kcmsDown)}" aria-label="${escape(editor.dataset.kcmsDown)}" ${index === meta.items.length - 1 ? 'disabled' : ''}>↓</button>
-                            <button type="button" data-action="remove" title="${escape(editor.dataset.kcmsRemove)}" aria-label="${escape(editor.dataset.kcmsRemove)}">×</button>
-                        </span>
-                    </li>`).join('');
+                list.innerHTML = meta.items.map((item, index) => isGroup(item)
+                    ? groupRow(item, index, meta.items.length, meta.layout === 'tabs')
+                    : blockRow(item, String(index), index, meta.items.length, meta.layout === 'tabs')).join('');
+            };
+            const change = () => {
+                save();
+                draw();
             };
             editor.querySelectorAll('[data-kcms-meta-layout]').forEach(radio => radio.addEventListener('change', () => {
                 meta.layout = radio.value;
-                save();
-                draw();
+                change();
             }));
             columns.addEventListener('change', () => {
                 meta.columns = Number(columns.value);
@@ -189,28 +234,48 @@
                 if (choice.value) {
                     meta.items.push({slug: choice.value, title: null});
                     choice.value = '';
-                    save();
-                    draw();
+                    change();
                 }
+            });
+            editor.querySelector('[data-kcms-meta-add-group]').addEventListener('click', () => {
+                meta.items.push({title: null, layout: 'columns', columns: 2, items: []});
+                change();
             });
             list.addEventListener('click', event => {
                 const button = event.target.closest('button[data-action]');
                 if (!button) {
                     return;
                 }
-                const index = Number(button.closest('li').dataset.index);
+                const path = button.dataset.path;
+                if (button.dataset.action === 'add-to-group') {
+                    const select = list.querySelector(`[data-group-choice="${path}"]`);
+                    if (select.value) {
+                        meta.items[Number(path)].items.push({slug: select.value, title: null});
+                        change();
+                    }
+                    return;
+                }
+                const [items, index] = locate(path);
                 const move = {up: -1, down: 1}[button.dataset.action];
                 if (move) {
-                    [meta.items[index], meta.items[index + move]] = [meta.items[index + move], meta.items[index]];
+                    [items[index], items[index + move]] = [items[index + move], items[index]];
                 } else {
-                    meta.items.splice(index, 1);
+                    items.splice(index, 1);
                 }
-                save();
-                draw();
+                change();
+            });
+            list.addEventListener('change', event => {
+                const action = event.target.dataset.action;
+                if (action === 'group-layout' || action === 'group-columns') {
+                    const group = meta.items[Number(event.target.dataset.path)];
+                    action === 'group-layout' ? group.layout = event.target.value : group.columns = Number(event.target.value);
+                    change();
+                }
             });
             list.addEventListener('input', event => {
                 if (event.target.dataset.action === 'title') {
-                    meta.items[Number(event.target.closest('li').dataset.index)].title = event.target.value || null;
+                    const [items, index] = locate(event.target.dataset.path);
+                    items[index].title = event.target.value || null;
                     save();
                 }
             });

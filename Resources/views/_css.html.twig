@@ -197,7 +197,16 @@
     .kcms .kcms-meta-position { flex: none; width: 22px; height: 22px; border-radius: 50%; background: var(--kcms-subtle); color: var(--kcms-muted); font-size: 12px; font-weight: 700; display: grid; place-items: center; }
     .kcms .kcms-meta-missing { color: var(--kcms-danger); font-size: 13px; font-weight: 600; }
     .kcms .kcms-meta-item .kcms-meta-title { flex: 1; min-height: 30px; padding: 4px 10px; font-size: 14px; }
-    .kcms .kcms-meta-editor:not([data-layout="tabs"]) .kcms-meta-title { visibility: hidden; }
+    .kcms .kcms-meta-title.is-hidden { visibility: hidden; }
+    .kcms .kcms-meta-group { padding: 10px; border: 1px dashed #a5b4fc; border-radius: var(--kcms-radius); background: var(--kcms-accent-soft); display: grid; gap: 10px; }
+    .kcms .kcms-meta-group-head { display: flex; align-items: center; gap: 10px; }
+    .kcms .kcms-meta-group-head strong { color: var(--kcms-accent); font-size: 14px; white-space: nowrap; }
+    .kcms .kcms-meta-group-head .kcms-meta-title { flex: 1; min-height: 30px; padding: 4px 10px; font-size: 14px; }
+    .kcms .kcms-meta-group-settings { display: flex; gap: 8px; }
+    .kcms .kcms-meta-group-settings select { width: auto; min-height: 32px; padding: 4px 10px; font-size: 14px; }
+    .kcms .kcms-meta-group-settings select[hidden] { display: none; }
+    .kcms .kcms-meta-group .kcms-meta-add select { min-height: 32px; padding: 4px 10px; font-size: 14px; }
+    .kcms .kcms-meta-group-empty { margin: 0; }
     .kcms .kcms-meta-actions { display: flex; gap: 4px; margin-left: auto; }
     .kcms .kcms-meta-actions button { width: 28px; height: 28px; padding: 0; border: 1px solid var(--kcms-border); border-radius: 6px; background: var(--kcms-surface); color: var(--kcms-text); cursor: pointer; }
     .kcms .kcms-meta-actions button:hover:not(:disabled) { border-color: var(--kcms-accent); color: var(--kcms-accent); }

@@ -3,8 +3,10 @@
 namespace Kibatic\CmsBundle\Meta;
 
 /**
- * Content of a metablock (type "meta"), saved in JSON in the block's content: the blocks it shows, by slug (each one
- * displayed in the page's language), and their layout (MetaRenderer). A metablock contains no other metablock.
+ * Content of a metablock (type "meta"), saved in JSON in the block's content: what it shows, with a layout
+ * (BlockExtension::renderMeta()). Each item is either an existing block, by slug (shown in the page's language), or a
+ * sub-metablock made in the metablock's editor and saved inside it (referenced nowhere else), which only shows
+ * existing blocks: one level of nesting, and no metablock block inside a metablock.
  */
 final class MetaContent
 {
@@ -12,7 +14,8 @@ final class MetaContent
     public const COLUMNS = [2, 3, 4];
 
     /**
-     * @param list<array{slug: string, title: ?string}> $items title: label of the tab (layout "tabs")
+     * @param list<array{slug: string, title: ?string}|array{title: ?string, meta: self}> $items title: label of the
+     *        tab (layout "tabs"); a sub-metablock is an item with "meta" instead of "slug"
      */
     public function __construct(
         public readonly string $layout = 'stack',
@@ -28,15 +31,28 @@ final class MetaContent
     {
         $data = json_decode((string) $json, true);
 
-        if (!\is_array($data)) {
-            return new self();
-        }
+        return self::fromArray(\is_array($data) ? $data : [], true);
+    }
 
+    /**
+     * @param bool $groups whether its items may be sub-metablocks (only at the first level)
+     */
+    private static function fromArray(array $data, bool $groups): self
+    {
         $items = [];
         foreach (\is_array($data['items'] ?? null) ? $data['items'] : [] as $item) {
-            if (\is_array($item) && \is_string($item['slug'] ?? null) && '' !== $item['slug']) {
-                $title = \is_string($item['title'] ?? null) ? trim($item['title']) : '';
-                $items[] = ['slug' => $item['slug'], 'title' => '' !== $title ? mb_substr($title, 0, 80) : null];
+            if (!\is_array($item)) {
+                continue;
+            }
+
+            $title = \is_string($item['title'] ?? null) ? trim($item['title']) : '';
+            $title = '' !== $title ? mb_substr($title, 0, 80) : null;
+
+            // A sub-metablock: an item with its own items
+            if ($groups && \is_array($item['items'] ?? null)) {
+                $items[] = ['title' => $title, 'meta' => self::fromArray($item, false)];
+            } elseif (\is_string($item['slug'] ?? null) && '' !== $item['slug']) {
+                $items[] = ['slug' => $item['slug'], 'title' => $title];
             }
         }
 
@@ -49,14 +65,46 @@ final class MetaContent
 
     public function toJson(): string
     {
-        return json_encode(['layout' => $this->layout, 'columns' => $this->columns, 'items' => $this->items], \JSON_UNESCAPED_UNICODE | \JSON_UNESCAPED_SLASHES);
+        return json_encode($this->toArray(), \JSON_UNESCAPED_UNICODE | \JSON_UNESCAPED_SLASHES);
+    }
+
+    private function toArray(): array
+    {
+        return [
+            'layout' => $this->layout,
+            'columns' => $this->columns,
+            'items' => array_map(fn (array $item) => isset($item['meta'])
+                ? ['title' => $item['title']] + $item['meta']->toArray()
+                : $item, $this->items),
+        ];
     }
 
     /**
+     * Slugs of the blocks it shows, those of its sub-metablocks included
+     *
      * @return list<string>
      */
     public function slugs(): array
     {
-        return array_column($this->items, 'slug');
+        $slugs = [];
+        foreach ($this->items as $item) {
+            array_push($slugs, ...(isset($item['meta']) ? $item['meta']->slugs() : [$item['slug']]));
+        }
+
+        return array_values(array_unique($slugs));
+    }
+
+    /**
+     * Whether a sub-metablock has no block
+     */
+    public function hasEmptyGroup(): bool
+    {
+        foreach ($this->items as $item) {
+            if (isset($item['meta']) && [] === $item['meta']->items) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

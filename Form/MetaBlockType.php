@@ -31,7 +31,8 @@ class MetaBlockType extends AbstractBlockType implements BlockTypeInterface
             'invalid_message' => 'kibatic_cms.meta.invalid',
         ]);
 
-        // Saved normalized; only existing blocks, and no metablock (a metablock contains no other metablock)
+        // Saved normalized; only existing blocks, no metablock block (only sub-metablocks made in the editor), and no
+        // empty sub-metablock
         $builder->get('content')->addModelTransformer(new CallbackTransformer(
             fn (?string $content) => $content,
             function (?string $json): string {
@@ -41,7 +42,7 @@ class MetaBlockType extends AbstractBlockType implements BlockTypeInterface
                     $types[$block->getSlug()] = $block->getType();
                 }
 
-                if ([] === $meta->items) {
+                if ([] === $meta->items || $meta->hasEmptyGroup()) {
                     throw new TransformationFailedException('No block', invalidMessage: 'kibatic_cms.meta.empty');
                 }
 

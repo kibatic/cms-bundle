@@ -10,11 +10,19 @@
 {% for slug, type in choices %}
     {% set labels = labels|merge({(slug): kcms.type_label(type) ~ ''}) %}
 {% endfor %}
+{% set layouts = {} %}
+{% for layout in constant('Kibatic\\CmsBundle\\Meta\\MetaContent::LAYOUTS') %}
+    {% set layouts = layouts|merge({(layout): ('form.meta.layouts.' ~ layout)|trans}) %}
+{% endfor %}
 
 <div class="kcms-meta-editor" data-kcms-meta-editor
      data-kcms-choices="{{ labels|json_encode }}"
      data-kcms-up="{{ 'form.meta.up'|trans }}" data-kcms-down="{{ 'form.meta.down'|trans }}" data-kcms-remove="{{ 'editor.upload.remove'|trans }}"
-     data-kcms-title-placeholder="{{ 'form.meta.title_placeholder'|trans }}" data-kcms-missing="{{ 'form.meta.missing'|trans }}">
+     data-kcms-title-placeholder="{{ 'form.meta.title_placeholder'|trans }}" data-kcms-missing="{{ 'form.meta.missing'|trans }}"
+     data-kcms-layouts="{{ layouts|json_encode }}" data-kcms-columns-choices="{{ constant('Kibatic\\CmsBundle\\Meta\\MetaContent::COLUMNS')|json_encode }}"
+     data-kcms-layout="{{ 'form.meta.layout'|trans }}" data-kcms-columns="{{ 'form.meta.columns'|trans }}" data-kcms-columns-unit="{{ 'form.meta.columns_unit'|trans }}"
+     data-kcms-choose="{{ 'form.meta.choose'|trans }}" data-kcms-add="{{ 'form.meta.add'|trans }}" data-kcms-group="{{ 'form.meta.group'|trans }}"
+     data-kcms-group-title-placeholder="{{ 'form.meta.group_title_placeholder'|trans }}" data-kcms-group-empty="{{ 'form.meta.group_empty'|trans }}">
     <fieldset class="kcms-meta-layouts">
         <legend>{{ 'form.meta.layout'|trans }}</legend>
         <div class="kcms-meta-layout-list">
@@ -51,6 +59,10 @@
             {% endfor %}
         </select>
         <button type="button" class="kcms-btn" data-kcms-meta-add>{{ 'form.meta.add'|trans }}</button>
+        <button type="button" class="kcms-btn" data-kcms-meta-add-group>
+            {{ kcms.type_icon('meta') }}
+            {{ 'form.meta.add_group'|trans }}
+        </button>
     </div>
     <p class="kcms-muted kcms-meta-help">{{ 'form.meta.help'|trans }}</p>
 </div>
