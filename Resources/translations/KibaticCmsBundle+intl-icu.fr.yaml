@@ -113,7 +113,7 @@ form:
     meta:
         layout: Disposition
         layouts:
-            stack: Les uns après les autres
+            stack: Pile
             columns: Colonnes
             grid: Grille
             tabs: Onglets

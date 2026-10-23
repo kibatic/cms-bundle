@@ -113,7 +113,7 @@ form:
     meta:
         layout: Layout
         layouts:
-            stack: One after the other
+            stack: Stack
             columns: Columns
             grid: Grid
             tabs: Tabs
