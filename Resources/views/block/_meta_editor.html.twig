@@ -1,0 +1,56 @@
+{#
+    Editor of a metablock: its layout and its blocks, written in JSON in the hidden content field (Meta\MetaContent,
+    see the metablock part of _js.html.twig)
+#}
+{% trans_default_domain 'KibaticCmsBundle' %}
+{% import '@KibaticCms/_macros.html.twig' as kcms %}
+{% set choices = cms_meta_choices() %}
+{# Name of each block's type, for the list of the blocks shown #}
+{% set labels = {} %}
+{% for slug, type in choices %}
+    {% set labels = labels|merge({(slug): kcms.type_label(type) ~ ''}) %}
+{% endfor %}
+
+<div class="kcms-meta-editor" data-kcms-meta-editor
+     data-kcms-choices="{{ labels|json_encode }}"
+     data-kcms-up="{{ 'form.meta.up'|trans }}" data-kcms-down="{{ 'form.meta.down'|trans }}" data-kcms-remove="{{ 'editor.upload.remove'|trans }}"
+     data-kcms-title-placeholder="{{ 'form.meta.title_placeholder'|trans }}" data-kcms-missing="{{ 'form.meta.missing'|trans }}">
+    <fieldset class="kcms-meta-layouts">
+        <legend>{{ 'form.meta.layout'|trans }}</legend>
+        <div class="kcms-meta-layout-list">
+        {% for layout in constant('Kibatic\\CmsBundle\\Meta\\MetaContent::LAYOUTS') %}
+            <label class="kcms-meta-layout">
+                <input type="radio" name="kcms-meta-layout" value="{{ layout }}" data-kcms-meta-layout>
+                <span class="kcms-meta-preview kcms-meta-preview-{{ layout }}" aria-hidden="true"><i></i><i></i><i></i></span>
+                <strong>{{ ('form.meta.layouts.' ~ layout)|trans }}</strong>
+            </label>
+        {% endfor %}
+        </div>
+    </fieldset>
+
+    <label class="kcms-meta-columns" data-kcms-meta-columns-row>
+        {{ 'form.meta.columns'|trans }}
+        <select data-kcms-meta-columns>
+            {% for columns in constant('Kibatic\\CmsBundle\\Meta\\MetaContent::COLUMNS') %}
+                <option value="{{ columns }}">{{ columns }}</option>
+            {% endfor %}
+        </select>
+    </label>
+
+    <div>
+        <div class="kcms-meta-label">{{ 'form.meta.blocks'|trans }}</div>
+        <ol class="kcms-meta-items" data-kcms-meta-items></ol>
+        <p class="kcms-muted kcms-meta-empty" data-kcms-meta-empty>{{ 'form.meta.no_block'|trans }}</p>
+    </div>
+
+    <div class="kcms-meta-add">
+        <select data-kcms-meta-choice aria-label="{{ 'form.meta.choose'|trans }}">
+            <option value="">{{ 'form.meta.choose'|trans }}</option>
+            {% for slug, type in choices %}
+                <option value="{{ slug }}">{{ slug }} ({{ kcms.type_label(type) }})</option>
+            {% endfor %}
+        </select>
+        <button type="button" class="kcms-btn" data-kcms-meta-add>{{ 'form.meta.add'|trans }}</button>
+    </div>
+    <p class="kcms-muted kcms-meta-help">{{ 'form.meta.help'|trans }}</p>
+</div>

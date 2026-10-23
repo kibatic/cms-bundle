@@ -166,6 +166,47 @@
     .kcms .kcms-upload-error.is-pending { color: var(--kcms-muted); }
     .kcms .kcms-upload.has-file .kcms-dropzone, .kcms [hidden] { display: none; }
 
+    .kcms .kcms-form-errors { margin-bottom: 16px; padding: 10px 14px; border-radius: var(--kcms-radius); background: var(--kcms-danger-soft); }
+    .kcms .kcms-form-errors ul { margin: 0; }
+
+    /* Metablock editor (block/_meta_editor.html.twig) */
+    .kcms .kcms-meta-editor { display: grid; gap: 18px; }
+    .kcms .kcms-meta-layouts { margin: 0; padding: 0; border: 0; }
+    .kcms .kcms-meta-layout-list { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+    .kcms .kcms-meta-layouts legend, .kcms .kcms-meta-label { margin-bottom: 8px; padding: 0; font-size: 14px; font-weight: 600; }
+    .kcms .kcms-form .kcms-meta-layout { display: flex; flex-direction: column; align-items: center; gap: 8px; margin: 0; padding: 12px 8px; border: 1px solid var(--kcms-border); border-radius: var(--kcms-radius); cursor: pointer; font-weight: 500; text-align: center; }
+    .kcms .kcms-meta-layout:has(input:checked) { border-color: var(--kcms-accent); background: var(--kcms-accent-soft); color: var(--kcms-accent); }
+    .kcms .kcms-meta-layout input { position: absolute; opacity: 0; pointer-events: none; }
+    .kcms .kcms-meta-layout:has(input:focus-visible) { outline: 2px solid var(--kcms-accent); outline-offset: 2px; }
+    .kcms .kcms-meta-preview { display: grid; gap: 3px; width: 54px; height: 36px; }
+    .kcms .kcms-meta-preview i { border-radius: 3px; background: currentColor; opacity: .35; }
+    .kcms .kcms-meta-preview-stack { grid-template-rows: repeat(3, 1fr); }
+    .kcms .kcms-meta-preview-columns { grid-template-columns: repeat(3, 1fr); }
+    .kcms .kcms-meta-preview-grid { grid-template-columns: repeat(2, 1fr); grid-template-rows: repeat(2, 1fr); }
+    .kcms .kcms-meta-preview-grid i:last-child { grid-column: 1 / -1; }
+    .kcms .kcms-meta-preview-tabs { grid-template-columns: repeat(3, 1fr); grid-template-rows: 8px 1fr; }
+    .kcms .kcms-meta-preview-tabs i:last-child { grid-column: 1 / -1; }
+    .kcms .kcms-meta-preview-tabs i:first-child { opacity: .7; }
+    .kcms .kcms-meta-preview-tabs i:nth-child(2) { grid-column: 2 / -1; opacity: .2; }
+    .kcms .kcms-form .kcms-meta-columns { display: flex; align-items: center; gap: 10px; margin: 0; }
+    .kcms .kcms-meta-columns[hidden] { display: none; }
+    .kcms .kcms-meta-columns select { width: auto; }
+    .kcms .kcms-meta-items { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+    .kcms .kcms-meta-item { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border: 1px solid var(--kcms-border); border-radius: var(--kcms-radius); background: var(--kcms-surface); }
+    .kcms .kcms-meta-item.is-missing { border-color: #fecaca; background: var(--kcms-danger-soft); }
+    .kcms .kcms-meta-position { flex: none; width: 22px; height: 22px; border-radius: 50%; background: var(--kcms-subtle); color: var(--kcms-muted); font-size: 12px; font-weight: 700; display: grid; place-items: center; }
+    .kcms .kcms-meta-missing { color: var(--kcms-danger); font-size: 13px; font-weight: 600; }
+    .kcms .kcms-meta-item .kcms-meta-title { flex: 1; min-height: 30px; padding: 4px 10px; font-size: 14px; }
+    .kcms .kcms-meta-editor:not([data-layout="tabs"]) .kcms-meta-title { visibility: hidden; }
+    .kcms .kcms-meta-actions { display: flex; gap: 4px; margin-left: auto; }
+    .kcms .kcms-meta-actions button { width: 28px; height: 28px; padding: 0; border: 1px solid var(--kcms-border); border-radius: 6px; background: var(--kcms-surface); color: var(--kcms-text); cursor: pointer; }
+    .kcms .kcms-meta-actions button:hover:not(:disabled) { border-color: var(--kcms-accent); color: var(--kcms-accent); }
+    .kcms .kcms-meta-actions button:disabled { opacity: .35; cursor: default; }
+    .kcms .kcms-meta-empty, .kcms .kcms-meta-help { margin: 0; font-size: 13px; }
+    .kcms .kcms-meta-add { display: flex; gap: 8px; }
+    .kcms .kcms-meta-add select { flex: 1; }
+    @media (max-width: 600px) { .kcms .kcms-meta-layout-list { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
     /* Form fields (plain form_div_layout markup, see block/_editor.html.twig) */
     .kcms .kcms-form > .kcms-grid div:has(> label) { margin-bottom: 16px; }
     .kcms .kcms-form div:has(> label):last-child { margin-bottom: 0; }

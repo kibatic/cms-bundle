@@ -33,6 +33,7 @@ services:
     Kibatic\CmsBundle\Form\ImageBlockType: ~
     Kibatic\CmsBundle\Form\HtmlBlockType: ~
     Kibatic\CmsBundle\Form\AlertBlockType: ~
+    Kibatic\CmsBundle\Form\MetaBlockType: ~
 
     _instanceof:
         Kibatic\CmsBundle\Form\BlockTypeInterface:

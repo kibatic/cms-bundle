@@ -141,6 +141,84 @@
             show();
         });
 
+        // Metablocks: layout and blocks, written in JSON in the hidden content field (block/_meta_editor.html.twig)
+        document.querySelectorAll('[data-kcms-meta-editor]').forEach(editor => {
+            const field = editor.closest('form').querySelector('[data-kcms-meta-content]');
+            const choices = JSON.parse(editor.dataset.kcmsChoices);
+            const list = editor.querySelector('[data-kcms-meta-items]');
+            const columns = editor.querySelector('[data-kcms-meta-columns]');
+            const choice = editor.querySelector('[data-kcms-meta-choice]');
+            let meta = {layout: 'stack', columns: 2, items: []};
+            try {
+                meta = {...meta, ...JSON.parse(field.value || '{}')};
+            } catch (exception) {}
+            const escape = text => text.replace(/[&<>"']/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'})[c]);
+            const save = () => {
+                field.value = JSON.stringify(meta);
+                field.dispatchEvent(new Event('input', {bubbles: true}));
+            };
+            const draw = () => {
+                editor.querySelectorAll('[data-kcms-meta-layout]').forEach(radio => radio.checked = radio.value === meta.layout);
+                editor.querySelector('[data-kcms-meta-columns-row]').hidden = meta.layout !== 'columns';
+                columns.value = meta.columns;
+                editor.dataset.layout = meta.layout;
+                editor.querySelector('[data-kcms-meta-empty]').hidden = meta.items.length > 0;
+                list.innerHTML = meta.items.map((item, index) => `
+                    <li class="kcms-meta-item${item.slug in choices ? '' : ' is-missing'}" data-index="${index}">
+                        <span class="kcms-meta-position">${index + 1}</span>
+                        <span class="kcms-slug">${escape(item.slug)}</span>
+                        ${item.slug in choices ? `<span class="kcms-badge">${escape(choices[item.slug])}</span>` : `<span class="kcms-meta-missing">${escape(editor.dataset.kcmsMissing)}</span>`}
+                        <input type="text" class="kcms-meta-title" data-action="title" value="${escape(item.title ?? '')}" placeholder="${escape(editor.dataset.kcmsTitlePlaceholder)}" maxlength="80">
+                        <span class="kcms-meta-actions">
+                            <button type="button" data-action="up" title="${escape(editor.dataset.kcmsUp)}" aria-label="${escape(editor.dataset.kcmsUp)}" ${index === 0 ? 'disabled' : ''}>↑</button>
+                            <button type="button" data-action="down" title="${escape(editor.dataset.kcmsDown)}" aria-label="${escape(editor.dataset.kcmsDown)}" ${index === meta.items.length - 1 ? 'disabled' : ''}>↓</button>
+                            <button type="button" data-action="remove" title="${escape(editor.dataset.kcmsRemove)}" aria-label="${escape(editor.dataset.kcmsRemove)}">×</button>
+                        </span>
+                    </li>`).join('');
+            };
+            editor.querySelectorAll('[data-kcms-meta-layout]').forEach(radio => radio.addEventListener('change', () => {
+                meta.layout = radio.value;
+                save();
+                draw();
+            }));
+            columns.addEventListener('change', () => {
+                meta.columns = Number(columns.value);
+                save();
+            });
+            editor.querySelector('[data-kcms-meta-add]').addEventListener('click', () => {
+                if (choice.value) {
+                    meta.items.push({slug: choice.value, title: null});
+                    choice.value = '';
+                    save();
+                    draw();
+                }
+            });
+            list.addEventListener('click', event => {
+                const button = event.target.closest('button[data-action]');
+                if (!button) {
+                    return;
+                }
+                const index = Number(button.closest('li').dataset.index);
+                const move = {up: -1, down: 1}[button.dataset.action];
+                if (move) {
+                    [meta.items[index], meta.items[index + move]] = [meta.items[index + move], meta.items[index]];
+                } else {
+                    meta.items.splice(index, 1);
+                }
+                save();
+                draw();
+            });
+            list.addEventListener('input', event => {
+                if (event.target.dataset.action === 'title') {
+                    meta.items[Number(event.target.closest('li').dataset.index)].title = event.target.value || null;
+                    save();
+                }
+            });
+            // Normalized right away, without marking the form as modified
+            field.value = JSON.stringify(meta);
+            draw();
+        });
+
         // Image blocks: live preview of the URL
         document.querySelectorAll('[data-kcms-image-preview]').forEach(preview => {
             const input = preview.closest('form').querySelector('[data-kcms-image-url]');

@@ -44,6 +44,10 @@ type:
         name: Image
         description: An image from the computer or from its URL
         new: New image block
+    meta:
+        name: Metablock
+        description: Existing blocks shown together, with a layout
+        new: New metablock
     alert:
         name: Alert
         description: A coloured message box
@@ -106,6 +110,23 @@ form:
     image_url:
         label: Or the image URL
         placeholder: https://… or /images/…
+    meta:
+        layout: Layout
+        layouts:
+            stack: One after the other
+            columns: Columns
+            grid: Grid
+            tabs: Tabs
+        columns: Number of columns
+        blocks: Blocks shown
+        no_block: No block yet. Add existing blocks below.
+        choose: Choose a block…
+        add: Add
+        up: Move up
+        down: Move down
+        title_placeholder: Title of the tab (the slug by default)
+        missing: Block not found
+        help: Each block is shown in the page's language; editing it changes it in every metablock that shows it. A metablock cannot contain another one.
     alert:
         label: Alert
         type: Type

@@ -44,6 +44,10 @@ type:
         name: Image
         description: Une image de l'ordinateur ou à partir de son adresse
         new: Nouveau bloc image
+    meta:
+        name: Métabloc
+        description: Des blocs existants affichés ensemble, avec une disposition
+        new: Nouveau métabloc
     alert:
         name: Alerte
         description: Un message dans un encadré coloré
@@ -106,6 +110,23 @@ form:
     image_url:
         label: Ou l'adresse de l'image
         placeholder: https://… ou /images/…
+    meta:
+        layout: Disposition
+        layouts:
+            stack: Les uns après les autres
+            columns: Colonnes
+            grid: Grille
+            tabs: Onglets
+        columns: Nombre de colonnes
+        blocks: Blocs affichés
+        no_block: Aucun bloc pour l'instant. Ajoutez des blocs existants ci-dessous.
+        choose: Choisir un bloc…
+        add: Ajouter
+        up: Monter
+        down: Descendre
+        title_placeholder: Titre de l'onglet (le slug par défaut)
+        missing: Bloc introuvable
+        help: Chaque bloc s'affiche dans la langue de la page ; le modifier le change dans tous les métablocs qui l'affichent. Un métabloc ne peut pas en contenir un autre.
     alert:
         label: Alerte
         type: Type

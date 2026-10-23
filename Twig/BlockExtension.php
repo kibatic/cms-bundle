@@ -4,6 +4,7 @@ namespace Kibatic\CmsBundle\Twig;
 
 use Kibatic\CmsBundle\Controller\BlockController;
 use Kibatic\CmsBundle\Entity\Block;
+use Kibatic\CmsBundle\Meta\MetaContent;
 use Kibatic\CmsBundle\Repository\BlockRepository;
 use Kibatic\CmsBundle\Upload\ImageStorage;
 use Kibatic\CmsBundle\Version\VersionPreview;
@@ -15,9 +16,30 @@ use Symfony\Component\Security\Core\Authorization\AuthorizationChecker;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use Twig\Extension\AbstractExtension;
 use Twig\TwigFunction;
+use Symfony\Contracts\Service\ResetInterface;
 
-class BlockExtension extends AbstractExtension
+class BlockExtension extends AbstractExtension implements ResetInterface
 {
+    /** Metablocks displayed during the request: the first one adds their styles, each one numbers its tabs */
+    private int $metablocks = 0;
+
+    /** Styles of the layouts of the metablocks, neutral (colors of the site), overridable with the --cms-meta-* variables */
+    private const META_STYLES = <<<'CSS'
+        .cms-meta { display: grid; gap: var(--cms-meta-gap, 24px); }
+        .cms-meta-columns { grid-template-columns: repeat(var(--cms-meta-columns, 2), minmax(0, 1fr)); }
+        .cms-meta-grid { grid-template-columns: repeat(auto-fill, minmax(var(--cms-meta-min-width, 240px), 1fr)); }
+        @media (max-width: 768px) { .cms-meta-columns { grid-template-columns: minmax(0, 1fr); } }
+        .cms-meta-item > :first-child, .cms-meta-panel > :first-child { margin-top: 0; }
+        .cms-meta-item > :last-child, .cms-meta-panel > :last-child { margin-bottom: 0; }
+        .cms-meta img { max-width: 100%; height: auto; }
+        .cms-meta-tabs { display: block; }
+        .cms-meta-tabs > input { position: absolute; opacity: 0; pointer-events: none; }
+        .cms-meta-tabs > label { display: inline-block; padding: 8px 14px; border-bottom: 2px solid transparent; cursor: pointer; opacity: .65; }
+        .cms-meta-tabs > input:checked + label { border-bottom-color: currentColor; opacity: 1; }
+        .cms-meta-tabs > input:focus-visible + label { outline: 2px solid currentColor; outline-offset: 2px; }
+        .cms-meta-panel { display: none; padding-top: 16px; }
+        CSS;
+
     public function __construct(
         private BlockRepository $blockRepository,
         private Security $security,
@@ -34,6 +56,7 @@ class BlockExtension extends AbstractExtension
         return [
             new TwigFunction('cms_block', $this->cmsBlock(...), ['is_safe' => ['html']]),
             new TwigFunction('cms_image', $this->cmsImage(...)),
+            new TwigFunction('cms_meta_choices', $this->metaChoices(...)),
             new TwigFunction('cms_version_preview', $this->versionPreview->current(...)),
             new TwigFunction('cms_published_version', $this->versionPreview->published(...)),
             new TwigFunction('cms_draft_changes', $this->versionPreview->draftChanges(...)),
@@ -107,12 +130,12 @@ class BlockExtension extends AbstractExtension
 
     private function render(Block $block): ?string
     {
-        $content = $block->getContent();
-
-        // A text block is plain text: "&" or "<" are displayed as typed
-        if ('text' === $block->getType()) {
-            $content = nl2br(htmlspecialchars((string) $content));
-        }
+        $content = match ($block->getType()) {
+            // A text block is plain text: "&" or "<" are displayed as typed
+            'text' => nl2br(htmlspecialchars((string) $block->getContent())),
+            'meta' => $this->renderMeta(MetaContent::fromJson($block->getContent())),
+            default => $block->getContent(),
+        };
 
         $mainRequest = $this->requestStack->getMainRequest();
         $debug = false;
@@ -135,6 +158,83 @@ class BlockExtension extends AbstractExtension
         }
 
         return $content;
+    }
+
+    /**
+     * Blocks of a metablock with their layout; each one in the page's language, the missing ones (or metablocks) left out
+     */
+    private function renderMeta(MetaContent $meta): string
+    {
+        $id = 'cms-meta-'.++$this->metablocks;
+        $items = [];
+
+        foreach ($meta->items as $item) {
+            $block = $this->resolveBlock($item['slug']);
+
+            if (null !== $block && 'meta' !== $block->getType()) {
+                $items[] = [
+                    'title' => $item['title'] ?? $item['slug'],
+                    // Shown as an image, as cms_block() gives the URL alone
+                    'html' => 'image' === $block->getType()
+                        ? '<img src="'.htmlspecialchars((string) $block->getContent()).'" alt="">'
+                        : (string) $this->render($block),
+                ];
+            }
+        }
+
+        $html = 1 === $this->metablocks ? '<style>'.self::META_STYLES.$this->tabStyles().'</style>' : '';
+
+        if ('tabs' === $meta->layout) {
+            $html .= '<div class="cms-meta cms-meta-tabs">';
+            foreach ($items as $i => $item) {
+                $html .= sprintf('<input type="radio" name="%1$s" id="%1$s-%2$d"%3$s><label for="%1$s-%2$d">%4$s</label>', $id, $i, 0 === $i ? ' checked' : '', htmlspecialchars($item['title']));
+            }
+            foreach ($items as $item) {
+                $html .= '<div class="cms-meta-panel">'.$item['html'].'</div>';
+            }
+
+            return $html.'</div>';
+        }
+
+        $html .= sprintf('<div class="cms-meta cms-meta-%s"%s>', $meta->layout, 'columns' === $meta->layout ? ' style="--cms-meta-columns: '.$meta->columns.'"' : '');
+        foreach ($items as $item) {
+            $html .= '<div class="cms-meta-item">'.$item['html'].'</div>';
+        }
+
+        return $html.'</div>';
+    }
+
+    /**
+     * The panel of the checked tab is shown: one rule per position (tabs: radio buttons, no JavaScript)
+     */
+    private function tabStyles(): string
+    {
+        return implode('', array_map(
+            fn (int $n) => ".cms-meta-tabs > input:nth-of-type($n):checked ~ .cms-meta-panel:nth-of-type($n) { display: block; }",
+            range(1, 20),
+        ));
+    }
+
+    /**
+     * Blocks a metablock can show, for its editor: one per slug, metablocks excluded
+     *
+     * @return array<string, string> type by slug
+     */
+    public function metaChoices(): array
+    {
+        $choices = [];
+        foreach ($this->blockRepository->findAll() as $block) {
+            if ('meta' !== $block->getType()) {
+                $choices[$block->getSlug()] ??= $block->getType();
+            }
+        }
+
+        return $choices;
+    }
+
+    public function reset(): void
+    {
+        $this->metablocks = 0;
     }
 
     /**
