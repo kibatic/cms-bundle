@@ -27,6 +27,8 @@ class BlockExtension extends AbstractExtension implements ResetInterface
     private array $styled = [];
     /** Whether the styles of the navigation menus were added to the page */
     private bool $navigationStyled = false;
+    /** @var array<string, true> ids given to the blocks of the metablocks (their slug), once each in the page */
+    private array $anchors = [];
 
     /**
      * Styles of the navigation menus: entries side by side, sub-entries in drop-down menus (the next levels on the side),
@@ -228,6 +230,8 @@ class BlockExtension extends AbstractExtension implements ResetInterface
 
             if (null !== $block && 'meta' !== $block->getType()) {
                 $items[] = [
+                    // Anchor of the block (e.g. a link to "#croquettes-recettes"), given to its first display in the page
+                    'id' => isset($this->anchors[$item['slug']]) ? null : $this->anchors[$item['slug']] = $item['slug'],
                     'title' => $this->localized($item['titles']) ?? $item['slug'],
                     // Shown as an image, as cms_block() gives the URL alone
                     'html' => 'image' === $block->getType()
@@ -243,7 +247,7 @@ class BlockExtension extends AbstractExtension implements ResetInterface
                 $html .= sprintf('<input type="radio" name="%1$s" id="%1$s-%2$d"%3$s><label for="%1$s-%2$d">%4$s</label>', $id, $i, 0 === $i ? ' checked' : '', htmlspecialchars($item['title']));
             }
             foreach ($items as $item) {
-                $html .= '<div class="cms-meta-panel">'.$item['html'].'</div>';
+                $html .= '<div class="cms-meta-panel"'.self::idAttribute($item).'>'.$item['html'].'</div>';
             }
 
             return $html.'</div>';
@@ -251,10 +255,15 @@ class BlockExtension extends AbstractExtension implements ResetInterface
 
         $html .= sprintf('<div class="cms-meta cms-meta-%s"%s>', $meta->layout, 'columns' === $meta->layout ? ' style="--cms-meta-columns: '.$meta->columns.'"' : '');
         foreach ($items as $item) {
-            $html .= '<div class="cms-meta-item">'.$item['html'].'</div>';
+            $html .= '<div class="cms-meta-item"'.self::idAttribute($item).'>'.$item['html'].'</div>';
         }
 
         return $html.'</div>';
+    }
+
+    private static function idAttribute(array $item): string
+    {
+        return isset($item['id']) ? ' id="'.htmlspecialchars($item['id']).'"' : '';
     }
 
     /**
@@ -370,6 +379,7 @@ class BlockExtension extends AbstractExtension implements ResetInterface
         $this->metablocks = 0;
         $this->styled = [];
         $this->navigationStyled = false;
+        $this->anchors = [];
     }
 
     /**
