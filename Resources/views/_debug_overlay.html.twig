@@ -1,0 +1,70 @@
+{#
+    Debug mode, on the site's pages (Debug\DebugOverlayListener): outlines each block drawn over the page from the
+    comments around it (BlockExtension::render()), so that the page's layout does not change; self-contained styles
+#}
+{% trans_default_domain 'KibaticCmsBundle' %}
+<style>
+    .kcms-debug-layer { position: absolute; top: 0; left: 0; width: 0; height: 0; z-index: 2147482000; font: 600 11px/1.2 system-ui, sans-serif; }
+    .kcms-debug-box { position: absolute; pointer-events: none; outline: 1.5px dashed rgb(79 70 229 / 70%); outline-offset: 1px; border-radius: 3px; transition: background .15s, outline-color .15s; }
+    .kcms-debug-box.is-nested { outline-color: rgb(14 165 233 / 70%); }
+    .kcms-debug-box.is-active { background: rgb(79 70 229 / 8%); outline: 2px solid rgb(79 70 229); }
+    .kcms-debug-label { position: absolute; top: 0; right: 0; transform: translateY(-50%); display: inline-flex; align-items: center; gap: 4px; max-width: 100%; padding: 3px 8px; border-radius: 999px; background: #4f46e5; color: #fff; text-decoration: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; pointer-events: auto; opacity: .85; box-shadow: 0 2px 6px rgb(0 0 0 / 20%); }
+    .kcms-debug-box.is-nested .kcms-debug-label { background: #0284c7; }
+    .kcms-debug-label:hover { opacity: 1; color: #fff; text-decoration: none; }
+    .kcms-debug-pill { position: fixed; left: 16px; bottom: 16px; z-index: 2147483000; display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px; border-radius: 999px; background: #1e1b4b; color: #fff; font: 500 13px/1.2 system-ui, sans-serif; box-shadow: 0 8px 24px rgb(0 0 0 / 30%); }
+    .kcms-debug-pill a { color: #c7d2fe; font-weight: 700; text-decoration: underline; }
+</style>
+<div class="kcms-debug-pill" role="status">
+    {{ 'debug.pill'|trans }} · <a href="{{ path('cms_block_debug') }}">{{ 'debug.leave'|trans }}</a>
+</div>
+<script>
+    (() => {
+        // Blocks: content between the comments "kcms-block {…}" and "/kcms-block", the nested ones included
+        const blocks = [];
+        const open = [];
+        const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_COMMENT);
+        while (walker.nextNode()) {
+            const comment = walker.currentNode;
+            if (comment.data.startsWith('kcms-block ')) {
+                open.push({info: JSON.parse(comment.data.slice(11)), start: comment, depth: open.length});
+            } else if (comment.data === '/kcms-block' && open.length) {
+                blocks.push({...open.pop(), end: comment});
+            }
+        }
+        const layer = document.createElement('div');
+        layer.className = 'kcms-debug-layer';
+        document.body.append(layer);
+        const editLabel = {{ 'debug.edit'|trans|json_encode|raw }};
+        const draw = () => {
+            layer.innerHTML = '';
+            blocks.forEach(block => {
+                const range = document.createRange();
+                range.setStartAfter(block.start);
+                range.setEndBefore(block.end);
+                const rect = range.getBoundingClientRect();
+                if (!rect.width && !rect.height) {
+                    return;
+                }
+                const box = document.createElement('div');
+                box.className = 'kcms-debug-box' + (block.depth ? ' is-nested' : '');
+                Object.assign(box.style, {left: rect.left + scrollX + 'px', top: rect.top + scrollY + 'px', width: rect.width + 'px', height: rect.height + 'px'});
+                const label = document.createElement(block.info.url ? 'a' : 'span');
+                label.className = 'kcms-debug-label';
+                label.textContent = block.info.slug + (block.info.language ? ' · ' + block.info.language : '') + (block.info.url ? ' ✎' : '');
+                if (block.info.url) {
+                    label.href = block.info.url;
+                    label.title = editLabel;
+                }
+                label.addEventListener('mouseenter', () => box.classList.add('is-active'));
+                label.addEventListener('mouseleave', () => box.classList.remove('is-active'));
+                box.append(label);
+                layer.append(box);
+            });
+        };
+        draw();
+        // Drawn again when the page moves: images loaded, window resized, drop-down menus…
+        addEventListener('load', draw);
+        addEventListener('resize', draw);
+        new ResizeObserver(draw).observe(document.body);
+    })();
+</script>

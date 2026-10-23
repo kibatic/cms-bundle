@@ -203,6 +203,10 @@ class BlockController extends AbstractController
         $session = $request->getSession();
         $session->set('cms-debug', !$session->get('cms-debug', false));
 
-        return $this->redirect($request->headers->get('referer'));
+        $referer = $request->headers->get('referer');
+
+        return $referer && parse_url($referer, \PHP_URL_HOST) === $request->getHost()
+            ? $this->redirect($referer)
+            : $this->redirectToRoute('cms_block_index');
     }
 }

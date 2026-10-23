@@ -184,27 +184,36 @@ class BlockExtension extends AbstractExtension implements ResetInterface
             $content = $styles.'<div data-cms-block="'.$attribute.'">'.$content.'</div>';
         }
 
-        $mainRequest = $this->requestStack->getMainRequest();
-        $debug = false;
+        // Debug mode: the block between two HTML comments, which take no room; the outlines are drawn over the page by
+        // the debug overlay (Debug\DebugOverlayListener). Not around an image block, whose URL goes in an attribute
+        if ('image' !== $block->getType() && $this->isDebug()) {
+            $info = json_encode([
+                'slug' => $block->getSlug(),
+                'language' => $block->getLanguage(),
+                'type' => $block->getType(),
+                // Blocks of a version have no id: nothing to edit
+                'url' => null !== $block->getId() ? $this->router->generate('cms_block_edit', ['id' => $block->getId()]) : null,
+            ], \JSON_UNESCAPED_UNICODE | \JSON_UNESCAPED_SLASHES | \JSON_HEX_TAG);
 
-        if ($mainRequest !== null) {
-            $debug = $mainRequest->query->get('cms-debug');
-
-            if (!$debug && $mainRequest->hasPreviousSession()) {
-                $debug = $mainRequest->getSession()->get('cms-debug');
-            }
-        }
-
-        // Blocks of a version have no id: nothing to edit
-        if ($debug && null !== $block->getId() && $this->security->isGranted(BlockController::$role)) {
-            return
-                '<div class="alert alert-info" title="Block : ' . $block->getSlug() . '">' .
-                    '<a class="btn btn-primary btn-sm float-end" href="' . $this->router->generate('cms_block_edit', ['id' => $block->getId()]) . '">✏️</a>' .
-                    $content .
-                '</div>';
+            // "--" would end the comment
+            return '<!--kcms-block '.str_replace('--', '-\u002d', $info).'-->'.$content.'<!--/kcms-block-->';
         }
 
         return $content;
+    }
+
+    /**
+     * Debug mode of a CMS admin: toggled in the admin (BlockController::debug(), session), or ?cms-debug=1
+     */
+    public function isDebug(): bool
+    {
+        $request = $this->requestStack->getMainRequest();
+
+        if (null === $request || !$this->security->isGranted(BlockController::$role)) {
+            return false;
+        }
+
+        return (bool) ($request->query->get('cms-debug') ?: ($request->hasPreviousSession() && $request->getSession()->get('cms-debug')));
     }
 
     /**

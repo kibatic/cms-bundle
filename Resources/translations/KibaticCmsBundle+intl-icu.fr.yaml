@@ -328,3 +328,8 @@ version:
     empty:
         title: Aucune version pour l'instant
         text: Enregistrez-en une avant de gros changements, pour pouvoir y revenir.
+
+debug:
+    pill: Mode debug
+    leave: Quitter
+    edit: Modifier ce bloc

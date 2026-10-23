@@ -26,7 +26,8 @@ final class PreviewBannerListener
         $route = (string) $event->getRequest()->attributes->get('_route');
 
         if (!$event->isMainRequest()
-            || str_starts_with($route, 'cms_')
+            // Admin pages (the pages of the blocks are the site's)
+            || str_starts_with($route, 'cms_') && 'cms_page' !== $route
             || !str_contains((string) $response->headers->get('Content-Type', 'text/html'), 'text/html')
             || false === $position = strripos((string) $response->getContent(), '</body>')) {
             return;

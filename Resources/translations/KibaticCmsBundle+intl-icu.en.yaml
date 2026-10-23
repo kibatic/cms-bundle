@@ -328,3 +328,8 @@ version:
     empty:
         title: No version yet
         text: Save one before big changes, to be able to come back to it.
+
+debug:
+    pill: Debug mode
+    leave: Leave
+    edit: Edit this block
