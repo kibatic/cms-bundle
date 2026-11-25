@@ -12,6 +12,7 @@ use Kibatic\CmsBundle\Version\VersionPreview;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Routing\Router;
+use Symfony\Component\Routing\Exception\RouteNotFoundException;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authorization\AuthorizationChecker;
 use Symfony\Contracts\Translation\TranslatorInterface;
@@ -351,8 +352,9 @@ class BlockExtension extends AbstractExtension implements ResetInterface
             $html = '<ul>';
             foreach ($items as $item) {
                 $text = htmlspecialchars((string) $this->localized($item['labels']));
-                $html .= '<li>'.(null !== $item['slug']
-                    ? sprintf('<a href="%s"%s>%s</a>', htmlspecialchars($this->router->generate('cms_page', ['slug' => $item['slug']])), $item['slug'] === $currentSlug ? ' aria-current="page"' : '', $text)
+                $url = null !== $item['slug'] ? $this->pageUrl($item['slug']) : null;
+                $html .= '<li>'.(null !== $url
+                    ? sprintf('<a href="%s"%s>%s</a>', htmlspecialchars($url), $item['slug'] === $currentSlug ? ' aria-current="page"' : '', $text)
                     : '<span>'.$text.'</span>');
                 $html .= [] !== $item['children'] ? $list($item['children']) : '';
                 $html .= '</li>';
@@ -365,6 +367,19 @@ class BlockExtension extends AbstractExtension implements ResetInterface
         $this->navigationStyled = true;
 
         return $styles.'<nav class="cms-nav">'.$list($navigation->items).'</nav>';
+    }
+
+    /**
+     * URL of the page of a block, null when the application does not import the pages (Resources/config/routing_pages.yaml):
+     * the entry is then a plain label
+     */
+    private function pageUrl(string $slug): ?string
+    {
+        try {
+            return $this->router->generate('cms_page', ['slug' => $slug]);
+        } catch (RouteNotFoundException) {
+            return null;
+        }
     }
 
     /**

@@ -128,15 +128,16 @@ class Version
     }
 
     /**
-     * Replaces the content and the styles of a block of the version (VersionController::editBlock()); its slug,
-     * language and type stay
+     * Replaces the content, the styles and the meta-only flag of a block of the version (VersionController::editBlock());
+     * its slug, language and type stay
      */
-    public function setBlockContent(string $slug, ?string $language, ?string $content, ?string $styles): void
+    public function setBlockContent(string $slug, ?string $language, ?string $content, ?string $styles, bool $metaOnly): void
     {
         foreach ($this->blocks as $i => $data) {
             if ($data['slug'] === $slug && $data['language'] === $language) {
                 $this->blocks[$i]['content'] = $content;
                 $this->blocks[$i]['styles'] = $styles;
+                $this->blocks[$i]['meta_only'] = $metaOnly;
                 $this->blocks[$i]['updated_at'] = (new \DateTimeImmutable())->format(\DATE_ATOM);
                 $this->blockObjects = null;
 

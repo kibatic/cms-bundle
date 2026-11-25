@@ -2,6 +2,7 @@
 
 namespace Kibatic\CmsBundle\Ai\Tool;
 
+use Kibatic\CmsBundle\Ai\ToolAccess;
 use Kibatic\CmsBundle\Repository\VersionRepository;
 use Kibatic\CmsBundle\Version\VersionPreview;
 use Kibatic\CmsBundle\Version\Versions;
@@ -22,6 +23,7 @@ final class ListVersionsTool
         TXT;
 
     public function __construct(
+        private readonly ToolAccess $access,
         private readonly VersionRepository $versions,
         private readonly VersionPreview $preview,
         private readonly Versions $versionService,
@@ -30,6 +32,10 @@ final class ListVersionsTool
 
     public function __invoke(): string
     {
+        if (null !== $denied = $this->access->denied()) {
+            return $denied;
+        }
+
         $published = $this->preview->published();
         $changes = null === $published ? [] : array_values(array_filter(
             $this->versionService->compare($published),

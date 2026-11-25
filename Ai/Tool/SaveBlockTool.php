@@ -4,6 +4,7 @@ namespace Kibatic\CmsBundle\Ai\Tool;
 
 use Doctrine\ORM\EntityManagerInterface;
 use Kibatic\CmsBundle\Ai\BlockChanges;
+use Kibatic\CmsBundle\Ai\ToolAccess;
 use Kibatic\CmsBundle\BlockTypeChain;
 use Kibatic\CmsBundle\Entity\Block;
 use Kibatic\CmsBundle\Repository\BlockRepository;
@@ -26,6 +27,7 @@ final class SaveBlockTool
     private const TYPES = ['html', 'text', 'image'];
 
     public function __construct(
+        private readonly ToolAccess $access,
         private readonly BlockRepository $blocks,
         private readonly BlockTypeChain $blockTypes,
         private readonly EntityManagerInterface $entityManager,
@@ -43,6 +45,10 @@ final class SaveBlockTool
      */
     public function __invoke(string $slug, string $content, string $type = 'html', string $language = '', ?string $styles = null, ?bool $meta_only = null): string
     {
+        if (null !== $denied = $this->access->denied()) {
+            return $denied;
+        }
+
         if (!preg_match('/^[a-z0-9][a-z0-9._-]*$/', $slug)) {
             return sprintf('Not saved: "%s" is not a valid slug (lowercase letters, digits, "-", "_" or ".").', $slug);
         }

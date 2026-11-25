@@ -13,6 +13,7 @@ services:
 
     Kibatic\CmsBundle\Ai\BlockChanges: ~
     Kibatic\CmsBundle\Ai\ContentRules: ~
+    Kibatic\CmsBundle\Ai\ToolAccess: ~
     Kibatic\CmsBundle\Ai\VersionProposals: ~
     # Its agent is set by KibaticCmsExtension, like the assistant's
     Kibatic\CmsBundle\Ai\VersionNamer: ~

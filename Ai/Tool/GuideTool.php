@@ -3,6 +3,7 @@
 namespace Kibatic\CmsBundle\Ai\Tool;
 
 use Kibatic\CmsBundle\Ai\ContentRules;
+use Kibatic\CmsBundle\Ai\ToolAccess;
 use Mcp\Capability\Attribute\McpTool;
 use Mcp\Schema\ToolAnnotations;
 
@@ -18,12 +19,17 @@ use Mcp\Schema\ToolAnnotations;
 final class GuideTool
 {
     public function __construct(
+        private readonly ToolAccess $access,
         private readonly ContentRules $rules,
     ) {
     }
 
     public function __invoke(): string
     {
+        if (null !== $denied = $this->access->denied()) {
+            return $denied;
+        }
+
         return $this->rules->text()."\n- You cannot save, publish, restore or unpublish a version: the admin does it in the CMS's administration (Versions).";
     }
 }

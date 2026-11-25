@@ -4,6 +4,7 @@ namespace Kibatic\CmsBundle\Ai\Tool;
 
 use Doctrine\ORM\EntityManagerInterface;
 use Kibatic\CmsBundle\Ai\BlockChanges;
+use Kibatic\CmsBundle\Ai\ToolAccess;
 use Kibatic\CmsBundle\Entity\Block;
 use Kibatic\CmsBundle\Navigation\NavigationContent;
 use Kibatic\CmsBundle\Navigation\NavigationValidator;
@@ -26,6 +27,7 @@ final class SaveNavigationTool
         TXT;
 
     public function __construct(
+        private readonly ToolAccess $access,
         private readonly BlockRepository $blocks,
         private readonly NavigationValidator $validator,
         private readonly EntityManagerInterface $entityManager,
@@ -40,6 +42,10 @@ final class SaveNavigationTool
      */
     public function __invoke(string $slug, array $items, ?string $styles = null): string
     {
+        if (null !== $denied = $this->access->denied()) {
+            return $denied;
+        }
+
         if (!preg_match('/^[a-z0-9][a-z0-9._-]*$/', $slug)) {
             return \sprintf('Not saved: "%s" is not a valid slug (lowercase letters, digits, "-", "_" or ".").', $slug);
         }

@@ -3,6 +3,7 @@
 namespace Kibatic\CmsBundle\Ai\Tool;
 
 use Kibatic\CmsBundle\Ai\BlockDescriber;
+use Kibatic\CmsBundle\Ai\ToolAccess;
 use Kibatic\CmsBundle\Repository\BlockRepository;
 use Mcp\Capability\Attribute\McpTool;
 use Mcp\Schema\ToolAnnotations;
@@ -17,6 +18,7 @@ final class GetBlockTool
     public const DESCRIPTION = 'Returns the full content of a block, in every language, or in one language only. Read a block before modifying it.';
 
     public function __construct(
+        private readonly ToolAccess $access,
         private readonly BlockRepository $blocks,
     ) {
     }
@@ -27,6 +29,10 @@ final class GetBlockTool
      */
     public function __invoke(string $slug, string $language = ''): string
     {
+        if (null !== $denied = $this->access->denied()) {
+            return $denied;
+        }
+
         $blocks = $this->blocks->findBySlug($slug);
 
         if ('' !== $language) {

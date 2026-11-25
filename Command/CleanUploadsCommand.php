@@ -25,10 +25,12 @@ final class CleanUploadsCommand
 
     public function __invoke(SymfonyStyle $io, #[Option('Delete the unused images')] bool $delete = false): int
     {
-        // The images are named after their content: their name in a block's content (URL, <img src>) is a use
+        // The images are named after their content: their name in a block's content (URL, <img src>) or styles
+        // (background: url(...)) is a use
+        $text = fn ($block) => $block->getContent()."\n".$block->getStyles();
         $contents = implode("\n", [
-            ...array_map(fn ($block) => (string) $block->getContent(), $this->blocks->findAll()),
-            ...array_map(fn ($version) => implode("\n", array_map(fn ($block) => (string) $block->getContent(), $version->getBlocks())), $this->versions->findAll()),
+            ...array_map($text, $this->blocks->findAll()),
+            ...array_map(fn ($version) => implode("\n", array_map($text, $version->getBlocks())), $this->versions->findAll()),
         ]);
 
         $unused = array_values(array_filter($this->storage->files(), fn (string $name) => !str_contains($contents, $name)));
