@@ -8,10 +8,14 @@
   },
     "require": {
         "php": "^8.2",
-        "symfony/framework-bundle": "^6.4 || ^7.0 || ^8.0",
-        "symfony/form": "^6.4 || ^7.0 || ^8.0",
-        "symfony/twig-bundle": "^6.4 || ^7.0 || ^8.0",
-        "symfony/security-bundle": "^6.4 || ^7.0 || ^8.0",
+        "ext-intl": "*",
+        "league/flysystem": "^3.10",
+        "league/flysystem-local": "^3.10",
+        "symfony/console": "^7.3 || ^8.0",
+        "symfony/framework-bundle": "^7.3 || ^8.0",
+        "symfony/form": "^7.3 || ^8.0",
+        "symfony/twig-bundle": "^7.3 || ^8.0",
+        "symfony/security-bundle": "^7.3 || ^8.0",
         "symfony/orm-pack": "^2.0 || ^3.0",
         "stof/doctrine-extensions-bundle": "^1.2 || ^2.0"
     },
@@ -22,5 +26,10 @@
         "allow-plugins": {
             "symfony/runtime": true
         }
+    },
+    "suggest": {
+        "symfony/ai-bundle": "For the assistant that writes the blocks (kibatic_cms.ai.agent)",
+        "symfony/ai-agent": "For the assistant that writes the blocks (kibatic_cms.ai.agent)",
+        "symfony/mcp-bundle": "For the CMS's tools on the application's MCP server"
     }
 }

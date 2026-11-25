@@ -1,0 +1,10 @@
+# Loaded when kibatic_cms.ai.agent is set (KibaticCmsExtension), with tools.yaml: tools of the assistant only, to list
+# in the agent's configuration with those of tools.yaml
+services:
+    _defaults:
+        autowire: true
+        autoconfigure: true
+        public: false
+
+    # Confirmation cards under the assistant's answer: nothing to show them to an MCP client
+    Kibatic\CmsBundle\Ai\Tool\ProposeVersionActionTool: ~

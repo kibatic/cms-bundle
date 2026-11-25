@@ -12,7 +12,11 @@ class TextBlockType extends AbstractBlockType implements BlockTypeInterface
         parent::buildForm($builder, $options);
 
         $builder->add('content', TextareaType::class, [
-            'label' => false,
+            'label' => 'form.content',
+            'required' => false,
+            'attr' => [
+                'rows' => 12,
+            ],
         ]);
     }
 

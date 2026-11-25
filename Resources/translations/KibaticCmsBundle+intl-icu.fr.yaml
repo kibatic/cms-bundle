@@ -1,0 +1,359 @@
+format:
+    # Formats de date() de PHP
+    date: 'd/m/Y'
+    datetime: 'd/m/Y à H:i'
+
+index:
+    title: Blocs de contenu
+    blocks: '{count, plural, one {# bloc} other {# blocs}}'
+    languages: '{count, plural, one {# langue} other {# langues}}'
+    debug: Mode debug
+    debug_help: Encadre chaque bloc sur les pages du site, avec un lien pour le modifier
+    new: Nouveau bloc
+    filter: Filtrer par slug…
+    column:
+        slug: Slug
+        type: Type
+        languages: Langues
+        updated: Modifié le
+        actions: Actions
+    edit: Modifier
+    add_translation: 'Ajouter la traduction {language}'
+    published: 'Site public : {name}'
+    type_filter: Filtrer par type
+    all_types: Tous les types
+    no_match: Aucun bloc ne correspond à ce filtre.
+    expand: Afficher ses blocs
+    sub_meta: Sous-métabloc
+    missing: Bloc introuvable
+    empty:
+        title: Aucun bloc de contenu pour l'instant
+        text: 'Un bloc est un contenu modifié ici et affiché dans vos templates avec :'
+        choose: 'Choisissez son type pour créer le premier :'
+
+language:
+    all: toutes
+    all_long: Toutes les langues
+
+type:
+    custom: Type de bloc personnalisé
+    text:
+        name: Texte
+        description: Texte brut, sans mise en forme
+        new: Nouveau bloc de texte
+    html:
+        name: HTML
+        description: Texte mis en forme avec l'éditeur visuel
+        new: Nouveau bloc HTML
+    image:
+        name: Image
+        description: Une image de l'ordinateur ou à partir de son adresse
+        new: Nouveau bloc image
+    navigation:
+        name: Navigation
+        description: Un menu d'entrées, chacune menant à la page d'un bloc
+        new: Nouvelle navigation
+    meta:
+        name: Métabloc
+        description: Des blocs existants affichés ensemble, avec une disposition
+        new: Nouveau métabloc
+    alert:
+        name: Alerte
+        description: Un message dans un encadré coloré
+        new: Nouveau bloc d'alerte
+
+copy:
+    label: Copier le Twig
+    done: Copié
+    title: Copier le code Twig qui affiche ce bloc
+
+new:
+    crumb: Nouveau bloc
+    title: 'Nouveau bloc {type}'
+    choose_type: Quel type de bloc créer ?
+
+edit:
+    updated: 'Modifié le {date}'
+    translations: Traductions
+    side_by_side: Côte à côte
+    by_slug: Toutes les traductions de ce bloc, chacune enregistrée séparément.
+
+# Affiché sur les pages du site aux admins du CMS, à la place d'un bloc qui n'existe pas
+missing_block:
+    title: Bloc introuvable
+    create: Créer
+    hint: Visible seulement par les admins du CMS
+
+editor:
+    mode:
+        visual: Éditeur visuel
+        json: JSON
+        invalid: "JSON invalide, pas enregistré :"
+        html: HTML
+        preview: Aperçu
+        html_warning: "L'éditeur visuel simplifie le HTML : taper dedans retirerait %list% de ce bloc. Modifiez-le dans l'onglet HTML pour les garder."
+        html_confirm: "Enregistrer le HTML simplifié par l'éditeur visuel ? Il a retiré %list%, ce qui peut changer l'apparence du bloc. Annulez, puis utilisez l'onglet HTML, pour les garder."
+        json_help: "Le contenu du bloc, tel qu'il est enregistré. Il est revérifié à l'enregistrement : blocs inconnus, entrées vides… sont refusés."
+    alignment: Alignement du texte
+    settings: Réglages
+    created: Créé le
+    updated: Modifié le
+    save: Enregistrer
+    create: Créer le bloc
+    back: Retour à la liste
+    delete: Supprimer ce bloc
+    delete_confirm: Supprimer ce bloc ? Les pages qui l'affichent n'afficheront plus rien à sa place.
+    upload:
+        choose: Choisir une image
+        drop: ou la déposer ici
+        hint: 'PNG, JPG, GIF ou WebP, {size} Mo max.'
+        uploading: Envoi…
+        failed: L'image n'a pas pu être envoyée. Réessayez.
+        uploaded: Image de l'ordinateur
+        replace: Remplacer
+        remove: Retirer
+        too_big: 'Cette image est trop lourde : {size} Mo max.'
+        not_image: Ce fichier n'est pas une image.
+    preview:
+        alt: Aperçu
+        empty: L'aperçu de l'image s'affiche ici.
+        broken: Cette adresse ne charge pas d'image.
+
+form:
+    slug:
+        label: Slug
+        help: "Utilisé dans les templates avec cms_block('…'). Le changer casse les pages qui affichent ce bloc."
+        placeholder: ex. accueil-intro
+    language:
+        label: Langue
+        help: Laisser vide pour un bloc commun à toutes les langues.
+        placeholder: Toutes les langues
+    content: Contenu
+    styles:
+        summary: Styles du bloc (CSS)
+        label: CSS de ce bloc uniquement
+        help: "Les déclarations s'appliquent au bloc lui-même, les règles à son contenu (ex. h2 '{' … '}') : il s'affiche pareil sur toutes les pages qui le montrent. Utilisez les variables CSS du site pour ses couleurs et polices."
+    meta_only:
+        label: Seulement dans un métabloc
+        help: Caché de la liste des blocs, il s'affiche sous les métablocs qui le montrent.
+    image_url:
+        label: Ou l'adresse de l'image
+        placeholder: https://… ou /images/…
+    navigation:
+        entries: Entrées du menu
+        no_entry: Aucune entrée pour l'instant.
+        add: Ajouter une entrée
+        add_child: Ajouter une sous-entrée
+        label: Libellé
+        heading: "— Titre seul (sans page) —"
+        block: Page du bloc
+        help: "Chaque entrée mène à la page de son bloc (/page/…), dans la mise en page du site ; une entrée sans bloc est le titre de ses sous-entrées. Les sous-entrées s'affichent dans des menus déroulants."
+    meta:
+        layout: Disposition
+        layouts:
+            stack: Pile
+            columns: Colonnes
+            grid: Grille
+            tabs: Onglets
+        columns: Nombre de colonnes
+        blocks: Blocs affichés
+        no_block: Aucun bloc pour l'instant. Ajoutez des blocs existants ci-dessous.
+        choose: Choisir un bloc…
+        add: Ajouter
+        up: Monter
+        down: Descendre
+        title_placeholder: Titre de l'onglet
+        missing: Bloc introuvable
+        help: Chaque bloc s'affiche dans la langue de la page ; le modifier le change dans tous les métablocs qui l'affichent. Un sous-métabloc n'est enregistré que dans ce métabloc, et ne contient que des blocs existants.
+        add_group: Ajouter un sous-métabloc
+        group: Sous-métabloc
+        group_title_placeholder: Titre de l'onglet
+        group_empty: Ajoutez-lui au moins un bloc.
+    alert:
+        label: Alerte
+        type: Type
+        message: Message
+        success: Succès
+        info: Information
+        warning: Avertissement
+        danger: Danger
+
+flash:
+    created: Bloc créé.
+    saved: Bloc enregistré.
+    deleted: Bloc supprimé.
+    version_taken: Version enregistrée.
+    version_restored: Version restaurée. Les blocs d'avant sont dans la version « Avant la restauration… ».
+    version_deleted: Version supprimée.
+    version_renamed: Version renommée.
+    version_block_saved: Bloc de la version enregistré.
+    draft_published: "Brouillon publié : les visiteurs le voient."
+    version_taken_published: Version enregistrée et publiée.
+    version_published: "Version publiée : le site affiche ses blocs."
+    version_unpublished: "Version dépubliée : le site affiche les blocs actuels."
+
+
+chat:
+    mcp:
+        open: Installer sur Claude
+        title: Installer sur Claude
+        close: Fermer
+        intro: "Les outils du CMS dans Claude, avec votre compte : lire et modifier les blocs, les métablocs et les menus. La publication des versions reste ici."
+        password: 'Mot de passe de « {user} »'
+        password_help: Il ne sert qu'à écrire les commandes ci-dessous, dans cette page ; il n'est envoyé nulle part.
+        copy: Copier
+        desktop_mac: "Dans le Terminal, puis quittez Claude Desktop (Cmd+Q) et relancez-le. Node.js doit être installé."
+        desktop_windows: "Dans PowerShell, puis quittez Claude Desktop et relancez-le. Node.js doit être installé."
+    proposal:
+        name: Nom de la version
+        cancel: Annuler
+        cancelled: Annulé.
+        failed: L'action a échoué. Réessayez depuis la page des versions.
+        save:
+            title: Enregistrer une version
+            help: Les blocs actuels seront enregistrés dans une nouvelle version, sans la publier.
+            button: Enregistrer la version
+            done: Version enregistrée.
+        publish_draft:
+            title: Publier le brouillon
+            help: '{count, plural, =0 {Les visiteurs verront les blocs actuels.} one {# modification sera mise en ligne : les visiteurs verront les blocs actuels.} other {# modifications seront mises en ligne : les visiteurs verront les blocs actuels.}}'
+            button: Publier
+            done: "Brouillon publié : les visiteurs le voient."
+        publish:
+            title: 'Publier la version « {name} »'
+            help: Les visiteurs verront les blocs de cette version.
+            button: Publier
+            done: Version publiée.
+        restore:
+            title: 'Restaurer la version « {name} »'
+            help: Ses blocs remplaceront les blocs actuels (le brouillon) ; les blocs actuels sont d'abord enregistrés dans une version.
+            button: Restaurer
+            done: Version restaurée.
+        unpublish:
+            title: Dépublier
+            help: Les visiteurs verront les blocs actuels, avec toutes les modifications faites depuis.
+            button: Dépublier
+            done: Version dépubliée.
+    title: Assistant
+    tool:
+        cms_list_blocks: Lecture de la liste des blocs
+        cms_get_block: 'Lecture du bloc « {slug} »'
+        cms_save_block: 'Enregistrement du bloc « {slug} »'
+        cms_save_metablock: 'Enregistrement du métabloc « {slug} »'
+        cms_list_versions: Lecture des versions
+        cms_propose_version_action: Préparation d'une confirmation
+        cms_save_navigation: 'Enregistrement de la navigation « {slug} »'
+        other: 'Utilisation de l''outil {name}'
+    subtitle: Demandez à l'IA d'écrire, de modifier ou de traduire des blocs.
+    ask: Demander à l'assistant
+    about_block: 'À propos du bloc « {slug} » : '
+    reset: Nouvelle conversation
+    empty: "L'assistant lit et enregistre les blocs pour vous. Par exemple :"
+    suggestion:
+        list: Quels blocs y a-t-il ?
+        create: Écris un court bloc HTML « Qui sommes-nous »
+        translate: Traduis en anglais les blocs qui manquent
+    placeholder: Votre message…
+    send: Envoyer
+    attach: Joindre des images (ou les coller, les déposer ici)
+    hint: "Entrée pour envoyer, Maj+Entrée pour aller à la ligne. L'IA peut se tromper : vérifiez les blocs qu'elle enregistre."
+    created: Créé
+    saved: Modifié
+    error:
+        csrf: La page a expiré, rechargez-la.
+        empty: Écrivez un message.
+        model: L'IA n'a pas répondu. Réessayez dans un instant.
+        cut: "La connexion a été coupée, mais votre demande continue : rechargez la page dans un moment pour voir la réponse."
+
+version:
+    title: Versions
+    rename: Renommer
+    edit_block:
+        button: Modifier
+        back: Retour à la version
+        subtitle: 'Dans la version « {name} »'
+        published_warning: "Cette version est publiée : vos modifications sont en ligne dès l'enregistrement."
+    subtitle: Enregistrez tous les blocs d'un coup, pour les comparer, les prévisualiser, les publier ou les restaurer plus tard.
+    take: Enregistrer une version
+    take_publish: Enregistrer et publier
+    name: Nom (facultatif)
+    suggest: Suggérer
+    suggest_thinking: Recherche d'un nom…
+    suggest_help: L'IA propose un nom court d'après ce qui a changé depuis la dernière version
+    suggest_none: Pas de suggestion (rien n'a changé depuis la dernière version, ou l'IA n'a pas répondu).
+    name_placeholder: ex. Avant la refonte de l'été
+    unnamed: Version
+    before_restore: 'Avant la restauration de « {name} »'
+    column:
+        name: Nom
+        date: Date
+        blocks: Blocs
+        size: Taille
+    size: '{size, number} Ko'
+    details: Détails
+    preview: Aperçu
+    preview_help: Affiche le site avec les blocs de cette version, pour vous seulement
+    previewing: En aperçu
+    published: Publiée
+    publish: Publier
+    publish_help: Le site affichera les blocs de cette version, quelles que soient les modifications faites depuis
+    publish_confirm: Publier ? Le site affichera les blocs de cette version ; vos prochaines modifications ne seront pas en ligne avant la prochaine publication.
+    unpublish: Dépublier
+    unpublish_confirm: Dépublier ? Le site affichera les blocs actuels, avec toutes les modifications faites depuis.
+    restore: Restaurer
+    restore_help: Remet les blocs de cette version dans l'admin, pour les modifier
+    restore_confirm: Remplacer tous les blocs par ceux de cette version ? Les blocs actuels sont d'abord enregistrés dans une version.
+    delete: Supprimer
+    delete_confirm: Supprimer cette version ? Les blocs ne changent pas.
+    exit_preview: Quitter l'aperçu
+    banner: 'Aperçu, pour vous seulement, de la version'
+    in_version: Dans la version
+    now: Maintenant
+    no_block: Cette version ne contient aucun bloc.
+    public:
+        live: 'Site public : blocs actuels, en direct'
+        live_help: Aucune version n'est publiée, chaque modification est visible tout de suite. Publiez une version pour choisir ce que voient les visiteurs.
+        version: 'Site public : version'
+        version_help: 'Publiée le {date}. Les modifications faites depuis forment un brouillon, pas en ligne : publiez-le pour les mettre en ligne.'
+    draft:
+        name: Brouillon
+        unpublished: Non publié
+        date: Modifications en cours
+        changes: '{count, plural, one {# modification non publiée} other {# modifications non publiées}}'
+        see_changes: Changements
+        banner: '{count, plural, one {Aperçu du brouillon : # modification pas encore publiée. Les visiteurs voient} other {Aperçu du brouillon : # modifications pas encore publiées. Les visiteurs voient}}'
+        banner_published: '{count, plural, one {Version publiée, comme la voient les visiteurs (le brouillon a # modification) :} other {Version publiée, comme la voient les visiteurs (le brouillon a # modifications) :}}'
+        publish: Publier le brouillon
+        publish_confirm: Publier le brouillon ? Les visiteurs verront les blocs actuels, enregistrés dans une nouvelle version.
+        see_published: Voir la version publiée
+        see_draft: Voir le brouillon
+        dialog_help: '{count, plural, one {# modification depuis la version publiée. Les visiteurs verront les blocs actuels.} other {# modifications depuis la version publiée. Les visiteurs verront les blocs actuels.}}'
+        dialog_name: Nom de la version
+        dialog_thinking: L'IA cherche un nom…
+        dialog_suggested: Nom proposé par l'IA, modifiez-le si vous voulez.
+        dialog_no_suggestion: Pas de proposition de l'IA, modifiez le nom si vous voulez.
+        dialog_cancel: Annuler
+    draft_name: 'Publication du {date}'
+    status:
+        modified: Modifiés
+        added: Ajoutés
+        removed: Supprimés
+        unchanged: Inchangés
+    row_status:
+        modified: Modifié
+        added: Ajouté
+        removed: Supprimé
+        unchanged: Inchangé
+    status_help:
+        modified: depuis la version, remis comme avant par une restauration
+        added: depuis la version, supprimés par une restauration
+        removed: depuis la version, recréés par une restauration
+        unchanged: depuis la version
+    empty:
+        title: Aucune version pour l'instant
+        text: Enregistrez-en une avant de gros changements, pour pouvoir y revenir.
+
+debug:
+    pill: Mode debug
+    leave: Quitter
+    edit: Modifier ce bloc

@@ -12,16 +12,22 @@ use Gedmo\Mapping\Annotation as Gedmo;
 #[ORM\UniqueConstraint(name: 'block_unique', columns: ['slug', 'language'])]
 class Block
 {
+    /**
+     * Types whose blocks are always shared by every language: they hold the texts of every language themselves
+     * (labels of a navigation, titles of the tabs of a metablock), so a translation of them makes no sense
+     */
+    public const SHARED_TYPES = ['meta', 'navigation'];
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    private int $id;
+    private ?int $id = null;
 
     #[ORM\Column(type: 'string')]
     private string $slug;
 
     #[ORM\Column(type: 'text', nullable: true)]
-    private string $content;
+    private ?string $content = null;
 
     #[ORM\Column(type: 'string', nullable: false)]
     private string $type = TextBlockType::class;
@@ -35,8 +41,21 @@ class Block
     private \DateTime $updatedAt;
 
     #[ORM\Column(type: 'text', nullable: true)]
-    private string $language;
+    private ?string $language = null;
 
+    /**
+     * CSS of this block only: cms_block() scopes it to the block (Twig\BlockExtension::render()), so that it looks the
+     * same on every page; declarations apply to the block itself, nested rules to its content
+     */
+    #[ORM\Column(type: 'text', nullable: true)]
+    private ?string $styles = null;
+
+    /**
+     * Made only to be shown in a metablock (e.g. by the assistant): hidden from the block list, listed under the
+     * metablocks that show it (BlockController::index())
+     */
+    #[ORM\Column(type: 'boolean', options: ['default' => false])]
+    private bool $metaOnly = false;
 
     public function getId(): ?int
     {
@@ -111,6 +130,36 @@ class Block
     public function setLanguage(?string $language): static
     {
         $this->language = $language;
+        return $this;
+    }
+
+    public function isShared(): bool
+    {
+        return \in_array($this->type, self::SHARED_TYPES, true);
+    }
+
+    public function getStyles(): ?string
+    {
+        return $this->styles;
+    }
+
+    public function setStyles(?string $styles): static
+    {
+        $styles = trim((string) $styles);
+        $this->styles = '' !== $styles ? $styles : null;
+
+        return $this;
+    }
+
+    public function isMetaOnly(): bool
+    {
+        return $this->metaOnly;
+    }
+
+    public function setMetaOnly(bool $metaOnly): static
+    {
+        $this->metaOnly = $metaOnly;
+
         return $this;
     }
 }

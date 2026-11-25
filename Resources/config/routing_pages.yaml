@@ -1,0 +1,6 @@
+# Public pages of the blocks, where the entries of a navigation block lead.
+# Imported apart from routing.yaml by the applications that want them (README "Pages of the blocks").
+cms_page:
+    path: /page/{slug}
+    controller: Kibatic\CmsBundle\Controller\PageController::show
+    methods: GET

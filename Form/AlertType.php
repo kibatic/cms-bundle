@@ -16,14 +16,17 @@ class AlertType extends AbstractType
     {
         $builder
             ->add('type', ChoiceType::class, [
+                'label' => 'form.alert.type',
                 'choices' => [
-                    'Success' => 'success',
-                    'Info' => 'info',
-                    'Warning' => 'warning',
-                    'Danger' => 'danger',
+                    'form.alert.success' => 'success',
+                    'form.alert.info' => 'info',
+                    'form.alert.warning' => 'warning',
+                    'form.alert.danger' => 'danger',
                 ]
             ])
-            ->add('message', TextareaType::class)
+            ->add('message', TextareaType::class, [
+                'label' => 'form.alert.message',
+            ])
         ;
     }
 

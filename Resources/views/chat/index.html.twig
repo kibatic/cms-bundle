@@ -1,0 +1,351 @@
+{% extends '@KibaticCms/layout.html.twig' %}
+{% trans_default_domain 'KibaticCmsBundle' %}
+
+{% block kcms_body %}
+    {% set csrf = csrf_token(constant('Kibatic\\CmsBundle\\Controller\\ChatController::CSRF_TOKEN_ID')) %}
+
+    <nav class="kcms-crumbs"><a href="{{ path('cms_block_index') }}">{{ 'index.title'|trans }}</a><span>{{ 'chat.title'|trans }}</span></nav>
+
+    <header class="kcms-head">
+        <div>
+            <h1 class="kcms-title">{{ 'chat.title'|trans }}</h1>
+            <p class="kcms-subtitle">{{ 'chat.subtitle'|trans }}</p>
+        </div>
+        <div class="kcms-head-actions">
+            {# The application's MCP server exposes the CMS's tools: commands to add it to Claude (Ai\McpEndpoint) #}
+            {% if mcpUrl %}
+                <button type="button" class="kcms-btn" data-kcms-mcp-open>
+                    <svg class="kcms-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22v-5"/><path d="M9 8V2"/><path d="M15 8V2"/><path d="M18 8v5a4 4 0 0 1-4 4h-4a4 4 0 0 1-4-4V8Z"/></svg>
+                    {{ 'chat.mcp.open'|trans }}
+                </button>
+            {% endif %}
+            <form method="post" action="{{ path('cms_chat_reset') }}">
+                <input type="hidden" name="_token" value="{{ csrf }}">
+                <button type="submit" class="kcms-btn" data-kcms-chat-reset {{ history is empty ? 'disabled' }}>{{ 'chat.reset'|trans }}</button>
+            </form>
+        </div>
+    </header>
+
+    <div class="kcms-card kcms-chat" data-kcms-chat data-kcms-url="{{ path('cms_chat_message') }}" data-kcms-csrf="{{ csrf }}"
+         data-kcms-created="{{ 'chat.created'|trans }}" data-kcms-saved="{{ 'chat.saved'|trans }}" data-kcms-error="{{ 'chat.error.model'|trans }}"
+         data-kcms-upload-url="{{ path('cms_upload_image') }}"
+         data-kcms-upload-csrf="{{ csrf_token(constant('Kibatic\\CmsBundle\\Controller\\UploadController::CSRF_TOKEN_ID')) }}"
+         data-kcms-max-images="4" data-kcms-max-size="{{ cms_upload_max_size() }}"
+         data-kcms-too-big="{{ 'editor.upload.too_big'|trans({size: (cms_upload_max_size() / 1024 / 1024)|round(1)}) }}"
+         data-kcms-not-image="{{ 'editor.upload.not_image'|trans }}" data-kcms-failed="{{ 'editor.upload.failed'|trans }}"
+         data-kcms-remove="{{ 'editor.upload.remove'|trans }}" data-kcms-cut="{{ 'chat.error.cut'|trans }}"
+         data-kcms-version-csrf="{{ csrf_token(constant('Kibatic\\CmsBundle\\Controller\\VersionController::CSRF_TOKEN_ID')) }}"
+         data-kcms-proposal-name="{{ 'chat.proposal.name'|trans }}" data-kcms-proposal-cancel-label="{{ 'chat.proposal.cancel'|trans }}"
+         data-kcms-proposal-cancelled="{{ 'chat.proposal.cancelled'|trans }}" data-kcms-proposal-failed="{{ 'chat.proposal.failed'|trans }}">
+        <div class="kcms-chat-log" data-kcms-chat-log aria-live="polite">
+            <div class="kcms-chat-empty" data-kcms-chat-empty {{ history is not empty ? 'hidden' }}>
+                <p>{{ 'chat.empty'|trans }}</p>
+                <div class="kcms-chat-suggestions">
+                    {% for suggestion in ['chat.suggestion.list', 'chat.suggestion.create', 'chat.suggestion.translate'] %}
+                        <button type="button" class="kcms-chip-button" data-kcms-suggestion>{{ suggestion|trans }}</button>
+                    {% endfor %}
+                </div>
+            </div>
+            {% for message in history %}
+                <div class="kcms-message kcms-message-{{ message.role }}">
+                    <div data-kcms-markdown>{{ message.content }}</div>
+                    {% if message.images ?? [] is not empty %}
+                        <div class="kcms-message-images">
+                            {% for url in message.images %}<a href="{{ url }}" target="_blank"><img src="{{ url }}" alt=""></a>{% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        </div>
+
+        <div class="kcms-chat-attachments" data-kcms-chat-attachments hidden></div>
+        <form class="kcms-chat-form" data-kcms-chat-form>
+            <input type="file" accept="image/png,image/jpeg,image/gif,image/webp" multiple hidden data-kcms-chat-file>
+            <button type="button" class="kcms-btn kcms-chat-attach" data-kcms-chat-attach title="{{ 'chat.attach'|trans }}" aria-label="{{ 'chat.attach'|trans }}">
+                <svg class="kcms-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m21.4 11.6-9.2 9.2a6 6 0 0 1-8.5-8.5l8.6-8.6a4 4 0 0 1 5.7 5.7l-8.6 8.6a2 2 0 0 1-2.8-2.8l8.5-8.5"/></svg>
+            </button>
+            <textarea rows="2" placeholder="{{ 'chat.placeholder'|trans }}" aria-label="{{ 'chat.placeholder'|trans }}" data-kcms-chat-input
+            >{{ slug ? 'chat.about_block'|trans({slug: slug}) }}</textarea>
+            <button type="submit" class="kcms-btn kcms-btn-primary" data-kcms-chat-send>
+                <svg class="kcms-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
+                {{ 'chat.send'|trans }}
+            </button>
+        </form>
+        <p class="kcms-chat-hint">{{ 'chat.hint'|trans }}</p>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const chat = document.querySelector('[data-kcms-chat]');
+            const log = chat.querySelector('[data-kcms-chat-log]');
+            const form = chat.querySelector('[data-kcms-chat-form]');
+            const input = chat.querySelector('[data-kcms-chat-input]');
+            const send = chat.querySelector('[data-kcms-chat-send]');
+            const empty = chat.querySelector('[data-kcms-chat-empty]');
+
+            // Markdown of the answers: bold, italic, inline code, links, lists and paragraphs, on escaped text
+            const escape = text => text.replace(/[&<>"']/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'})[c]);
+            const inline = text => escape(text)
+                .replace(/`([^`]+)`/g, '<code>$1</code>')
+                .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+                .replace(/(^|[^*])\*([^*\s][^*]*)\*/g, '$1<em>$2</em>')
+                .replace(/\[([^\]]+)\]\(((?:https?:\/)?\/[^)\s]+)\)/g, '<a href="$2">$1</a>');
+            const markdown = text => text.trim().split(/\n{2,}/).map(paragraph => {
+                const lines = paragraph.split('\n');
+                // Table: its lines start with "|", the second one separates the header ("|---|---|")
+                if (lines.length > 1 && lines.every(line => line.trim().startsWith('|'))) {
+                    const cells = line => line.trim().replace(/^\||\|$/g, '').split('|').map(cell => inline(cell.trim()));
+                    const rows = lines.filter(line => !/^\s*\|?[\s:|-]+\|?\s*$/.test(line)).map(cells);
+                    return '<table class="kcms-chat-table"><thead><tr>' + rows[0].map(cell => `<th>${cell}</th>`).join('') + '</tr></thead><tbody>'
+                        + rows.slice(1).map(row => '<tr>' + row.map(cell => `<td>${cell}</td>`).join('') + '</tr>').join('') + '</tbody></table>';
+                }
+                if (lines.every(line => /^\s*([-*]|\d+\.)\s+/.test(line))) {
+                    const tag = /^\s*\d+\./.test(lines[0]) ? 'ol' : 'ul';
+                    return `<${tag}>` + lines.map(line => '<li>' + inline(line.replace(/^\s*([-*]|\d+\.)\s+/, '')) + '</li>').join('') + `</${tag}>`;
+                }
+                const heading = paragraph.match(/^#{1,4}\s+(.*)$/);
+                return heading ? '<p><strong>' + inline(heading[1]) + '</strong></p>' : '<p>' + lines.map(inline).join('<br>') + '</p>';
+            }).join('');
+
+            const add = (role, html) => {
+                empty.hidden = true;
+                const message = document.createElement('div');
+                message.className = 'kcms-message kcms-message-' + role;
+                message.innerHTML = html;
+                log.append(message);
+                message.scrollIntoView({block: 'end', behavior: 'smooth'});
+                return message;
+            };
+            log.querySelectorAll('[data-kcms-markdown]').forEach(message => message.innerHTML = markdown(message.textContent));
+
+            // Images joined to the next message: uploaded right away (UploadController), sent as their URLs
+            const tray = chat.querySelector('[data-kcms-chat-attachments]');
+            const fileInput = chat.querySelector('[data-kcms-chat-file]');
+            let attachments = [];
+            let uploading = 0;
+            const drawAttachments = () => {
+                tray.hidden = attachments.length === 0 && uploading === 0;
+                tray.innerHTML = attachments.map((image, index) =>
+                    `<span class="kcms-attachment"><img src="${escape(image.url)}" alt=""><button type="button" data-index="${index}" `
+                    + `title="${escape(chat.dataset.kcmsRemove)}" aria-label="${escape(chat.dataset.kcmsRemove)}">×</button></span>`
+                ).join('') + '<span class="kcms-attachment kcms-attachment-pending"></span>'.repeat(uploading);
+            };
+            tray.addEventListener('click', event => {
+                const button = event.target.closest('button[data-index]');
+                if (button) {
+                    attachments.splice(button.dataset.index, 1);
+                    drawAttachments();
+                }
+            });
+            const attach = async (files) => {
+                for (const file of files) {
+                    if (attachments.length + uploading >= chat.dataset.kcmsMaxImages) {
+                        break;
+                    }
+                    if (!file.type.startsWith('image/')) {
+                        add('error', escape(chat.dataset.kcmsNotImage));
+                        continue;
+                    }
+                    if (file.size > chat.dataset.kcmsMaxSize) {
+                        add('error', escape(chat.dataset.kcmsTooBig));
+                        continue;
+                    }
+                    uploading++;
+                    drawAttachments();
+                    try {
+                        const body = new FormData();
+                        body.append('file', file);
+                        const response = await fetch(chat.dataset.kcmsUploadUrl, {method: 'POST', headers: {'X-CSRF-Token': chat.dataset.kcmsUploadCsrf}, body});
+                        const data = await response.json();
+                        response.ok ? attachments.push({url: data.url}) : add('error', escape(data.error ?? chat.dataset.kcmsFailed));
+                    } catch (exception) {
+                        add('error', escape(chat.dataset.kcmsFailed));
+                    } finally {
+                        uploading--;
+                        drawAttachments();
+                    }
+                }
+            };
+            chat.querySelector('[data-kcms-chat-attach]').addEventListener('click', () => fileInput.click());
+            fileInput.addEventListener('change', () => {
+                attach([...fileInput.files]);
+                fileInput.value = '';
+            });
+            document.addEventListener('paste', event => {
+                const files = [...event.clipboardData.files].filter(file => file.type.startsWith('image/'));
+                if (files.length) {
+                    event.preventDefault();
+                    attach(files);
+                }
+            });
+            chat.addEventListener('dragover', event => {
+                event.preventDefault();
+                chat.classList.add('is-over');
+            });
+            chat.addEventListener('dragleave', event => chat.contains(event.relatedTarget) || chat.classList.remove('is-over'));
+            chat.addEventListener('drop', event => {
+                event.preventDefault();
+                chat.classList.remove('is-over');
+                attach([...event.dataTransfer.files]);
+            });
+            const thumbnails = images => images.length
+                ? '<div class="kcms-message-images">' + images.map(url => `<a href="${escape(url)}" target="_blank"><img src="${escape(url)}" alt=""></a>`).join('') + '</div>'
+                : '';
+            log.lastElementChild?.scrollIntoView({block: 'end'});
+
+            const submit = async () => {
+                const text = input.value.trim();
+                const images = attachments.map(image => image.url);
+                if ((!text && !images.length) || send.disabled || uploading > 0) {
+                    return;
+                }
+                add('user', markdown(text) + thumbnails(images));
+                document.querySelector('[data-kcms-chat-reset]').disabled = false;
+                input.value = '';
+                attachments = [];
+                drawAttachments();
+                send.disabled = true;
+                // Message back in the field, to send it again
+                const restore = () => {
+                    input.value = text;
+                    attachments = images.map(url => ({url}));
+                    drawAttachments();
+                };
+                // Answer streamed by ChatController::message(): what the assistant does, then its answer as it is written
+                const bubble = add('assistant kcms-message-working',
+                    '<ul class="kcms-activity"></ul><div class="kcms-stream" hidden></div><div class="kcms-typing"><span></span><span></span><span></span></div>');
+                const activity = bubble.querySelector('.kcms-activity');
+                const stream = bubble.querySelector('.kcms-stream');
+                let streamed = '';
+                let finished = false;
+                let receiving = false;
+                const handle = event => {
+                    if (event.type === 'status') {
+                        // New round of the model: the text of the previous one was not the answer
+                        streamed = '';
+                        stream.hidden = true;
+                    } else if (event.type === 'tool') {
+                        activity.insertAdjacentHTML('beforeend', '<li>' + escape(event.label) + '</li>');
+                    } else if (event.type === 'text') {
+                        streamed += event.text;
+                        stream.innerHTML = markdown(streamed);
+                        stream.hidden = false;
+                    } else if (event.type === 'done') {
+                        finished = true;
+                        const changes = event.changes.map(change =>
+                            `<a class="kcms-change" href="${escape(change.url)}">${escape(change.created ? chat.dataset.kcmsCreated : chat.dataset.kcmsSaved)}`
+                            + ` <span class="kcms-slug">${escape(change.slug)}</span>${change.language ? ' · ' + escape(change.language) : ''}</a>`
+                        ).join('');
+                        // Actions on the versions proposed by the assistant: done only when the admin confirms them
+                        const proposals = (event.proposals ?? []).map(proposal => `
+                            <form class="kcms-proposal" data-kcms-proposal data-url="${escape(proposal.url)}" data-done="${escape(proposal.done)}">
+                                <strong>${escape(proposal.title)}</strong>
+                                <p>${escape(proposal.help)}</p>
+                                ${proposal.name !== null ? `<label>${escape(chat.dataset.kcmsProposalName)}<input type="text" name="name" maxlength="255" required value="${escape(proposal.name)}"></label>` : ''}
+                                <div class="kcms-proposal-actions">
+                                    <button type="submit" class="kcms-btn kcms-btn-sm kcms-btn-${proposal.action.startsWith('publish') ? 'success' : 'primary'}">${escape(proposal.button)}</button>
+                                    <button type="button" class="kcms-btn kcms-btn-sm" data-kcms-proposal-cancel>${escape(chat.dataset.kcmsProposalCancelLabel)}</button>
+                                </div>
+                            </form>`).join('');
+                        bubble.classList.remove('kcms-message-working');
+                        bubble.innerHTML = (activity.children.length ? activity.outerHTML : '') + markdown(event.answer)
+                            + (changes ? '<div class="kcms-changes">' + changes + '</div>' : '') + proposals;
+                    } else if (event.type === 'error') {
+                        finished = true;
+                        bubble.remove();
+                        add('error', escape(event.error));
+                        restore();
+                    }
+                    bubble.scrollIntoView({block: 'end'});
+                };
+                try {
+                    const response = await fetch(chat.dataset.kcmsUrl, {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json', 'X-CSRF-Token': chat.dataset.kcmsCsrf},
+                        body: JSON.stringify({message: text, images}),
+                    });
+                    if (!response.ok) {
+                        const data = await response.json().catch(() => ({}));
+                        bubble.remove();
+                        add('error', escape(data.error ?? chat.dataset.kcmsError));
+                        restore();
+                        return;
+                    }
+                    receiving = true;
+                    const reader = response.body.getReader();
+                    const decoder = new TextDecoder();
+                    let buffer = '';
+                    for (let chunk = await reader.read(); !chunk.done; chunk = await reader.read()) {
+                        buffer += decoder.decode(chunk.value, {stream: true});
+                        let end;
+                        while ((end = buffer.indexOf('\n')) >= 0) {
+                            const line = buffer.slice(0, end).trim();
+                            buffer = buffer.slice(end + 1);
+                            line && handle(JSON.parse(line));
+                        }
+                    }
+                    if (!finished) {
+                        throw new Error('Connection closed before the end of the answer');
+                    }
+                } catch (error) {
+                    if (finished) {
+                        return;
+                    }
+                    bubble.remove();
+                    if (receiving) {
+                        // The server goes on (ChatController: ignore_user_abort): the answer is in the conversation
+                        add('error', escape(chat.dataset.kcmsCut));
+                    } else {
+                        add('error', escape(chat.dataset.kcmsError));
+                        restore();
+                    }
+                } finally {
+                    send.disabled = false;
+                    input.focus();
+                }
+            };
+
+            form.addEventListener('submit', event => {
+                event.preventDefault();
+                submit();
+            });
+            // Confirmation of a proposed action (VersionController routes, which answer with a redirection)
+            log.addEventListener('submit', async event => {
+                const card = event.target.closest('[data-kcms-proposal]');
+                if (!card) {
+                    return;
+                }
+                event.preventDefault();
+                const body = new FormData(card);
+                body.append('_token', chat.dataset.kcmsVersionCsrf);
+                card.querySelectorAll('button, input').forEach(element => element.disabled = true);
+                try {
+                    const response = await fetch(card.dataset.url, {method: 'POST', body});
+                    card.outerHTML = `<p class="kcms-proposal-result${response.ok ? '' : ' is-error'}">${escape(response.ok ? '✓ ' + card.dataset.done : chat.dataset.kcmsProposalFailed)}</p>`;
+                } catch (error) {
+                    card.outerHTML = `<p class="kcms-proposal-result is-error">${escape(chat.dataset.kcmsProposalFailed)}</p>`;
+                }
+            });
+            log.addEventListener('click', event => {
+                const cancel = event.target.closest('[data-kcms-proposal-cancel]');
+                if (cancel) {
+                    cancel.closest('[data-kcms-proposal]').outerHTML = `<p class="kcms-proposal-result is-cancelled">${escape(chat.dataset.kcmsProposalCancelled)}</p>`;
+                }
+            });
+            // Enter sends, Shift+Enter goes to a new line
+            input.addEventListener('keydown', event => {
+                if (event.key === 'Enter' && !event.shiftKey && !event.isComposing) {
+                    event.preventDefault();
+                    submit();
+                }
+            });
+            chat.querySelectorAll('[data-kcms-suggestion]').forEach(button => button.addEventListener('click', () => {
+                input.value = button.textContent.trim();
+                submit();
+            }));
+            input.focus();
+            input.setSelectionRange(input.value.length, input.value.length);
+        });
+    </script>
+    {% if mcpUrl %}{% include '@KibaticCms/chat/_mcp_dialog.html.twig' %}{% endif %}
+{% endblock %}

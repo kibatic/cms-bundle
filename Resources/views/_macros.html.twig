@@ -1,0 +1,52 @@
+{% trans_default_domain 'KibaticCmsBundle' %}
+
+{% macro type_icon(name) %}
+    {%- set paths = {
+        text: '<path d="M4 7V4h16v3"/><path d="M9 20h6"/><path d="M12 4v16"/>',
+        html: '<path d="m16 18 6-6-6-6"/><path d="m8 6-6 6 6 6"/>',
+        image: '<rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.1-3.1a2 2 0 0 0-2.8 0L6 21"/>',
+        alert: '<path d="m21.7 18-8-14a2 2 0 0 0-3.5 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.7-3"/><path d="M12 9v4"/><path d="M12 17h.01"/>',
+        navigation: '<path d="M4 6h16"/><path d="M4 12h10"/><path d="M8 18h12"/><circle cx="4" cy="18" r="1"/>',
+        meta: '<rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/>',
+    } -%}
+    <svg class="kcms-icon" viewBox="0 0 24 24" aria-hidden="true">{{ (paths[name] ?? '<rect x="3" y="3" width="18" height="18" rx="2"/>')|raw }}</svg>
+{%- endmacro %}
+
+{# Block types added by the application have no translation: their name is shown as is #}
+{% macro type_label(name) %}
+    {%- set key = 'type.' ~ name ~ '.name' -%}
+    {%- set label = key|trans -%}
+    {{- label == key ? name|capitalize : label -}}
+{%- endmacro %}
+
+{% macro type_description(name) %}
+    {%- set key = 'type.' ~ name ~ '.description' -%}
+    {%- set description = key|trans -%}
+    {{- description == key ? 'type.custom'|trans : description -}}
+{%- endmacro %}
+
+{% macro type_new_title(name) %}
+    {%- set key = 'type.' ~ name ~ '.new' -%}
+    {%- set title = key|trans -%}
+    {{- title == key ? 'new.title'|trans({type: name}) : title -}}
+{%- endmacro %}
+
+{% macro type_badge(name) %}
+    <span class="kcms-badge">{{ _self.type_icon(name) }}{{ _self.type_label(name) }}</span>
+{%- endmacro %}
+
+{% macro versions_icon() %}
+    <svg class="kcms-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/></svg>
+{%- endmacro %}
+
+{% macro save_icon() %}
+    <svg class="kcms-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M15.2 3a2 2 0 0 1 1.4.6l3.8 3.8a2 2 0 0 1 .6 1.4V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/><path d="M17 21v-7a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v7"/><path d="M7 3v4a1 1 0 0 0 1 1h7"/></svg>
+{%- endmacro %}
+
+{% macro copy_snippet(slug) %}
+    <button type="button" class="kcms-copy" data-kcms-copy="{{ "{{ cms_block('" ~ slug ~ "') }}" }}" data-kcms-copy-done="{{ 'copy.done'|trans }}"
+            title="{{ 'copy.title'|trans }}">
+        <svg class="kcms-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="8" width="14" height="14" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+        <span data-kcms-copy-label>{{ 'copy.label'|trans }}</span>
+    </button>
+{%- endmacro %}

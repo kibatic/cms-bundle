@@ -1,4 +1,5 @@
 {% extends 'layout.html.twig' %}
+{% trans_default_domain 'KibaticCmsBundle' %}
 
 {% block stylesheets %}
     {{ parent() }}
@@ -8,4 +9,19 @@
 {% block javascripts %}
     {{ parent() }}
     {% include '@KibaticCms/_js.html.twig' %}
+{% endblock %}
+
+{% block content %}
+    <div class="kcms">
+        {% for message in app.flashes('kibatic_cms') %}
+            <div class="kcms-flash" role="status">{{ message|trans }}</div>
+        {% endfor %}
+
+        {% block kcms_body %}{% endblock %}
+
+        {% set previewed_version = cms_version_preview() %}
+        {% if previewed_version %}
+            {% include '@KibaticCms/version/_preview_banner.html.twig' with {version: previewed_version} %}
+        {% endif %}
+    </div>
 {% endblock %}

@@ -1,26 +1,16 @@
 {% extends '@KibaticCms/layout.html.twig' %}
+{% trans_default_domain 'KibaticCmsBundle' %}
+{% import '@KibaticCms/_macros.html.twig' as kcms %}
 
-{% block content %}
-    <h1>Block creation</h1>
+{% block kcms_body %}
+    <nav class="kcms-crumbs"><a href="{{ path('cms_block_index') }}">{{ 'index.title'|trans }}</a><span>{{ 'new.crumb'|trans }}</span></nav>
 
-    <section>
-        {% include '@KibaticCms/block/_form.html.twig' %}
-
-        <div class="btn-group pull-right" role="group">
-            <a href="{{ path('cms_block_index') }}" class="btn btn-default">Back to the list</a>
-            <button type="submit" class="btn btn-success" form="{{ form.vars.id }}">Add</button>
+    <header class="kcms-head">
+        <div>
+            <h1 class="kcms-title">{{ kcms.type_new_title(typeName) }}</h1>
+            <p class="kcms-subtitle">{{ kcms.type_description(typeName) }}</p>
         </div>
-    </section>
-{% endblock %}
+    </header>
 
-{% block stylesheets %}
-    {{ parent() }}
-
-    {% include '@KibaticCms/_css.html.twig' %}
-{% endblock %}
-
-{% block javascripts %}
-    {{ parent() }}
-
-    {% include '@KibaticCms/_js.html.twig' %}
+    {% include '@KibaticCms/block/_editor.html.twig' with {'delete_form': null, 'submit_label': 'editor.create'} %}
 {% endblock %}

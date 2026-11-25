@@ -1,0 +1,33 @@
+{% extends '@KibaticCms/layout.html.twig' %}
+{% trans_default_domain 'KibaticCmsBundle' %}
+{% import '@KibaticCms/_macros.html.twig' as kcms %}
+
+{% block kcms_body %}
+    <nav class="kcms-crumbs">
+        <a href="{{ path('cms_block_index') }}">{{ 'index.title'|trans }}</a>
+        <a href="{{ path('cms_version_index') }}" class="kcms-crumb-link">{{ 'version.title'|trans }}</a>
+        <a href="{{ path('cms_version_show', {id: version.id}) }}" class="kcms-crumb-link">{{ version.name ?? 'version.unnamed'|trans }}</a>
+        <span>{{ block.slug }}</span>
+    </nav>
+
+    <header class="kcms-head">
+        <div>
+            <h1 class="kcms-title">
+                <span class="kcms-slug">{{ block.slug }}</span>
+                <span class="kcms-chip">{{ block.language ?? 'language.all'|trans }}</span>
+            </h1>
+            <p class="kcms-subtitle">{{ kcms.type_badge(block.type) }} {{ 'version.edit_block.subtitle'|trans({name: version.name ?? 'version.unnamed'|trans}) }}</p>
+        </div>
+    </header>
+
+    {% if version.published %}
+        <p class="kcms-warning">{{ 'version.edit_block.published_warning'|trans }}</p>
+    {% endif %}
+
+    {% include '@KibaticCms/block/_editor.html.twig' with {
+        'delete_form': null,
+        'submit_label': 'editor.save',
+        'back_url': path('cms_version_show', {id: version.id}),
+        'back_label': 'version.edit_block.back',
+    } %}
+{% endblock %}

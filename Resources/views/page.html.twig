@@ -1,0 +1,6 @@
+{# Page of a block (PageController): the block alone in the site's layout, whose "content" block it fills #}
+{% extends 'layout.html.twig' %}
+
+{% block content %}
+    {{ cms_block(slug) }}
+{% endblock %}

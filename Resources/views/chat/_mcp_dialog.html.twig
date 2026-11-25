@@ -1,0 +1,115 @@
+{#
+    "Install on Claude" dialog of the assistant: the commands that add the application's MCP server (Ai\McpEndpoint) to
+    Claude Code and Claude Desktop, with the admin's account (HTTP Basic, README "MCP tools"). The password is typed
+    here and only written into the commands, in the page. Opened by [data-kcms-mcp-open]. Variable: mcpUrl
+#}
+{% trans_default_domain 'KibaticCmsBundle' %}
+{% set copy %}
+    <button type="button" class="kcms-btn kcms-btn-sm" data-kcms-copy="" data-kcms-copy-done="{{ 'copy.done'|trans }}" disabled>
+        <svg class="kcms-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="8" width="14" height="14" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+        <span data-kcms-copy-label>{{ 'chat.mcp.copy'|trans }}</span>
+    </button>
+{% endset %}
+
+<dialog class="kcms-dialog" data-kcms-mcp-dialog data-kcms-url="{{ mcpUrl }}" data-kcms-user="{{ app.user.userIdentifier }}"
+        data-kcms-name="{{ app.request.host|replace({'.': '-'}) }}" aria-labelledby="kcms-mcp-title">
+    <header class="kcms-dialog-head">
+        <h2 id="kcms-mcp-title">{{ 'chat.mcp.title'|trans }}</h2>
+        <button type="button" class="kcms-dialog-close" data-kcms-mcp-close aria-label="{{ 'chat.mcp.close'|trans }}">
+            <svg class="kcms-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+        </button>
+    </header>
+    <p class="kcms-muted">{{ 'chat.mcp.intro'|trans }}</p>
+
+    <label class="kcms-mcp-password">
+        {{ 'chat.mcp.password'|trans({user: app.user.userIdentifier}) }}
+        <input type="password" autocomplete="current-password" data-kcms-mcp-password>
+        <small>{{ 'chat.mcp.password_help'|trans }}</small>
+    </label>
+
+    <section class="kcms-mcp-client">
+        <div class="kcms-mcp-client-head">
+            <h3>Claude Code</h3>
+            {{ copy }}
+        </div>
+        <pre data-kcms-mcp-command="code"></pre>
+    </section>
+
+    <section class="kcms-mcp-client">
+        <div class="kcms-mcp-client-head">
+            <h3>Claude Desktop</h3>
+            <div class="kcms-segmented" role="group">
+                <button type="button" class="is-active" data-kcms-mcp-os="mac">macOS</button>
+                <button type="button" data-kcms-mcp-os="windows">Windows</button>
+            </div>
+            {{ copy }}
+        </div>
+        <p class="kcms-muted" data-kcms-mcp-help="mac">{{ 'chat.mcp.desktop_mac'|trans }}</p>
+        <p class="kcms-muted" data-kcms-mcp-help="windows" hidden>{{ 'chat.mcp.desktop_windows'|trans }}</p>
+        <pre data-kcms-mcp-command="desktop"></pre>
+    </section>
+</dialog>
+<script>
+    (() => {
+        const dialog = document.currentScript.previousElementSibling;
+        const {kcmsUrl: url, kcmsUser: user, kcmsName: name} = dialog.dataset;
+        const password = dialog.querySelector('[data-kcms-mcp-password]');
+        let os = 'mac';
+
+        const base64 = text => btoa(String.fromCharCode(...new TextEncoder().encode(text)));
+        // Claude Desktop only takes OAuth for a remote server: the mcp-remote relay sends the header (in env: no space
+        // in its arguments, which Claude Desktop splits on Windows)
+        const desktopServer = auth => ({command: 'npx', args: ['-y', 'mcp-remote', url, '--header', 'Authorization:${AUTH_HEADER}'], env: {AUTH_HEADER: auth}});
+        const commands = auth => ({
+            code: `claude mcp add --transport http ${name} ${url} --header "Authorization: ${auth}"`,
+            mac: `python3 - <<'EOF'
+import json, os
+p = os.path.expanduser('~/Library/Application Support/Claude/claude_desktop_config.json')
+os.makedirs(os.path.dirname(p), exist_ok=True)
+c = json.load(open(p)) if os.path.exists(p) and os.path.getsize(p) else {}
+c.setdefault('mcpServers', {})[${JSON.stringify(name)}] = json.loads(${JSON.stringify(JSON.stringify(desktopServer(auth)))})
+json.dump(c, open(p, 'w'), indent=2)
+print('OK :', p)
+EOF`,
+            windows: `$p = Join-Path (Join-Path $env:APPDATA Claude) claude_desktop_config.json
+New-Item -ItemType Directory -Force (Split-Path $p) | Out-Null
+$c = if ((Test-Path $p) -and (Get-Item $p).Length) { Get-Content $p -Raw | ConvertFrom-Json } else { [pscustomobject]@{} }
+if (-not $c.mcpServers) { $c | Add-Member mcpServers ([pscustomobject]@{}) -Force }
+$c.mcpServers | Add-Member '${name}' ('${JSON.stringify(desktopServer(auth))}' | ConvertFrom-Json) -Force
+[IO.File]::WriteAllText($p, ($c | ConvertTo-Json -Depth 10))
+Write-Output "OK : $p"`,
+        });
+
+        const render = () => {
+            const ready = password.value !== '';
+            const all = commands(ready ? 'Basic ' + base64(`${user}:${password.value}`) : 'Basic ••••••');
+            const shown = {code: all.code, desktop: all[os]};
+            dialog.querySelectorAll('[data-kcms-mcp-command]').forEach(pre => {
+                const command = shown[pre.dataset.kcmsMcpCommand];
+                pre.textContent = command;
+                const copy = pre.closest('section').querySelector('[data-kcms-copy]');
+                copy.dataset.kcmsCopy = command;
+                copy.disabled = !ready;
+            });
+            dialog.querySelectorAll('[data-kcms-mcp-os]').forEach(button => button.classList.toggle('is-active', button.dataset.kcmsMcpOs === os));
+            dialog.querySelectorAll('[data-kcms-mcp-help]').forEach(help => help.hidden = help.dataset.kcmsMcpHelp !== os);
+        };
+
+        password.addEventListener('input', render);
+        dialog.querySelectorAll('[data-kcms-mcp-os]').forEach(button => button.addEventListener('click', () => {
+            os = button.dataset.kcmsMcpOs;
+            render();
+        }));
+        dialog.querySelector('[data-kcms-mcp-close]').addEventListener('click', () => dialog.close());
+        // The password does not stay in the page
+        dialog.addEventListener('close', () => {
+            password.value = '';
+            render();
+        });
+        document.querySelectorAll('[data-kcms-mcp-open]').forEach(button => button.addEventListener('click', () => {
+            dialog.showModal();
+            password.focus();
+        }));
+        render();
+    })();
+</script>

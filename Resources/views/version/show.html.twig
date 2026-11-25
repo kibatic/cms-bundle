@@ -1,0 +1,87 @@
+{% extends '@KibaticCms/layout.html.twig' %}
+{% trans_default_domain 'KibaticCmsBundle' %}
+
+{% macro content(block) %}
+    {%- if block is null -%}
+        <p class="kcms-muted">—</p>
+    {%- elseif block.type == 'image' and block.content -%}
+        <img src="{{ block.content }}" alt="" class="kcms-version-image">
+    {%- else -%}
+        <pre class="kcms-code">{{ block.content }}</pre>
+    {%- endif -%}
+    {%- if block and block.styles -%}
+        <p class="kcms-compare-styles">{{ 'form.styles.summary'|trans({}, 'KibaticCmsBundle') }}</p>
+        <pre class="kcms-code">{{ block.styles }}</pre>
+    {%- endif -%}
+{% endmacro %}
+
+{% block kcms_body %}
+    {% set csrf = csrf_token(constant('Kibatic\\CmsBundle\\Controller\\VersionController::CSRF_TOKEN_ID')) %}
+    {% set counts = {modified: 0, added: 0, removed: 0, unchanged: 0} %}
+    {% for change in changes %}
+        {% set counts = counts|merge({(change.status): counts[change.status] + 1}) %}
+    {% endfor %}
+
+    <nav class="kcms-crumbs">
+        <a href="{{ path('cms_block_index') }}">{{ 'index.title'|trans }}</a>
+        <a href="{{ path('cms_version_index') }}" class="kcms-crumb-link">{{ 'version.title'|trans }}</a>
+        <span>{{ version.name ?? 'version.unnamed'|trans }}</span>
+    </nav>
+
+    <header class="kcms-head">
+        <div>
+            <h1 class="kcms-title">
+                {{ version.name ?? 'version.unnamed'|trans }}
+                {% if version.published %}<span class="kcms-badge kcms-badge-success">{{ 'version.published'|trans }}</span>{% endif %}
+            </h1>
+            <p class="kcms-subtitle">
+                {{ version.createdAt|date('format.datetime'|trans) }} · {{ 'index.blocks'|trans({count: version.blockCount}) }}
+            </p>
+            <form method="post" action="{{ path('cms_version_rename', {id: version.id}) }}" class="kcms-rename">
+                <input type="hidden" name="_token" value="{{ csrf }}">
+                <input type="text" name="name" value="{{ version.name }}" maxlength="255" placeholder="{{ 'version.name_placeholder'|trans }}" aria-label="{{ 'version.column.name'|trans }}">
+                <button type="submit" class="kcms-btn kcms-btn-sm">{{ 'version.rename'|trans }}</button>
+            </form>
+        </div>
+        <div class="kcms-head-actions">
+            {% include '@KibaticCms/version/_actions.html.twig' with {details: false} %}
+        </div>
+    </header>
+
+    <div class="kcms-stats">
+        {% for status in ['modified', 'added', 'removed', 'unchanged'] %}
+            <div class="kcms-stat kcms-status-{{ status }}">
+                <strong>{{ counts[status] }}</strong>
+                <span>{{ ('version.status.' ~ status)|trans }}</span>
+                <small>{{ ('version.status_help.' ~ status)|trans }}</small>
+            </div>
+        {% endfor %}
+    </div>
+
+    <div class="kcms-card kcms-card-flush">
+        {% for change in changes %}
+            <details class="kcms-change-row"{{ change.status == 'unchanged' ? '' : ' open' }}>
+                <summary>
+                    <span class="kcms-slug">{{ change.slug }}</span>
+                    <span class="kcms-chip">{{ change.language ?? 'language.all'|trans }}</span>
+                    <span class="kcms-status kcms-status-{{ change.status }}">{{ ('version.row_status.' ~ change.status)|trans }}</span>
+                    {% if change.version %}
+                        <a href="{{ path('cms_version_edit_block', {id: version.id, slug: change.slug, language: change.language}) }}" class="kcms-btn kcms-btn-sm">{{ 'version.edit_block.button'|trans }}</a>
+                    {% endif %}
+                </summary>
+                <div class="kcms-compare">
+                    <div>
+                        <h3>{{ 'version.in_version'|trans }}</h3>
+                        {{ _self.content(change.version) }}
+                    </div>
+                    <div>
+                        <h3>{{ 'version.now'|trans }}</h3>
+                        {{ _self.content(change.current) }}
+                    </div>
+                </div>
+            </details>
+        {% else %}
+            <p class="kcms-no-match">{{ 'version.no_block'|trans }}</p>
+        {% endfor %}
+    </div>
+{% endblock %}

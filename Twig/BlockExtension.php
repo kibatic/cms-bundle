@@ -4,24 +4,82 @@ namespace Kibatic\CmsBundle\Twig;
 
 use Kibatic\CmsBundle\Controller\BlockController;
 use Kibatic\CmsBundle\Entity\Block;
+use Kibatic\CmsBundle\Meta\MetaContent;
+use Kibatic\CmsBundle\Navigation\NavigationContent;
 use Kibatic\CmsBundle\Repository\BlockRepository;
+use Kibatic\CmsBundle\Upload\ImageStorage;
+use Kibatic\CmsBundle\Version\VersionPreview;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Routing\Router;
+use Symfony\Component\Routing\Exception\RouteNotFoundException;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authorization\AuthorizationChecker;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use Twig\Extension\AbstractExtension;
 use Twig\TwigFunction;
+use Symfony\Contracts\Service\ResetInterface;
 
-class BlockExtension extends AbstractExtension
+class BlockExtension extends AbstractExtension implements ResetInterface
 {
+    /** Metablocks displayed during the request: the first one adds their styles, each one numbers its tabs */
+    private int $metablocks = 0;
+    /** @var array<string, true> slugs of the blocks whose styles were added to the page */
+    private array $styled = [];
+    /** Whether the styles of the navigation menus were added to the page */
+    private bool $navigationStyled = false;
+    /** @var array<string, true> ids given to the blocks of the metablocks (their slug), once each in the page */
+    private array $anchors = [];
+
+    /**
+     * Styles of the navigation menus: entries side by side, sub-entries in drop-down menus (the next levels on the side),
+     * one below the other on a phone; neutral, overridable with the --cms-nav-* variables
+     */
+    private const NAVIGATION_STYLES = <<<'CSS'
+        .cms-nav ul { margin: 0; padding: 0; list-style: none; }
+        .cms-nav > ul { display: flex; flex-wrap: wrap; gap: var(--cms-nav-gap, 4px); }
+        .cms-nav li { position: relative; }
+        .cms-nav a, .cms-nav span { display: block; padding: var(--cms-nav-padding, 8px 12px); border-radius: 8px; color: inherit; text-decoration: none; white-space: nowrap; }
+        .cms-nav a:hover, .cms-nav a:focus-visible, .cms-nav [aria-current="page"] { background: var(--cms-nav-hover, rgb(127 127 127 / 15%)); }
+        .cms-nav [aria-current="page"] { font-weight: 700; }
+        .cms-nav li:has(> ul) > :first-child::after { content: " ▾"; font-size: .8em; opacity: .7; }
+        .cms-nav li li:has(> ul) > :first-child::after { content: " ▸"; }
+        .cms-nav li > ul { display: none; position: absolute; top: 100%; left: 0; z-index: 1000; min-width: 200px; padding: 6px; border-radius: 10px; background: var(--cms-nav-menu-background, #fff); color: var(--cms-nav-menu-color, #1f2937); box-shadow: 0 12px 32px rgb(0 0 0 / 18%); }
+        .cms-nav li li > ul { top: -6px; left: 100%; }
+        .cms-nav li:hover > ul, .cms-nav li:focus-within > ul { display: block; }
+        @media (max-width: 768px) {
+            .cms-nav { flex-basis: 100%; }
+            .cms-nav > ul { flex-direction: column; }
+            .cms-nav li > ul, .cms-nav li li > ul { display: block; position: static; min-width: 0; padding: 0 0 0 16px; background: none; color: inherit; box-shadow: none; }
+            .cms-nav li:has(> ul) > :first-child::after, .cms-nav li li:has(> ul) > :first-child::after { content: none; }
+        }
+        CSS;
+
+    /** Styles of the layouts of the metablocks, neutral (colors of the site), overridable with the --cms-meta-* variables */
+    private const META_STYLES = <<<'CSS'
+        .cms-meta { display: grid; gap: var(--cms-meta-gap, 24px); }
+        .cms-meta-columns { grid-template-columns: repeat(var(--cms-meta-columns, 2), minmax(0, 1fr)); }
+        .cms-meta-grid { grid-template-columns: repeat(auto-fill, minmax(var(--cms-meta-min-width, 240px), 1fr)); }
+        @media (max-width: 768px) { .cms-meta-columns { grid-template-columns: minmax(0, 1fr); } }
+        .cms-meta-item > :first-child, .cms-meta-panel > :first-child { margin-top: 0; }
+        .cms-meta-item > :last-child, .cms-meta-panel > :last-child { margin-bottom: 0; }
+        .cms-meta img { max-width: 100%; height: auto; }
+        .cms-meta-tabs { display: block; }
+        .cms-meta-tabs > input { position: absolute; opacity: 0; pointer-events: none; }
+        .cms-meta-tabs > label { display: inline-block; padding: 8px 14px; border-bottom: 2px solid transparent; cursor: pointer; opacity: .65; }
+        .cms-meta-tabs > input:checked + label { border-bottom-color: currentColor; opacity: 1; }
+        .cms-meta-tabs > input:focus-visible + label { outline: 2px solid currentColor; outline-offset: 2px; }
+        .cms-meta-panel { display: none; padding-top: 16px; }
+        CSS;
+
     public function __construct(
         private BlockRepository $blockRepository,
         private Security $security,
         private RouterInterface $router,
         private RequestStack $requestStack,
-        private TranslatorInterface $translator
+        private TranslatorInterface $translator,
+        private VersionPreview $versionPreview,
+        private ImageStorage $imageStorage,
     ) {
     }
 
@@ -29,27 +87,21 @@ class BlockExtension extends AbstractExtension
     {
         return [
             new TwigFunction('cms_block', $this->cmsBlock(...), ['is_safe' => ['html']]),
+            new TwigFunction('cms_image', $this->cmsImage(...)),
+            new TwigFunction('cms_meta_choices', $this->metaChoices(...)),
+            new TwigFunction('cms_navigation_choices', $this->navigationChoices(...)),
+            new TwigFunction('cms_languages', $this->languages(...)),
+            new TwigFunction('cms_version_preview', $this->versionPreview->current(...)),
+            new TwigFunction('cms_published_version', $this->versionPreview->published(...)),
+            new TwigFunction('cms_draft_changes', $this->versionPreview->draftChanges(...)),
+            new TwigFunction('cms_uploads_path', $this->imageStorage->getPublicPath(...)),
+            new TwigFunction('cms_upload_max_size', $this->imageStorage->getMaxSize(...)),
         ];
     }
 
     public function cmsBlock(string $slug, bool $strict = false): ?string
     {
-        $locale = $this->translator->getLocale();
-        $fallbackLocales = $this->translator->getFallbackLocales();
-
-        $locales = [$locale, $fallbackLocales];
-
-        foreach ($locales as $language) {
-            $block = $this->blockRepository->findOneBy(['slug' => $slug, 'language' => $language]);
-
-            if ($block !== null) {
-                break;
-            }
-        }
-
-        if (empty($this->blockRepository->getExistingLanguages()) && $block === null) {
-            $block = $this->blockRepository->findOneBy(['slug' => $slug]);
-        }
+        $block = $this->resolveBlock($slug);
 
         if ($block === null) {
             if ($strict) {
@@ -57,34 +109,349 @@ class BlockExtension extends AbstractExtension
             }
 
             if ($this->security->isGranted(BlockController::$role)) {
-                $url = $this->router->generate('cms_block_new', ['slug' => $slug, 'typeName' => 'html']);
-                return '<div class="alert alert-danger">CMS Block <b>"' . $slug . '"</b> does not exist, <a href="' . $url . '">create it.</a></div>';
+                return $this->missingBlock($slug);
             }
 
             return null;
         }
 
-        $content = $block->getContent();
+        return $this->render($block);
+    }
 
-        $mainRequest = $this->requestStack->getMainRequest();
-        $debug = false;
+    /**
+     * Shown to the admins in place of a block that does not exist: a compact inline badge with a link to create it,
+     * styled inline so that it looks the same on any site (no CSS of the site or of the admin on its pages)
+     */
+    private function missingBlock(string $slug): string
+    {
+        $trans = fn (string $key) => htmlspecialchars($this->translator->trans('missing_block.'.$key, [], 'KibaticCmsBundle'));
 
-        if ($mainRequest !== null) {
-            $debug = $mainRequest->query->get('cms-debug');
+        return sprintf(
+            '<span data-cms-missing-block="%1$s" title="%2$s" style="display:inline-flex;align-items:center;gap:8px;flex-wrap:wrap;'
+            .'box-sizing:border-box;max-width:100%%;margin:2px 0;padding:4px 4px 4px 10px;border:1px dashed #f87171;border-radius:8px;'
+            .'background:#fef2f2;color:#991b1b;font:500 13px/1.4 system-ui,-apple-system,\'Segoe UI\',sans-serif;letter-spacing:normal;'
+            .'text-transform:none;text-align:left;text-shadow:none;vertical-align:middle;white-space:normal">'
+            .'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" '
+            .'stroke-linejoin="round" aria-hidden="true" style="flex:none"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/>'
+            .'<path d="M12 9v4"/><path d="M12 17h.01"/></svg>'
+            .'<span>%3$s</span>'
+            .'<code style="padding:1px 6px;border-radius:4px;background:#fee2e2;color:#7f1d1d;font:600 12px/1.4 ui-monospace,SFMono-Regular,Menlo,monospace">%1$s</code>'
+            // Not an <a>: the block is often inside a link of the site (title of the header…), and a link in a link
+            // is moved out of it by the browser
+            .'<span role="link" tabindex="0" data-href="%4$s" onclick="event.preventDefault();event.stopPropagation();location.href=this.dataset.href" '
+            .'onkeydown="if(event.key===\'Enter\'){this.click()}" style="padding:2px 10px;border-radius:6px;background:#dc2626;color:#fff;'
+            .'font-size:12px;font-weight:600;line-height:1.6;cursor:pointer">+ %5$s</span></span>',
+            htmlspecialchars($slug),
+            $trans('hint'),
+            $trans('title'),
+            htmlspecialchars($this->router->generate('cms_block_choose_type', ['slug' => $slug])),
+            $trans('create'),
+        );
+    }
 
-            if (!$debug && $mainRequest->hasPreviousSession()) {
-                $debug = $mainRequest->getSession()->get('cms-debug');
+    /**
+     * URL of the image of an image block, to use it in an attribute (src, background…); null when the block does not
+     * exist, e.g. {{ cms_image('home-photo') ?? asset('images/default.webp') }}
+     */
+    public function cmsImage(string $slug): ?string
+    {
+        $block = $this->resolveBlock($slug);
+
+        return null !== $block && 'image' === $block->getType() && '' !== (string) $block->getContent() ? $block->getContent() : null;
+    }
+
+    /**
+     * Block of the page's language, or of a fallback language, or shared by every language
+     */
+    private function resolveBlock(string $slug): ?Block
+    {
+        $locale = $this->translator->getLocale();
+        $fallbackLocales = $this->translator->getFallbackLocales();
+
+        // Then the block shared by every language (no language)
+        $locales = [$locale, $fallbackLocales, null];
+        $version = $this->versionPreview->displayed();
+
+        foreach ($locales as $language) {
+            $block = $this->findBlock($slug, $language);
+
+            if ($block !== null) {
+                break;
             }
         }
 
-        if ($debug && $this->security->isGranted(BlockController::$role)) {
-            return
-                '<div class="alert alert-info" title="Block : ' . $block->getSlug() . '">' .
-                    '<a class="btn btn-primary btn-sm float-end" href="' . $this->router->generate('cms_block_edit', ['id' => $block->getId()]) . '">✏️</a>' .
-                    $content .
-                '</div>';
+        $languages = null !== $version ? $version->getLanguages() : $this->blockRepository->getExistingLanguages();
+
+        if (empty($languages) && $block === null) {
+            $block = $this->findBlock($slug);
+        }
+
+        return $block;
+    }
+
+    private function render(Block $block): ?string
+    {
+        $content = match ($block->getType()) {
+            // A text block is plain text: "&" or "<" are displayed as typed
+            'text' => nl2br(htmlspecialchars((string) $block->getContent())),
+            'meta' => $this->renderMeta(MetaContent::fromJson($block->getContent())),
+            'navigation' => $this->renderNavigation(NavigationContent::fromJson($block->getContent())),
+            default => $block->getContent(),
+        };
+
+        // Styles of the block, scoped to it with CSS nesting; not for an image block, whose URL goes in an attribute
+        if (null !== $block->getStyles() && 'image' !== $block->getType()) {
+            $attribute = htmlspecialchars($block->getSlug());
+            $styles = isset($this->styled[$block->getSlug()]) ? '' : sprintf(
+                '<style>[data-cms-block="%s"] { %s }</style>',
+                addcslashes($block->getSlug(), '"\\'),
+                // No "<": the CSS cannot close its <style>
+                str_replace('<', '', $block->getStyles()),
+            );
+            $this->styled[$block->getSlug()] = true;
+            $content = $styles.'<div data-cms-block="'.$attribute.'">'.$content.'</div>';
+        }
+
+        // Debug mode: the block between two HTML comments, which take no room; the outlines are drawn over the page by
+        // the debug overlay (Debug\DebugOverlayListener). Not around an image block, whose URL goes in an attribute
+        if ('image' !== $block->getType() && $this->isDebug()) {
+            $info = json_encode([
+                'slug' => $block->getSlug(),
+                'language' => $block->getLanguage(),
+                'type' => $block->getType(),
+                // Blocks of a version have no id: nothing to edit
+                'url' => null !== $block->getId() ? $this->router->generate('cms_block_edit', ['id' => $block->getId()]) : null,
+            ], \JSON_UNESCAPED_UNICODE | \JSON_UNESCAPED_SLASHES | \JSON_HEX_TAG);
+
+            // "--" would end the comment
+            return '<!--kcms-block '.str_replace('--', '-\u002d', $info).'-->'.$content.'<!--/kcms-block-->';
         }
 
         return $content;
+    }
+
+    /**
+     * Debug mode of a CMS admin: toggled in the admin (BlockController::debug(), session), or ?cms-debug=1
+     */
+    public function isDebug(): bool
+    {
+        $request = $this->requestStack->getMainRequest();
+
+        if (null === $request || !$this->security->isGranted(BlockController::$role)) {
+            return false;
+        }
+
+        return (bool) ($request->query->get('cms-debug') ?: ($request->hasPreviousSession() && $request->getSession()->get('cms-debug')));
+    }
+
+    /**
+     * Blocks of a metablock with their layout; each one in the page's language, the missing ones (or metablocks) left
+     * out; its sub-metablocks with their own layout
+     */
+    private function renderMeta(MetaContent $meta): string
+    {
+        $id = 'cms-meta-'.++$this->metablocks;
+        // Read before the sub-metablocks are rendered: they count too
+        $html = 1 === $this->metablocks ? '<style>'.self::META_STYLES.$this->tabStyles().'</style>' : '';
+        $items = [];
+
+        foreach ($meta->items as $item) {
+            // Sub-metablock, saved inside this one
+            if (isset($item['meta'])) {
+                $items[] = ['title' => $this->localized($item['titles']) ?? '…', 'html' => $this->renderMeta($item['meta'])];
+
+                continue;
+            }
+
+            $block = $this->resolveBlock($item['slug']);
+
+            if (null !== $block && 'meta' !== $block->getType()) {
+                $items[] = [
+                    // Anchor of the block (e.g. a link to "#croquettes-recettes"), given to its first display in the page
+                    'id' => isset($this->anchors[$item['slug']]) ? null : $this->anchors[$item['slug']] = $item['slug'],
+                    'title' => $this->localized($item['titles']) ?? $item['slug'],
+                    // Shown as an image, as cms_block() gives the URL alone
+                    'html' => 'image' === $block->getType()
+                        ? '<img src="'.htmlspecialchars((string) $block->getContent()).'" alt="">'
+                        : (string) $this->render($block),
+                ];
+            }
+        }
+
+        if ('tabs' === $meta->layout) {
+            $html .= '<div class="cms-meta cms-meta-tabs">';
+            foreach ($items as $i => $item) {
+                $html .= sprintf('<input type="radio" name="%1$s" id="%1$s-%2$d"%3$s><label for="%1$s-%2$d">%4$s</label>', $id, $i, 0 === $i ? ' checked' : '', htmlspecialchars($item['title']));
+            }
+            foreach ($items as $item) {
+                $html .= '<div class="cms-meta-panel"'.self::idAttribute($item).'>'.$item['html'].'</div>';
+            }
+
+            return $html.'</div>';
+        }
+
+        $html .= sprintf('<div class="cms-meta cms-meta-%s"%s>', $meta->layout, 'columns' === $meta->layout ? ' style="--cms-meta-columns: '.$meta->columns.'"' : '');
+        foreach ($items as $item) {
+            $html .= '<div class="cms-meta-item"'.self::idAttribute($item).'>'.$item['html'].'</div>';
+        }
+
+        return $html.'</div>';
+    }
+
+    private static function idAttribute(array $item): string
+    {
+        return isset($item['id']) ? ' id="'.htmlspecialchars($item['id']).'"' : '';
+    }
+
+    /**
+     * The panel of the checked tab is shown: one rule per position (tabs: radio buttons, no JavaScript)
+     */
+    private function tabStyles(): string
+    {
+        return implode('', array_map(
+            fn (int $n) => ".cms-meta-tabs > input:nth-of-type($n):checked ~ .cms-meta-panel:nth-of-type($n) { display: block; }",
+            range(1, 20),
+        ));
+    }
+
+    /**
+     * Blocks a metablock can show, for its editor: one per slug, metablocks excluded
+     *
+     * @return array<string, string> type by slug
+     */
+    public function metaChoices(): array
+    {
+        $choices = [];
+        foreach ($this->blockRepository->findAll() as $block) {
+            if ('meta' !== $block->getType()) {
+                $choices[$block->getSlug()] ??= $block->getType();
+            }
+        }
+
+        return $choices;
+    }
+
+    /**
+     * Whether a block exists in the displayed version (page of a block: PageController)
+     */
+    public function exists(string $slug): bool
+    {
+        return null !== $this->resolveBlock($slug);
+    }
+
+    /**
+     * Menu of a navigation block: each entry in the page's language (else another one), linked to the page of its
+     * block; the entry of the current page is marked
+     */
+    private function renderNavigation(NavigationContent $navigation): string
+    {
+        $request = $this->requestStack->getMainRequest();
+        $currentSlug = 'cms_page' === $request?->attributes->get('_route') ? $request->attributes->get('slug') : null;
+
+        $list = function (array $items) use (&$list, $currentSlug): string {
+            $html = '<ul>';
+            foreach ($items as $item) {
+                $text = htmlspecialchars((string) $this->localized($item['labels']));
+                $url = null !== $item['slug'] ? $this->pageUrl($item['slug']) : null;
+                $html .= '<li>'.(null !== $url
+                    ? sprintf('<a href="%s"%s>%s</a>', htmlspecialchars($url), $item['slug'] === $currentSlug ? ' aria-current="page"' : '', $text)
+                    : '<span>'.$text.'</span>');
+                $html .= [] !== $item['children'] ? $list($item['children']) : '';
+                $html .= '</li>';
+            }
+
+            return $html.'</ul>';
+        };
+
+        $styles = $this->navigationStyled ? '' : '<style>'.self::NAVIGATION_STYLES.'</style>';
+        $this->navigationStyled = true;
+
+        return $styles.'<nav class="cms-nav">'.$list($navigation->items).'</nav>';
+    }
+
+    /**
+     * URL of the page of a block, null when the application does not import the pages (Resources/config/routing_pages.yaml):
+     * the entry is then a plain label
+     */
+    private function pageUrl(string $slug): ?string
+    {
+        try {
+            return $this->router->generate('cms_page', ['slug' => $slug]);
+        } catch (RouteNotFoundException) {
+            return null;
+        }
+    }
+
+    /**
+     * Text in the page's language, else in a fallback language, else for any language (""), else in any other one
+     *
+     * @param array<string, string> $texts by language code
+     */
+    private function localized(array $texts): ?string
+    {
+        foreach ([$this->translator->getLocale(), ...$this->translator->getFallbackLocales(), ''] as $locale) {
+            if (isset($texts[$locale])) {
+                return $texts[$locale];
+            }
+        }
+
+        return [] !== $texts ? reset($texts) : null;
+    }
+
+    /**
+     * Blocks a navigation entry can link to, for its editor: one per slug, navigation blocks excluded
+     *
+     * @return array<string, string> type by slug
+     */
+    public function navigationChoices(): array
+    {
+        $choices = [];
+        foreach ($this->blockRepository->findAll() as $block) {
+            if ('navigation' !== $block->getType()) {
+                $choices[$block->getSlug()] ??= $block->getType();
+            }
+        }
+
+        return $choices;
+    }
+
+    /**
+     * Languages of the labels of a navigation entry: those of the blocks, or "" when the site has none
+     *
+     * @return list<string>
+     */
+    public function languages(): array
+    {
+        return $this->blockRepository->getExistingLanguages() ?: [''];
+    }
+
+    public function reset(): void
+    {
+        $this->metablocks = 0;
+        $this->styled = [];
+        $this->navigationStyled = false;
+        $this->anchors = [];
+    }
+
+    /**
+     * Block of the displayed version (previewed or published, VersionPreview::displayed()), or else of the database
+     *
+     * @param string|list<string>|false|null $language false: any language
+     */
+    private function findBlock(string $slug, string|array|false|null $language = false): ?Block
+    {
+        $version = $this->versionPreview->displayed();
+
+        if (null === $version) {
+            return $this->blockRepository->findOneBy(false === $language ? ['slug' => $slug] : ['slug' => $slug, 'language' => $language]);
+        }
+
+        foreach ($version->getBlocks() as $block) {
+            if ($block->getSlug() === $slug && (false === $language || \in_array($block->getLanguage(), (array) $language, true) || $block->getLanguage() === $language)) {
+                return $block;
+            }
+        }
+
+        return null;
     }
 }

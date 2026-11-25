@@ -5,8 +5,10 @@ namespace Kibatic\CmsBundle\Controller;
 use Doctrine\ORM\EntityManagerInterface;
 use Kibatic\CmsBundle\BlockTypeChain;
 use Kibatic\CmsBundle\Entity\Block;
+use Kibatic\CmsBundle\Meta\MetaContent;
 use Kibatic\CmsBundle\Repository\BlockRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\Form\FormFactoryInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -17,7 +19,9 @@ class BlockController extends AbstractController
     public static string $role = 'ROLE_CMS';
 
     public function __construct(
-        private BlockRepository $blockRepository
+        private BlockRepository $blockRepository,
+        #[Autowire(param: 'kibatic_cms.ai.enabled')]
+        private bool $aiEnabled,
     ) {
     }
 
@@ -25,7 +29,7 @@ class BlockController extends AbstractController
     {
         $this->denyAccessUnlessGranted(self::$role);
 
-        $i18nDisplay = !empty($repository->getExistingLanguages());
+        $languages = $repository->getExistingLanguages();
 
         $blocks = $repository->findAll();
         $blockTypeNames = $blockTypeChain->getBlockTypeNames();
@@ -36,11 +40,43 @@ class BlockController extends AbstractController
             $blocksBySlug[$block->getSlug()][] = $block;
         }
 
+        // What each metablock shows, listed under it; the blocks made only for a metablock are hidden from the list,
+        // unless no metablock shows them any more
+        $metaItems = [];
+        $shown = [];
+        foreach ($blocks as $block) {
+            if ('meta' === $block->getType()) {
+                $meta = MetaContent::fromJson($block->getContent());
+                $metaItems[$block->getSlug()] = $meta->items;
+                $shown += array_fill_keys($meta->slugs(), true);
+            }
+        }
+
+        $hiddenSlugs = array_keys(array_filter($blocksBySlug, fn (array $blocks, string $slug) => isset($shown[$slug])
+            && [] === array_filter($blocks, fn (Block $block) => !$block->isMetaOnly()), \ARRAY_FILTER_USE_BOTH));
+
         return $this->render('@KibaticCms/block/index.html.twig', [
-            'i18nDisplay' => $i18nDisplay,
+            'i18nDisplay' => !empty($languages),
+            'languages' => $languages,
             'blocksBySlug' => $blocksBySlug,
+            'metaItems' => $metaItems,
+            'hiddenSlugs' => $hiddenSlugs,
             'blocks' => $blocks,
-            'blockTypeNames' => $blockTypeNames
+            'blockTypeNames' => $blockTypeNames,
+            'aiEnabled' => $this->aiEnabled,
+        ]);
+    }
+
+    /**
+     * Type of a new block with a given slug, e.g. from the badge of a missing block on a page (BlockExtension::missingBlock())
+     */
+    public function chooseType(Request $request, BlockTypeChain $blockTypeChain): Response
+    {
+        $this->denyAccessUnlessGranted(self::$role);
+
+        return $this->render('@KibaticCms/block/choose_type.html.twig', [
+            'slug' => $request->query->get('slug'),
+            'blockTypeNames' => $blockTypeChain->getBlockTypeNames(),
         ]);
     }
 
@@ -61,6 +97,13 @@ class BlockController extends AbstractController
             $block->setSlug($slug);
         }
 
+        // Prefilled by the "add translation" links; never for a shared block (Block::SHARED_TYPES)
+        $language = $request->query->get('language');
+
+        if ($language !== null && !\in_array($blockType::getBlockTypeName(), Block::SHARED_TYPES, true)) {
+            $block->setLanguage($language);
+        }
+
         $form = $this->createForm($blockType::class, $block, [
             'existing_languages' => $this->blockRepository->getExistingLanguages()
         ]);
@@ -72,12 +115,14 @@ class BlockController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             $entityManager->persist($block);
             $entityManager->flush();
+            $this->addFlash('kibatic_cms', 'flash.created');
 
-            return $this->redirectToRoute('cms_block_index');
+            return $this->redirectToRoute('cms_block_edit', ['id' => $block->getId()]);
         }
 
         return $this->render('@KibaticCms/block/new.html.twig', [
             'block' => $block,
+            'typeName' => $typeName,
             'form' => $form->createView(),
         ]);
     }
@@ -99,11 +144,16 @@ class BlockController extends AbstractController
 
         if ($editForm->isSubmitted() && $editForm->isValid()) {
             $entityManager->flush();
+            $this->addFlash('kibatic_cms', 'flash.saved');
+
             return $this->redirectToRoute('cms_block_edit', ['id' => $block->getId()]);
         }
 
         return $this->render('@KibaticCms/block/edit.html.twig', [
             'block' => $block,
+            'translations' => $this->blockRepository->findBySlug($block->getSlug()),
+            'aiEnabled' => $this->aiEnabled,
+            'languages' => $this->blockRepository->getExistingLanguages(),
             'edit_form' => $editForm->createView(),
             'delete_form' => $deleteForm->createView(),
         ]);
@@ -133,6 +183,8 @@ class BlockController extends AbstractController
 
             if ($editForm->isSubmitted() && $editForm->isValid()) {
                 $entityManager->flush();
+                $this->addFlash('kibatic_cms', 'flash.saved');
+
                 return $this->redirectToRoute('cms_block_edit_by_slug', ['slug' => $block->getSlug()]);
             }
         }
@@ -157,6 +209,7 @@ class BlockController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             $entityManager->remove($block);
             $entityManager->flush();
+            $this->addFlash('kibatic_cms', 'flash.deleted');
         }
 
         return $this->redirectToRoute('cms_block_index');
@@ -171,7 +224,7 @@ class BlockController extends AbstractController
     {
         return $this->container->get('form.factory')->createNamedBuilder('block_delete_' . $block->getId())
             ->setAction($this->generateUrl('cms_block_delete', ['id' => $block->getId()]))
-            ->setMethod('DELETE')
+            ->setMethod('POST')
             ->getForm()
         ;
     }
@@ -181,6 +234,10 @@ class BlockController extends AbstractController
         $session = $request->getSession();
         $session->set('cms-debug', !$session->get('cms-debug', false));
 
-        return $this->redirect($request->headers->get('referer'));
+        $referer = $request->headers->get('referer');
+
+        return $referer && parse_url($referer, \PHP_URL_HOST) === $request->getHost()
+            ? $this->redirect($referer)
+            : $this->redirectToRoute('cms_block_index');
     }
 }

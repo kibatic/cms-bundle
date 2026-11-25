@@ -1,0 +1,11 @@
+# Loaded when symfony/mcp-bundle is installed (KibaticCmsExtension), with tools.yaml: tools of the MCP clients only, and
+# the address of the server for the "Install on Claude" dialog. The application's MCP server exposes the tools if its
+# registry lists them, e.g. registry: ['App\Mcp\', 'Kibatic\CmsBundle\']
+services:
+    _defaults:
+        autowire: true
+        autoconfigure: true
+        public: false
+
+    Kibatic\CmsBundle\Ai\Tool\GuideTool: ~
+    Kibatic\CmsBundle\Ai\McpEndpoint: ~

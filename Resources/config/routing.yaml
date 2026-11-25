@@ -8,6 +8,11 @@ cms_block_show:
     controller: Kibatic\CmsBundle\Controller\BlockController::show
     methods: GET
 
+cms_block_choose_type:
+    path: /block/new
+    controller: Kibatic\CmsBundle\Controller\BlockController::chooseType
+    methods: GET
+
 cms_block_new:
     path: /block/{typeName}/new
     controller: Kibatic\CmsBundle\Controller\BlockController::new
@@ -28,9 +33,114 @@ cms_block_edit_by_slug:
 cms_block_delete:
     path: /cms/block/{id}/delete
     controller: Kibatic\CmsBundle\Controller\BlockController::delete
-    methods: DELETE
+    # POST: http_method_override is off by default since Symfony 7
+    methods: POST|DELETE
 
 cms_block_debug:
     path: /cms/debug
     controller: Kibatic\CmsBundle\Controller\BlockController::debug
     methods: GET
+
+cms_chat:
+    path: /cms/assistant
+    controller: Kibatic\CmsBundle\Controller\ChatController::index
+    methods: GET
+
+cms_chat_message:
+    path: /cms/assistant/message
+    controller: Kibatic\CmsBundle\Controller\ChatController::message
+    methods: POST
+
+cms_chat_reset:
+    path: /cms/assistant/reset
+    controller: Kibatic\CmsBundle\Controller\ChatController::reset
+    methods: POST
+
+cms_version_index:
+    path: /cms/versions
+    controller: Kibatic\CmsBundle\Controller\VersionController::index
+    methods: GET
+
+cms_version_create:
+    path: /cms/versions
+    controller: Kibatic\CmsBundle\Controller\VersionController::create
+    methods: POST
+
+cms_version_draft_name:
+    path: /cms/versions/draft/name
+    controller: Kibatic\CmsBundle\Controller\VersionController::draftName
+    methods: GET
+
+cms_version_publish_draft:
+    path: /cms/versions/draft/publish
+    controller: Kibatic\CmsBundle\Controller\VersionController::publishDraft
+    methods: POST
+
+cms_version_show_published:
+    path: /cms/versions/published/show
+    controller: Kibatic\CmsBundle\Controller\VersionController::showPublished
+    methods: POST
+
+cms_version_unpublish:
+    path: /cms/versions/unpublish
+    controller: Kibatic\CmsBundle\Controller\VersionController::unpublish
+    methods: POST
+
+cms_version_preview_exit:
+    path: /cms/versions/preview/exit
+    controller: Kibatic\CmsBundle\Controller\VersionController::exitPreview
+    methods: POST
+
+cms_version_show:
+    path: /cms/versions/{id}
+    controller: Kibatic\CmsBundle\Controller\VersionController::show
+    methods: GET
+    requirements:
+        id: '\d+'
+
+cms_version_restore:
+    path: /cms/versions/{id}/restore
+    controller: Kibatic\CmsBundle\Controller\VersionController::restore
+    methods: POST
+    requirements:
+        id: '\d+'
+
+cms_version_delete:
+    path: /cms/versions/{id}/delete
+    controller: Kibatic\CmsBundle\Controller\VersionController::delete
+    methods: POST
+    requirements:
+        id: '\d+'
+
+cms_version_preview:
+    path: /cms/versions/{id}/preview
+    controller: Kibatic\CmsBundle\Controller\VersionController::preview
+    methods: POST
+    requirements:
+        id: '\d+'
+
+cms_version_publish:
+    path: /cms/versions/{id}/publish
+    controller: Kibatic\CmsBundle\Controller\VersionController::publish
+    methods: POST
+    requirements:
+        id: '\d+'
+
+cms_upload_image:
+    path: /cms/uploads/image
+    controller: Kibatic\CmsBundle\Controller\UploadController::image
+    methods: POST
+
+cms_version_rename:
+    path: /cms/versions/{id}/rename
+    controller: Kibatic\CmsBundle\Controller\VersionController::rename
+    methods: POST
+    requirements:
+        id: '\d+'
+
+cms_version_edit_block:
+    path: /cms/versions/{id}/block
+    controller: Kibatic\CmsBundle\Controller\VersionController::editBlock
+    methods: GET|POST
+    requirements:
+        id: '\d+'

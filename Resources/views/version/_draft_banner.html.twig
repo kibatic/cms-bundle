@@ -1,0 +1,36 @@
+{#
+    Banner of the CMS admins on the site's pages while blocks were modified since the published version
+    (Version\PreviewBannerListener). Self-contained styles. Variables: mode ("draft": they see the draft,
+    "published": they see the published version), published, changes (number of blocks changed since)
+#}
+{% trans_default_domain 'KibaticCmsBundle' %}
+{% set csrf = csrf_token(constant('Kibatic\\CmsBundle\\Controller\\VersionController::CSRF_TOKEN_ID')) %}
+{% set button = 'padding: 7px 14px; border-radius: 8px; font: inherit; font-weight: 600; cursor: pointer;' %}
+<div class="kcms-draft-banner" role="status" style="position: fixed; left: 50%; bottom: 16px; z-index: 2147483000; transform: translateX(-50%);
+     display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 10px; width: max-content; max-width: calc(100vw - 32px);
+     padding: 10px 12px 10px 18px; border-radius: 14px; box-shadow: 0 12px 32px rgb(0 0 0 / 30%); font: 500 14px/1.4 system-ui, sans-serif;
+     {{ mode == 'draft' ? 'background: #78350f; color: #fff;' : 'background: #14532d; color: #fff;' }}">
+    <span>
+        {% if mode == 'draft' %}
+            {{ 'version.draft.banner'|trans({count: changes}) }}
+        {% else %}
+            {{ 'version.draft.banner_published'|trans({count: changes}) }}
+        {% endif %}
+        <a href="{{ path('cms_version_show', {id: published.id}) }}" style="color: #fde68a; font-weight: 700; text-decoration: underline;">{{ published.name ?? published.createdAt|date('format.datetime'|trans) }}</a>
+    </span>
+    {% if mode == 'draft' %}
+        <button type="button" data-kcms-publish-draft style="{{ button }} border: 0; background: #16a34a; color: #fff;">{{ 'version.draft.publish'|trans }}</button>
+        <form method="post" action="{{ path('cms_version_show_published') }}" style="margin: 0;">
+            <input type="hidden" name="_token" value="{{ csrf }}">
+            <button type="submit" style="{{ button }} border: 1px solid rgb(255 255 255 / 35%); background: transparent; color: #fff;">{{ 'version.draft.see_published'|trans }}</button>
+        </form>
+    {% else %}
+        <form method="post" action="{{ path('cms_version_preview_exit') }}" style="margin: 0;">
+            <input type="hidden" name="_token" value="{{ csrf }}">
+            <button type="submit" style="{{ button }} border: 1px solid rgb(255 255 255 / 35%); background: transparent; color: #fff;">{{ 'version.draft.see_draft'|trans }}</button>
+        </form>
+    {% endif %}
+</div>
+{% if mode == 'draft' %}
+    {% include '@KibaticCms/version/_publish_dialog.html.twig' %}
+{% endif %}

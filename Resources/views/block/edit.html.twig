@@ -1,34 +1,43 @@
 {% extends '@KibaticCms/layout.html.twig' %}
+{% trans_default_domain 'KibaticCmsBundle' %}
+{% import '@KibaticCms/_macros.html.twig' as kcms %}
 
-{% block content %}
-    <h1>Block edit</h1>
+{% block kcms_body %}
+    <nav class="kcms-crumbs"><a href="{{ path('cms_block_index') }}">{{ 'index.title'|trans }}</a><span>{{ block.slug }}</span></nav>
 
-    <section>
-
-        {% include '@KibaticCms/block/_form.html.twig' with {'form': edit_form} %}
-
-        {{ form_start(delete_form, {'attr': {
-            'id': delete_form.vars.id,
-            'onsubmit': 'return confirm(\'Are you sure ?\')'
-        }}) }}
-        {{ form_end(delete_form) }}
-
-        <div class="btn-group pull-right" role="group">
-            <a href="{{ path('cms_block_index') }}" class="btn btn-default">Back to the list</a>
-            <button type="submit" class="btn btn-danger" form="{{ delete_form.vars.id }}">Delete</button>
-            <button type="submit" class="btn btn-success" form="{{ edit_form.vars.id }}">Save</button>
+    <header class="kcms-head">
+        <div>
+            <h1 class="kcms-title"><span class="kcms-slug">{{ block.slug }}</span></h1>
+            <p class="kcms-subtitle">{{ kcms.type_badge(block.type) }} {{ 'edit.updated'|trans({date: block.updatedAt|date('format.datetime'|trans)}) }}</p>
         </div>
-    </section>
-{% endblock %}
+        <div class="kcms-head-actions">
+            {{ kcms.copy_snippet(block.slug) }}
+            {% if aiEnabled %}
+                <a href="{{ path('cms_chat', {'slug': block.slug}) }}" class="kcms-btn kcms-btn-sm">
+                    <svg class="kcms-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M9.9 15.5A2 2 0 0 0 8.5 14.1l-6.1-1.6a.5.5 0 0 1 0-1l6.1-1.6a2 2 0 0 0 1.4-1.4l1.6-6.1a.5.5 0 0 1 1 0l1.6 6.1a2 2 0 0 0 1.4 1.4l6.1 1.6a.5.5 0 0 1 0 1l-6.1 1.6a2 2 0 0 0-1.4 1.4l-1.6 6.1a.5.5 0 0 1-1 0Z"/></svg>
+                    {{ 'chat.ask'|trans }}
+                </a>
+            {% endif %}
+        </div>
+    </header>
 
-{% block stylesheets %}
-    {{ parent() }}
+    {# A shared block (Block::SHARED_TYPES) has no translation #}
+    {% if languages is not empty and not block.shared %}
+        {% set translatedLanguages = translations|map(t => t.language) %}
+        <nav class="kcms-tabs" aria-label="{{ 'edit.translations'|trans }}">
+            {% for translation in translations %}
+                <a href="{{ path('cms_block_edit', {'id': translation.id}) }}"
+                   class="kcms-tab{{ translation.id == block.id ? ' is-active' }}">{{ translation.language ?? 'language.all_long'|trans }}</a>
+            {% endfor %}
+            {% for language in languages|filter(l => l not in translatedLanguages) %}
+                <a href="{{ path('cms_block_new', {'typeName': block.type, 'slug': block.slug, 'language': language}) }}"
+                   class="kcms-tab kcms-tab-add" title="{{ 'index.add_translation'|trans({language: language}) }}">+ {{ language }}</a>
+            {% endfor %}
+            {% if translations|length > 1 %}
+                <a href="{{ path('cms_block_edit_by_slug', {'slug': block.slug}) }}" class="kcms-tab kcms-tab-end">{{ 'edit.side_by_side'|trans }}</a>
+            {% endif %}
+        </nav>
+    {% endif %}
 
-    {% include '@KibaticCms/_css.html.twig' %}
-{% endblock %}
-
-{% block javascripts %}
-    {{ parent() }}
-
-    {% include '@KibaticCms/_js.html.twig' %}
+    {% include '@KibaticCms/block/_editor.html.twig' with {'form': edit_form, 'submit_label': 'editor.save'} %}
 {% endblock %}

@@ -1,0 +1,359 @@
+format:
+    # PHP date() formats
+    date: 'M j, Y'
+    datetime: 'M j, Y, H:i'
+
+index:
+    title: Content blocks
+    blocks: '{count, plural, one {# block} other {# blocks}}'
+    languages: '{count, plural, one {# language} other {# languages}}'
+    debug: Debug mode
+    debug_help: Outlines every block on the site's pages, with a link to edit it
+    new: New block
+    filter: Filter by slug…
+    column:
+        slug: Slug
+        type: Type
+        languages: Languages
+        updated: Updated
+        actions: Actions
+    edit: Edit
+    add_translation: 'Add the {language} translation'
+    published: 'Public site: {name}'
+    type_filter: Filter by type
+    all_types: All types
+    expand: Show its blocks
+    sub_meta: Sub-metablock
+    missing: Block not found
+    no_match: No block matches this filter.
+    empty:
+        title: No content block yet
+        text: 'A block is a piece of content edited here and displayed in your templates with:'
+        choose: 'Choose its type to create the first one:'
+
+language:
+    all: all
+    all_long: All languages
+
+type:
+    custom: Custom block type
+    text:
+        name: Text
+        description: Plain text, no formatting
+        new: New text block
+    html:
+        name: HTML
+        description: Rich text with the visual editor
+        new: New HTML block
+    image:
+        name: Image
+        description: An image from the computer or from its URL
+        new: New image block
+    navigation:
+        name: Navigation
+        description: A menu of entries, each one leading to the page of a block
+        new: New navigation
+    meta:
+        name: Metablock
+        description: Existing blocks shown together, with a layout
+        new: New metablock
+    alert:
+        name: Alert
+        description: A coloured message box
+        new: New alert block
+
+copy:
+    label: Copy Twig
+    done: Copied
+    title: Copy the Twig code that displays this block
+
+new:
+    crumb: New block
+    title: 'New {type} block'
+    choose_type: Which type of block do you want to create?
+
+edit:
+    updated: 'Updated {date}'
+    translations: Translations
+    side_by_side: Side by side
+    by_slug: Every translation of this block, each saved on its own.
+
+# Shown on the site's pages to the CMS admins, in place of a block that does not exist
+missing_block:
+    title: Block not found
+    create: Create
+    hint: Only visible to CMS admins
+
+editor:
+    mode:
+        visual: Visual editor
+        json: JSON
+        invalid: "Invalid JSON, not saved:"
+        html: HTML
+        preview: Preview
+        html_warning: "The visual editor simplifies the HTML: typing in it would remove %list% from this block. Edit it in the HTML tab to keep them."
+        html_confirm: "Save the HTML simplified by the visual editor? It removed %list%, which may change the look of the block. Cancel, then use the HTML tab, to keep them."
+        json_help: "The content of the block, as saved. It is checked again when saved: unknown blocks, empty entries… are refused."
+    alignment: Text alignment
+    settings: Settings
+    created: Created
+    updated: Updated
+    save: Save
+    create: Create block
+    back: Back to the list
+    delete: Delete this block
+    delete_confirm: Delete this block? Pages that display it will show nothing in its place.
+    upload:
+        choose: Choose an image
+        drop: or drop it here
+        hint: 'PNG, JPG, GIF or WebP, {size} MB max.'
+        uploading: Uploading…
+        failed: The image could not be uploaded. Try again.
+        uploaded: Image from the computer
+        replace: Replace
+        remove: Remove
+        too_big: 'This image is too heavy: {size} MB max.'
+        not_image: This file is not an image.
+    preview:
+        alt: Preview
+        empty: The image preview shows up here.
+        broken: This URL does not load an image.
+
+form:
+    slug:
+        label: Slug
+        help: "Used in templates with cms_block('…'). Changing it breaks the pages that display this block."
+        placeholder: e.g. home-intro
+    language:
+        label: Language
+        help: Leave empty for a block shared by every language.
+        placeholder: All languages
+    content: Content
+    styles:
+        summary: Styles of the block (CSS)
+        label: CSS of this block only
+        help: "Declarations apply to the block itself, rules to its content (e.g. h2 '{' … '}'): it looks the same on every page that shows it. Use the site's CSS variables for its colors and fonts."
+    meta_only:
+        label: Only in a metablock
+        help: Hidden from the block list, it is listed under the metablocks that show it.
+    image_url:
+        label: Or the image URL
+        placeholder: https://… or /images/…
+    navigation:
+        entries: Entries of the menu
+        no_entry: No entry yet.
+        add: Add an entry
+        add_child: Add a sub-entry
+        label: Label
+        heading: "— Heading only (no page) —"
+        block: Page of the block
+        help: "Each entry leads to the page of its block (/page/…), in the site's layout; an entry without block is the heading of its sub-entries. Sub-entries are shown in drop-down menus."
+    meta:
+        layout: Layout
+        layouts:
+            stack: Stack
+            columns: Columns
+            grid: Grid
+            tabs: Tabs
+        columns: Number of columns
+        blocks: Blocks shown
+        no_block: No block yet. Add existing blocks below.
+        choose: Choose a block…
+        add: Add
+        up: Move up
+        down: Move down
+        title_placeholder: Title of the tab
+        missing: Block not found
+        help: Each block is shown in the page's language; editing it changes it in every metablock that shows it. A sub-metablock is saved in this metablock only, and contains existing blocks only.
+        add_group: Add a sub-metablock
+        group: Sub-metablock
+        group_title_placeholder: Title of the tab
+        group_empty: Add at least one block to it.
+    alert:
+        label: Alert
+        type: Type
+        message: Message
+        success: Success
+        info: Info
+        warning: Warning
+        danger: Danger
+
+flash:
+    created: Block created.
+    saved: Block saved.
+    deleted: Block deleted.
+    version_taken: Version saved.
+    version_restored: Version restored. The previous blocks are in the version "Before restoring…".
+    version_deleted: Version deleted.
+    version_renamed: Version renamed.
+    version_block_saved: Block of the version saved.
+    draft_published: "Draft published: the visitors see it."
+    version_taken_published: Version saved and published.
+    version_published: "Version published: the site shows its blocks."
+    version_unpublished: "Version unpublished: the site shows the current blocks."
+
+
+chat:
+    mcp:
+        open: Install on Claude
+        title: Install on Claude
+        close: Close
+        intro: "The CMS's tools in Claude, with your account: read and modify the blocks, metablocks and menus. Versions are still published here."
+        password: 'Password of "{user}"'
+        password_help: It is only used to write the commands below, in this page; it is sent nowhere.
+        copy: Copy
+        desktop_mac: "In the Terminal, then quit Claude Desktop (Cmd+Q) and open it again. Node.js must be installed."
+        desktop_windows: "In PowerShell, then quit Claude Desktop and open it again. Node.js must be installed."
+    proposal:
+        name: Name of the version
+        cancel: Cancel
+        cancelled: Cancelled.
+        failed: The action failed. Try again from the versions page.
+        save:
+            title: Save a version
+            help: The current blocks will be saved in a new version, not published.
+            button: Save the version
+            done: Version saved.
+        publish_draft:
+            title: Publish the draft
+            help: '{count, plural, =0 {The visitors will see the current blocks.} one {# change will be online: the visitors will see the current blocks.} other {# changes will be online: the visitors will see the current blocks.}}'
+            button: Publish
+            done: "Draft published: the visitors see it."
+        publish:
+            title: 'Publish the version "{name}"'
+            help: The visitors will see the blocks of this version.
+            button: Publish
+            done: Version published.
+        restore:
+            title: 'Restore the version "{name}"'
+            help: Its blocks will replace the current blocks (the draft); the current blocks are saved in a version first.
+            button: Restore
+            done: Version restored.
+        unpublish:
+            title: Unpublish
+            help: The visitors will see the current blocks, with every change made since.
+            button: Unpublish
+            done: Version unpublished.
+    title: Assistant
+    tool:
+        cms_list_blocks: Reading the list of the blocks
+        cms_get_block: 'Reading the block "{slug}"'
+        cms_save_block: 'Saving the block "{slug}"'
+        cms_save_metablock: 'Saving the metablock "{slug}"'
+        cms_list_versions: Reading the versions
+        cms_propose_version_action: Preparing a confirmation
+        cms_save_navigation: 'Saving the navigation "{slug}"'
+        other: 'Using the tool {name}'
+    subtitle: Ask the AI to write, modify or translate blocks.
+    ask: Ask the assistant
+    about_block: 'About the block "{slug}": '
+    reset: New conversation
+    empty: "The assistant reads and saves the blocks for you. For example:"
+    suggestion:
+        list: What blocks are there?
+        create: Write a short "About us" block in HTML
+        translate: Translate the missing blocks into English
+    placeholder: Your message…
+    send: Send
+    attach: Join images (or paste them, drop them here)
+    hint: "Enter to send, Shift+Enter for a new line. The AI can make mistakes: check the blocks it saves."
+    created: Created
+    saved: Modified
+    error:
+        csrf: The page has expired, reload it.
+        empty: Write a message.
+        model: The AI did not answer. Try again in a moment.
+        cut: "The connection was cut, but your request goes on: reload the page in a moment to see the answer."
+
+version:
+    title: Versions
+    rename: Rename
+    edit_block:
+        button: Edit
+        back: Back to the version
+        subtitle: 'In the version "{name}"'
+        published_warning: "This version is published: your changes are online as soon as they are saved."
+    subtitle: Save every block at once, to compare, preview, publish or restore them later.
+    take: Save a version
+    take_publish: Save and publish
+    name: Name (optional)
+    suggest: Suggest
+    suggest_thinking: Looking for a name…
+    suggest_help: The AI suggests a short name from what changed since the last version
+    suggest_none: No suggestion (no change since the last version, or the AI did not answer).
+    name_placeholder: e.g. Before the summer redesign
+    unnamed: Version
+    before_restore: 'Before restoring "{name}"'
+    column:
+        name: Name
+        date: Date
+        blocks: Blocks
+        size: Size
+    size: '{size, number} KB'
+    details: Details
+    preview: Preview
+    preview_help: Shows the site with the blocks of this version, for you only
+    previewing: Previewing
+    published: Published
+    publish: Publish
+    publish_help: The site will show the blocks of this version, whatever the changes made since
+    publish_confirm: Publish? The site will show the blocks of this version; your next changes will not be online until you publish again.
+    unpublish: Unpublish
+    unpublish_confirm: Unpublish? The site will show the current blocks, with every change made since.
+    restore: Restore
+    restore_help: Puts the blocks of this version back in the admin, to modify them
+    restore_confirm: Replace every block with those of this version? The current blocks are saved in a version first.
+    delete: Delete
+    delete_confirm: Delete this version? The blocks are not changed.
+    exit_preview: Exit the preview
+    banner: 'Preview, for you only, of the version'
+    in_version: In the version
+    now: Now
+    no_block: This version has no block.
+    public:
+        live: 'Public site: current blocks, live'
+        live_help: No version is published, each change is visible right away. Publish a version to choose what the visitors see.
+        version: 'Public site: version'
+        version_help: 'Published on {date}. The changes made since are a draft, not online: publish it to put them online.'
+    draft:
+        name: Draft
+        unpublished: Not published
+        date: Changes in progress
+        changes: '{count, plural, one {# change not published} other {# changes not published}}'
+        see_changes: Changes
+        banner: '{count, plural, one {Draft preview: # change not published yet. The visitors see} other {Draft preview: # changes not published yet. The visitors see}}'
+        banner_published: '{count, plural, one {Published version, as the visitors see it (the draft has # change):} other {Published version, as the visitors see it (the draft has # changes):}}'
+        publish: Publish the draft
+        publish_confirm: Publish the draft? The visitors will see the current blocks, saved in a new version.
+        see_published: See the published version
+        see_draft: See the draft
+        dialog_help: '{count, plural, one {# change since the published version. The visitors will see the current blocks.} other {# changes since the published version. The visitors will see the current blocks.}}'
+        dialog_name: Name of the version
+        dialog_thinking: The AI is looking for a name…
+        dialog_suggested: Name suggested by the AI, change it if you want.
+        dialog_no_suggestion: No suggestion from the AI, change the name if you want.
+        dialog_cancel: Cancel
+    draft_name: 'Publication of {date}'
+    status:
+        modified: Modified
+        added: Added
+        removed: Deleted
+        unchanged: Unchanged
+    row_status:
+        modified: Modified
+        added: Added
+        removed: Deleted
+        unchanged: Unchanged
+    status_help:
+        modified: since the version, put back by a restore
+        added: since the version, deleted by a restore
+        removed: since the version, brought back by a restore
+        unchanged: since the version
+    empty:
+        title: No version yet
+        text: Save one before big changes, to be able to come back to it.
+
+debug:
+    pill: Debug mode
+    leave: Leave
+    edit: Edit this block

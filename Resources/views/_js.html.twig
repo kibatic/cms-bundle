@@ -1,16 +1,24 @@
 <script src="https://cdn.jsdelivr.net/gh/mdbassit/Wysi@latest/dist/wysi.min.js"></script>
+{# Code editor of the CSS of the blocks and of the JSON of the metablocks and navigations #}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/css/css.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/javascript/javascript.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/xml/xml.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/htmlmixed/htmlmixed.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/matchbrackets.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/closebrackets.min.js"></script>
 <script>
     document.addEventListener("DOMContentLoaded", function() {
         Wysi({
-            el: '.wysiwyg',
-            darkMode: true,
+            el: '.kcms .wysiwyg',
+            darkMode: false,
             height: 300,
             autoGrow: true,
             autoHide: false,
             tools: [
                 'format', '|',
                 'bold', 'italic', 'underline', 'strike', '|',
-                {label: 'Text alignment', items: ['alignLeft', 'alignCenter', 'alignRight', 'alignJustify']}, '|',
+                {label: '{{ 'editor.alignment'|trans({}, 'KibaticCmsBundle')|e('js') }}', items: ['alignLeft', 'alignCenter', 'alignRight', 'alignJustify']}, '|',
                 'ul', 'ol', '|',
                 'indent', 'outdent', '|',
                 'link', 'image', 'hr', 'quote', '|',
@@ -18,5 +26,686 @@
             ],
             onChange: (content) => {}
         });
+
+        // Block list: filter by slug and by type
+        const filter = document.querySelector('[data-kcms-filter]');
+        if (filter) {
+            const typeFilter = document.querySelector('[data-kcms-type-filter]');
+            const rows = document.querySelectorAll('[data-kcms-slug]');
+            const noMatch = document.querySelector('[data-kcms-no-match]');
+            // Rows of what a metablock shows: visible when it is, and expanded
+            const showSubRows = () => document.querySelectorAll('[data-kcms-expand]').forEach(button => {
+                const expanded = button.getAttribute('aria-expanded') === 'true' && !button.closest('tr').hidden;
+                document.querySelectorAll(`[data-kcms-parent="${CSS.escape(button.dataset.kcmsExpand)}"]`).forEach(row => row.hidden = !expanded);
+            });
+            const apply = () => {
+                const query = filter.value.trim().toLowerCase();
+                let visible = 0;
+                rows.forEach(row => {
+                    const match = row.dataset.kcmsSlug.toLowerCase().includes(query) && (!typeFilter.value || row.dataset.kcmsType === typeFilter.value);
+                    row.hidden = !match;
+                    visible += match;
+                });
+                noMatch.hidden = visible > 0;
+                showSubRows();
+            };
+            filter.addEventListener('input', apply);
+            typeFilter.addEventListener('change', apply);
+            document.querySelectorAll('[data-kcms-expand]').forEach(button => button.addEventListener('click', () => {
+                button.setAttribute('aria-expanded', button.getAttribute('aria-expanded') === 'true' ? 'false' : 'true');
+                showSubRows();
+            }));
+        }
+
+        // "New block" menu: closes on a click outside or with Escape
+        document.querySelectorAll('.kcms-menu').forEach(menu => {
+            document.addEventListener('click', event => menu.contains(event.target) || menu.removeAttribute('open'));
+            document.addEventListener('keydown', event => event.key === 'Escape' && menu.removeAttribute('open'));
+        });
+
+        // "Copy Twig" buttons
+        document.querySelectorAll('[data-kcms-copy]').forEach(button => {
+            button.addEventListener('click', () => {
+                navigator.clipboard.writeText(button.dataset.kcmsCopy).then(() => {
+                    const label = button.querySelector('[data-kcms-copy-label]');
+                    const text = label.textContent;
+                    label.textContent = button.dataset.kcmsCopyDone;
+                    button.classList.add('is-done');
+                    setTimeout(() => {
+                        label.textContent = text;
+                        button.classList.remove('is-done');
+                    }, 1500);
+                });
+            });
+        });
+
+        // Image blocks: image from the computer, uploaded, its URL put in the URL field (block/_image_upload.html.twig)
+        document.querySelectorAll('[data-kcms-upload]').forEach(upload => {
+            const urlInput = upload.closest('form').querySelector('[data-kcms-image-url]');
+            const urlRow = urlInput.parentElement;
+            const fileInput = upload.querySelector('[data-kcms-upload-input]');
+            const dropzone = upload.querySelector('[data-kcms-dropzone]');
+            const fileBox = upload.querySelector('[data-kcms-upload-file]');
+            const name = upload.querySelector('[data-kcms-upload-name]');
+            const error = upload.querySelector('[data-kcms-upload-error]');
+            const kilobytes = new Intl.NumberFormat(document.documentElement.lang || undefined, {style: 'unit', unit: 'kilobyte', maximumFractionDigits: 0});
+
+            const show = (fileName, size) => {
+                // Uploaded image, or image saved inside the block before (data: URL)
+                const isFile = urlInput.value.startsWith(upload.dataset.kcmsUploadsPath) || urlInput.value.startsWith('data:');
+                upload.classList.toggle('has-file', isFile);
+                fileBox.hidden = !isFile;
+                urlRow.hidden = isFile;
+                if (isFile) {
+                    name.textContent = (fileName ?? name.dataset.kcmsUploaded) + (size ? ' · ' + kilobytes.format(size / 1024) : '');
+                }
+            };
+            const setValue = (value, fileName, size) => {
+                urlInput.value = value;
+                urlInput.dispatchEvent(new Event('input', {bubbles: true}));
+                show(fileName, size);
+            };
+            const fail = (message) => {
+                error.textContent = message;
+                error.hidden = false;
+            };
+            const read = async (file) => {
+                error.hidden = true;
+                if (!file.type.startsWith('image/')) {
+                    return fail(upload.dataset.kcmsNotImage);
+                }
+                if (file.size > upload.dataset.kcmsMaxSize) {
+                    return fail(upload.dataset.kcmsTooBig);
+                }
+                fail(upload.dataset.kcmsUploading);
+                error.classList.add('is-pending');
+                try {
+                    const body = new FormData();
+                    body.append('file', file);
+                    const response = await fetch(upload.dataset.kcmsUploadUrl, {method: 'POST', headers: {'X-CSRF-Token': upload.dataset.kcmsCsrf}, body});
+                    const data = await response.json();
+                    if (!response.ok) {
+                        return fail(data.error ?? upload.dataset.kcmsFailed);
+                    }
+                    error.hidden = true;
+                    setValue(data.url, data.name, data.size);
+                } catch (exception) {
+                    fail(upload.dataset.kcmsFailed);
+                } finally {
+                    error.classList.remove('is-pending');
+                }
+            };
+
+            fileInput.addEventListener('change', () => {
+                fileInput.files.length && read(fileInput.files[0]);
+                fileInput.value = '';
+            });
+            upload.querySelector('[data-kcms-upload-remove]').addEventListener('click', () => setValue(''));
+            dropzone.addEventListener('dragover', event => {
+                event.preventDefault();
+                dropzone.classList.add('is-over');
+            });
+            dropzone.addEventListener('dragleave', () => dropzone.classList.remove('is-over'));
+            dropzone.addEventListener('drop', event => {
+                event.preventDefault();
+                dropzone.classList.remove('is-over');
+                event.dataTransfer.files.length && read(event.dataTransfer.files[0]);
+            });
+            // Ctrl+V of a copied image, anywhere on the page
+            document.addEventListener('paste', event => {
+                const file = [...event.clipboardData.files].find(f => f.type.startsWith('image/'));
+                if (file) {
+                    event.preventDefault();
+                    read(file);
+                }
+            });
+            show();
+        });
+
+        // Metablocks: layout and blocks, written in JSON in the hidden content field (block/_meta_editor.html.twig).
+        // An item is an existing block {slug, title}, or a sub-metablock {title, layout, columns, items} with blocks only
+        document.querySelectorAll('[data-kcms-meta-editor]').forEach(editor => {
+            const field = editor.closest('form').querySelector('[data-kcms-meta-content]');
+            const choices = JSON.parse(editor.dataset.kcmsChoices);
+            const layouts = JSON.parse(editor.dataset.kcmsLayouts);
+            const columnsChoices = JSON.parse(editor.dataset.kcmsColumnsChoices);
+            const text = editor.dataset;
+            const list = editor.querySelector('[data-kcms-meta-items]');
+            const columns = editor.querySelector('[data-kcms-meta-columns]');
+            const choice = editor.querySelector('[data-kcms-meta-choice]');
+            const languages = JSON.parse(text.kcmsLanguages);
+            let meta = {layout: 'stack', columns: 2, items: []};
+            try {
+                meta = {...meta, ...JSON.parse(field.value || '{}')};
+            } catch (exception) {}
+            const escape = value => String(value).replace(/[&<>"']/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'})[c]);
+            const isGroup = item => Array.isArray(item.items);
+            // Titles by language; a single title (metablock saved before the translated titles) is the title of every language
+            const withTitles = item => {
+                const single = item.titles?.[''] ?? (typeof item.title === 'string' ? item.title : null);
+                const titles = {...(item.titles ?? {})};
+                delete titles[''];
+                if (single) {
+                    languages.forEach(language => titles[language] ??= single);
+                }
+                const {title, ...rest} = item;
+                return {...rest, titles, ...(isGroup(item) ? {items: item.items.map(withTitles)} : {})};
+            };
+            meta.items = meta.items.map(withTitles);
+            const save = () => {
+                field.value = JSON.stringify(meta);
+                field.dispatchEvent(new Event('input', {bubbles: true}));
+            };
+            // List and index of the item of a path ("2" or "2.1": block 1 of the sub-metablock 2)
+            const locate = path => {
+                const [index, sub] = path.split('.').map(Number);
+                return sub === undefined || Number.isNaN(sub) ? [meta.items, index] : [meta.items[index].items, sub];
+            };
+            const options = (values, selected, label) => values.map(value =>
+                `<option value="${escape(value)}"${String(value) === String(selected) ? ' selected' : ''}>${escape(label(value))}</option>`).join('');
+            const actions = (path, index, count) => `
+                <span class="kcms-meta-actions">
+                    <button type="button" data-action="up" data-path="${path}" title="${escape(text.kcmsUp)}" aria-label="${escape(text.kcmsUp)}" ${index === 0 ? 'disabled' : ''}>↑</button>
+                    <button type="button" data-action="down" data-path="${path}" title="${escape(text.kcmsDown)}" aria-label="${escape(text.kcmsDown)}" ${index === count - 1 ? 'disabled' : ''}>↓</button>
+                    <button type="button" data-action="remove" data-path="${path}" title="${escape(text.kcmsRemove)}" aria-label="${escape(text.kcmsRemove)}">×</button>
+                </span>`;
+            // Titles of an item, one per language: label of its tab, when its metablock is in tabs
+            const title = (item, path, tabs, placeholder) => `<span class="kcms-meta-titles${tabs ? '' : ' is-hidden'}">${languages.map(language => `
+                <label class="kcms-meta-title-label">${language ? `<span class="kcms-chip">${escape(language)}</span>` : ''}
+                    <input type="text" class="kcms-meta-title" data-action="title" data-path="${path}" data-language="${escape(language)}"
+                           value="${escape(item.titles[language] ?? '')}" placeholder="${escape(placeholder)}" maxlength="80"></label>`).join('')}</span>`;
+            const blockRow = (item, path, index, count, tabs) => `
+                <li class="kcms-meta-item${item.slug in choices ? '' : ' is-missing'}">
+                    <span class="kcms-meta-position">${index + 1}</span>
+                    <span class="kcms-slug">${escape(item.slug)}</span>
+                    ${item.slug in choices ? `<span class="kcms-badge">${escape(choices[item.slug])}</span>` : `<span class="kcms-meta-missing">${escape(text.kcmsMissing)}</span>`}
+                    ${title(item, path, tabs, text.kcmsTitlePlaceholder)}
+                    ${actions(path, index, count)}
+                </li>`;
+            const addRow = path => `
+                <div class="kcms-meta-add">
+                    <select data-group-choice="${path}" aria-label="${escape(text.kcmsChoose)}">
+                        <option value="">${escape(text.kcmsChoose)}</option>${options(Object.keys(choices), '', slug => slug + ' (' + choices[slug] + ')')}
+                    </select>
+                    <button type="button" class="kcms-btn kcms-btn-sm" data-action="add-to-group" data-path="${path}">${escape(text.kcmsAdd)}</button>
+                </div>`;
+            const groupRow = (item, index, count, tabs) => `
+                <li class="kcms-meta-group">
+                    <div class="kcms-meta-group-head">
+                        <span class="kcms-meta-position">${index + 1}</span>
+                        <strong>${escape(text.kcmsGroup)}</strong>
+                        ${title(item, String(index), tabs, text.kcmsGroupTitlePlaceholder)}
+                        ${actions(String(index), index, count)}
+                    </div>
+                    <div class="kcms-meta-group-settings">
+                        <div class="kcms-meta-layout-list is-small" role="radiogroup" aria-label="${escape(text.kcmsLayout)}">
+                            ${Object.keys(layouts).map(layout => `
+                                <label class="kcms-meta-layout">
+                                    <input type="radio" name="kcms-meta-group-layout-${index}" value="${layout}" data-action="group-layout" data-path="${index}"${layout === item.layout ? ' checked' : ''}>
+                                    <span class="kcms-meta-preview kcms-meta-preview-${layout}" aria-hidden="true"><i></i><i></i><i></i></span>
+                                    <strong>${escape(layouts[layout])}</strong>
+                                </label>`).join('')}
+                        </div>
+                        <label class="kcms-meta-columns"${item.layout === 'columns' ? '' : ' hidden'}>
+                            ${escape(text.kcmsColumns)}
+                            <select data-action="group-columns" data-path="${index}">${options(columnsChoices, item.columns, n => n)}</select>
+                        </label>
+                    </div>
+                    <ol class="kcms-meta-items">${item.items.map((child, sub) => blockRow(child, index + '.' + sub, sub, item.items.length, item.layout === 'tabs')).join('')}</ol>
+                    ${item.items.length ? '' : `<p class="kcms-meta-missing kcms-meta-group-empty">${escape(text.kcmsGroupEmpty)}</p>`}
+                    ${addRow(index)}
+                </li>`;
+            const draw = () => {
+                editor.querySelectorAll('[data-kcms-meta-layout]').forEach(radio => radio.checked = radio.value === meta.layout);
+                editor.querySelector('[data-kcms-meta-columns-row]').hidden = meta.layout !== 'columns';
+                columns.value = meta.columns;
+                editor.querySelector('[data-kcms-meta-empty]').hidden = meta.items.length > 0;
+                list.innerHTML = meta.items.map((item, index) => isGroup(item)
+                    ? groupRow(item, index, meta.items.length, meta.layout === 'tabs')
+                    : blockRow(item, String(index), index, meta.items.length, meta.layout === 'tabs')).join('');
+            };
+            const change = () => {
+                save();
+                draw();
+            };
+            editor.querySelectorAll('[data-kcms-meta-layout]').forEach(radio => radio.addEventListener('change', () => {
+                meta.layout = radio.value;
+                change();
+            }));
+            columns.addEventListener('change', () => {
+                meta.columns = Number(columns.value);
+                save();
+            });
+            editor.querySelector('[data-kcms-meta-add]').addEventListener('click', () => {
+                if (choice.value) {
+                    meta.items.push({slug: choice.value, titles: {}});
+                    choice.value = '';
+                    change();
+                }
+            });
+            editor.querySelector('[data-kcms-meta-add-group]').addEventListener('click', () => {
+                meta.items.push({titles: {}, layout: 'columns', columns: 2, items: []});
+                change();
+            });
+            list.addEventListener('click', event => {
+                const button = event.target.closest('button[data-action]');
+                if (!button) {
+                    return;
+                }
+                const path = button.dataset.path;
+                if (button.dataset.action === 'add-to-group') {
+                    const select = list.querySelector(`[data-group-choice="${path}"]`);
+                    if (select.value) {
+                        meta.items[Number(path)].items.push({slug: select.value, titles: {}});
+                        change();
+                    }
+                    return;
+                }
+                const [items, index] = locate(path);
+                const move = {up: -1, down: 1}[button.dataset.action];
+                if (move) {
+                    [items[index], items[index + move]] = [items[index + move], items[index]];
+                } else {
+                    items.splice(index, 1);
+                }
+                change();
+            });
+            list.addEventListener('change', event => {
+                const action = event.target.dataset.action;
+                if (action === 'group-layout' || action === 'group-columns') {
+                    const group = meta.items[Number(event.target.dataset.path)];
+                    action === 'group-layout' ? group.layout = event.target.value : group.columns = Number(event.target.value);
+                    change();
+                }
+            });
+            list.addEventListener('input', event => {
+                if (event.target.dataset.action === 'title') {
+                    const [items, index] = locate(event.target.dataset.path);
+                    const titles = items[index].titles;
+                    event.target.value.trim() ? titles[event.target.dataset.language] = event.target.value : delete titles[event.target.dataset.language];
+                    save();
+                }
+            });
+            // JSON edited by hand (JSON tab): read again
+            field.addEventListener('kcms:reload', () => {
+                try {
+                    meta = {layout: 'stack', columns: 2, items: [], ...JSON.parse(field.value || '{}')};
+                } catch (exception) {}
+                meta.items = (Array.isArray(meta.items) ? meta.items : []).filter(item => item && typeof item === 'object').map(withTitles);
+                draw();
+            });
+            // Normalized right away, without marking the form as modified
+            field.value = JSON.stringify(meta);
+            draw();
+        });
+
+        // Navigation blocks: tree of entries, written in JSON in the hidden content field (block/_navigation_editor.html.twig).
+        // An entry: {labels: {language: label}, slug (block of its page, null: heading only), children: [entries]}
+        document.querySelectorAll('[data-kcms-navigation-editor]').forEach(editor => {
+            const field = editor.closest('form').querySelector('[data-kcms-navigation-content]');
+            const text = editor.dataset;
+            const choices = JSON.parse(text.kcmsChoices);
+            const languages = JSON.parse(text.kcmsLanguages);
+            const tree = editor.querySelector('[data-kcms-navigation-items]');
+            let navigation = {items: []};
+            try {
+                navigation = {...navigation, ...JSON.parse(field.value || '{}')};
+            } catch (exception) {}
+            const escape = value => String(value).replace(/[&<>"']/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'})[c]);
+            const newEntry = () => ({labels: {}, slug: null, children: []});
+            // List and index of the entry of a path ("0.2.1": entry 1 of the entry 2 of the entry 0)
+            const locate = path => {
+                const indexes = path.split('.').map(Number);
+                let list = navigation.items;
+                indexes.slice(0, -1).forEach(index => list = list[index].children);
+                return [list, indexes.at(-1)];
+            };
+            const button = (action, path, label, symbol, disabled = false) =>
+                `<button type="button" data-action="${action}" data-path="${path}" title="${escape(label)}" aria-label="${escape(label)}"${disabled ? ' disabled' : ''}>${symbol}</button>`;
+            const entries = (items, prefix) => items.map((item, index) => {
+                const path = prefix + index;
+                const slugOptions = [`<option value="">${escape(text.kcmsHeading)}</option>`,
+                    ...Object.entries(choices).map(([slug, label]) => `<option value="${escape(slug)}"${slug === item.slug ? ' selected' : ''}>${escape(label)}</option>`)];
+                if (item.slug && !(item.slug in choices)) {
+                    slugOptions.push(`<option value="${escape(item.slug)}" selected>${escape(item.slug)} (${escape(text.kcmsMissing)})</option>`);
+                }
+                return `
+                    <li class="kcms-nav-entry">
+                        <div class="kcms-nav-row${item.slug && !(item.slug in choices) ? ' is-missing' : ''}">
+                            <div class="kcms-nav-labels">
+                                ${languages.map(language => `<label class="kcms-nav-label">${language ? `<span class="kcms-chip">${escape(language)}</span>` : ''}
+                                    <input type="text" maxlength="80" data-action="label" data-path="${path}" data-language="${escape(language)}"
+                                           value="${escape(item.labels[language] ?? '')}" placeholder="${escape(text.kcmsLabel)}"></label>`).join('')}
+                            </div>
+                            <select data-action="slug" data-path="${path}" aria-label="${escape(text.kcmsBlockLabel)}">${slugOptions.join('')}</select>
+                            <span class="kcms-meta-actions">
+                                ${button('add-child', path, text.kcmsAddChild, '+')}
+                                ${button('up', path, text.kcmsUp, '↑', index === 0)}
+                                ${button('down', path, text.kcmsDown, '↓', index === items.length - 1)}
+                                ${button('remove', path, text.kcmsRemove, '×')}
+                            </span>
+                        </div>
+                        ${item.children.length ? `<ol class="kcms-nav-tree">${entries(item.children, path + '.')}</ol>` : ''}
+                    </li>`;
+            }).join('');
+            const save = () => {
+                field.value = JSON.stringify(navigation);
+                field.dispatchEvent(new Event('input', {bubbles: true}));
+            };
+            const draw = () => {
+                tree.innerHTML = entries(navigation.items, '');
+                editor.querySelector('[data-kcms-navigation-empty]').hidden = navigation.items.length > 0;
+            };
+            editor.querySelector('[data-kcms-navigation-add]').addEventListener('click', () => {
+                navigation.items.push(newEntry());
+                save();
+                draw();
+                tree.querySelector(':scope > li:last-child input')?.focus();
+            });
+            tree.addEventListener('click', event => {
+                const target = event.target.closest('button[data-action]');
+                if (!target) {
+                    return;
+                }
+                const [list, index] = locate(target.dataset.path);
+                const move = {up: -1, down: 1}[target.dataset.action];
+                if (target.dataset.action === 'add-child') {
+                    list[index].children.push(newEntry());
+                } else if (move) {
+                    [list[index], list[index + move]] = [list[index + move], list[index]];
+                } else {
+                    list.splice(index, 1);
+                }
+                save();
+                draw();
+            });
+            tree.addEventListener('input', event => {
+                if (event.target.dataset.action === 'label') {
+                    const [list, index] = locate(event.target.dataset.path);
+                    const labels = list[index].labels;
+                    event.target.value.trim() ? labels[event.target.dataset.language] = event.target.value : delete labels[event.target.dataset.language];
+                    save();
+                }
+            });
+            tree.addEventListener('change', event => {
+                if (event.target.dataset.action === 'slug') {
+                    const [list, index] = locate(event.target.dataset.path);
+                    list[index].slug = event.target.value || null;
+                    save();
+                }
+            });
+            // JSON edited by hand (JSON tab): read again, missing fields completed
+            const normalize = items => (Array.isArray(items) ? items : []).filter(item => item && typeof item === 'object').map(item => ({
+                labels: item.labels && typeof item.labels === 'object' ? item.labels : {},
+                slug: typeof item.slug === 'string' && item.slug ? item.slug : null,
+                children: normalize(item.children),
+            }));
+            field.addEventListener('kcms:reload', () => {
+                try {
+                    navigation = {items: normalize(JSON.parse(field.value || '{}').items)};
+                } catch (exception) {}
+                draw();
+            });
+            navigation.items = normalize(navigation.items);
+            // Normalized right away, without marking the form as modified
+            field.value = JSON.stringify(navigation);
+            draw();
+        });
+
+        // Code editors (CodeMirror): CSS of the blocks, JSON of the metablocks and navigations
+        const codeEditor = (textarea, mode) => CodeMirror.fromTextArea(textarea, {
+            mode, lineNumbers: true, matchBrackets: true, autoCloseBrackets: true, tabSize: 2, indentUnit: 2, lineWrapping: true,
+        });
+        document.querySelectorAll('[data-kcms-styles]').forEach(textarea => {
+            const editor = codeEditor(textarea, 'css');
+            editor.on('change', () => {
+                editor.save();
+                textarea.dispatchEvent(new Event('input', {bubbles: true}));
+            });
+            // Drawn hidden in a closed <details>: measured again when opened
+            textarea.closest('details')?.addEventListener('toggle', () => editor.refresh());
+        });
+        // Visual editor of an HTML block: shows its styles as they are typed, with the site's fonts and link color (the admin
+        // has its own), so that it looks as on the site
+        document.querySelectorAll('[data-kcms-styles]').forEach((textarea, index) => {
+            const editor = textarea.closest('form').querySelector('.wysi-editor');
+            if (!editor) {
+                return;
+            }
+            // The site's look, read on elements of the page outside the admin
+            const probe = tag => {
+                const element = document.createElement(tag);
+                element.style.cssText = 'position: absolute; visibility: hidden';
+                (document.querySelector('main') ?? document.body).append(element);
+                const style = getComputedStyle(element);
+                const values = {font: style.fontFamily, color: style.color};
+                element.remove();
+                return values;
+            };
+            const text = probe('p'), heading = probe('h2'), link = probe('a');
+            const id = 'kcms-preview-' + index;
+            editor.dataset.kcmsPreview = id;
+            const style = document.createElement('style');
+            document.body.append(style);
+            const update = () => style.textContent = `[data-kcms-preview="${id}"] {
+                font-family: ${text.font}; color: ${text.color};
+                :is(h1, h2, h3, h4) { font-family: ${heading.font}; }
+                a { color: ${link.color}; }
+                /* Not the editor's own look of the quotes */
+                blockquote { padding-left: 0; padding-right: 0; border-left: 0; font-style: normal; }
+                ${textarea.value.replace(/</g, '')}
+            }`;
+            update();
+            textarea.addEventListener('input', update);
+        });
+
+        // HTML block: visual editor, or its HTML kept as it is (the visual editor rewrites the whole HTML as soon as it is
+        // typed in, with only what it knows: measured on Wysi, see SIMPLE_HTML), with a preview of the block and its styles
+        const SIMPLE_HTML = {
+            P: ['style'], H1: ['style'], H2: ['style'], H3: ['style'], H4: ['style'], UL: ['style'], OL: ['style'], LI: [],
+            BR: [], HR: [], STRONG: [], B: [], EM: [], I: [], U: [], S: [], STRIKE: [], DEL: [], BLOCKQUOTE: [],
+            A: ['href', 'target'], IMG: ['src', 'alt'],
+        };
+        // What the visual editor would remove from this HTML: "<div>", "class"…
+        const simplifications = html => {
+            const lost = new Set();
+            new DOMParser().parseFromString(`<body>${html}</body>`, 'text/html').body.querySelectorAll('*').forEach(element => {
+                const kept = SIMPLE_HTML[element.tagName];
+                if (!kept) {
+                    lost.add(`<${element.tagName.toLowerCase()}>`);
+                } else {
+                    [...element.attributes].filter(attribute => !kept.includes(attribute.name)).forEach(attribute => lost.add(attribute.name));
+                }
+            });
+            return [...lost];
+        };
+        document.querySelectorAll('[data-kcms-html-mode]').forEach(modes => {
+            const form = modes.closest('form');
+            const textarea = form.querySelector('textarea.wysiwyg');
+            const visual = form.querySelector('[data-kcms-html-visual]');
+            const code = form.querySelector('[data-kcms-html-code]');
+            const wysi = visual.querySelector('.wysi-editor');
+            const preview = form.querySelector('[data-kcms-html-preview]');
+            const previewCard = form.querySelector('[data-kcms-html-preview-card]');
+            const warning = form.querySelector('[data-kcms-html-warning]');
+            const editor = codeEditor(code.querySelector('textarea'), 'htmlmixed');
+            const lost = simplifications(textarea.value);
+            let typedInVisual = false;
+            wysi.addEventListener('input', () => typedInVisual = true);
+            // Same styles as the visual editor (preview above)
+            preview.dataset.kcmsPreview = wysi.dataset.kcmsPreview ?? '';
+            const render = () => preview.innerHTML = textarea.value;
+            // One line per block element (the saved HTML is often on one line); no change to the rendering
+            const readable = html => html.replace(/(<\/(?:p|h[1-6]|li|ul|ol|div|section|article|figure|blockquote|table|tr)>|<(?:hr|br)\s*\/?>)(?=<)/gi, '$1\n');
+            editor.on('change', (instance, change) => {
+                if (change.origin === 'setValue') {
+                    return;
+                }
+                textarea.value = editor.getValue();
+                textarea.dispatchEvent(new Event('input', {bubbles: true}));
+                render();
+            });
+            const show = mode => {
+                modes.querySelectorAll('[data-mode]').forEach(button => button.classList.toggle('is-active', button.dataset.mode === mode));
+                visual.hidden = mode !== 'visual';
+                code.hidden = mode !== 'code';
+                previewCard.hidden = mode !== 'code';
+                if (mode === 'code') {
+                    editor.setValue(readable(textarea.value));
+                    render();
+                    editor.refresh();
+                } else {
+                    // Shown only: the HTML is rewritten (simplified) when something is typed in the visual editor
+                    wysi.innerHTML = textarea.value;
+                }
+                const simplified = simplifications(textarea.value);
+                warning.textContent = warning.dataset.kcmsTemplate.replace('%list%', simplified.join(', '));
+                warning.hidden = mode !== 'visual' || simplified.length === 0;
+            };
+            modes.addEventListener('click', event => {
+                const mode = event.target.closest('[data-mode]')?.dataset.mode;
+                mode && show(mode);
+            });
+            // Saved simplified only when confirmed
+            form.addEventListener('submit', event => {
+                if (typedInVisual && lost.length && !confirm(warning.dataset.kcmsConfirm.replace('%list%', lost.join(', ')))) {
+                    event.preventDefault();
+                    event.stopImmediatePropagation();
+                }
+            });
+            show(lost.length ? 'code' : 'visual');
+        });
+
+        // JSON tab of a metablock or a navigation: its content field, indented, checked as it is typed
+        document.querySelectorAll('[data-kcms-json-mode]').forEach(modes => {
+            const form = modes.closest('form');
+            const field = form.querySelector('[data-kcms-meta-content], [data-kcms-navigation-content]');
+            const visual = form.querySelector('[data-kcms-visual]');
+            const panel = form.querySelector('[data-kcms-json]');
+            const error = panel.querySelector('[data-kcms-json-error]');
+            const editor = codeEditor(panel.querySelector('textarea'), {name: 'javascript', json: true});
+            let valid = true;
+            editor.on('change', (instance, change) => {
+                if (change.origin === 'setValue') {
+                    return;
+                }
+                try {
+                    field.value = JSON.stringify(JSON.parse(editor.getValue()));
+                    field.dispatchEvent(new Event('input', {bubbles: true}));
+                    valid = true;
+                    error.hidden = true;
+                } catch (exception) {
+                    valid = false;
+                    error.textContent = error.dataset.kcmsInvalid + ' ' + exception.message;
+                    error.hidden = false;
+                }
+            });
+            const show = mode => {
+                modes.querySelectorAll('[data-mode]').forEach(button => button.classList.toggle('is-active', button.dataset.mode === mode));
+                visual.hidden = mode !== 'visual';
+                panel.hidden = mode !== 'json';
+            };
+            modes.addEventListener('click', event => {
+                const mode = event.target.closest('[data-mode]')?.dataset.mode;
+                if (mode === 'json') {
+                    editor.setValue(JSON.stringify(JSON.parse(field.value || '{}'), null, 2));
+                    valid = true;
+                    error.hidden = true;
+                    show('json');
+                    editor.refresh();
+                    editor.focus();
+                } else if (mode === 'visual' && valid) {
+                    field.dispatchEvent(new Event('kcms:reload'));
+                    show('visual');
+                } else if (mode === 'visual') {
+                    error.classList.add('is-shaking');
+                    setTimeout(() => error.classList.remove('is-shaking'), 400);
+                }
+            });
+            // Not saved with an invalid JSON: the last valid one would be saved instead
+            form.addEventListener('submit', event => {
+                if (!valid) {
+                    event.preventDefault();
+                    event.stopImmediatePropagation();
+                    show('json');
+                    error.scrollIntoView({block: 'center'});
+                }
+            });
+        });
+
+        // Name of a new version suggested by the AI (version/index.html.twig)
+        document.querySelectorAll('[data-kcms-suggest-name]').forEach(button => {
+            const input = button.closest('.kcms-version-name').querySelector('input');
+            const status = button.closest('.kcms-version-name').querySelector('[data-kcms-suggest-status]');
+            const label = button.querySelector('span');
+            const text = label.textContent;
+            button.addEventListener('click', async () => {
+                button.disabled = true;
+                label.textContent = button.dataset.kcmsThinking;
+                status.hidden = true;
+                try {
+                    const response = await fetch(button.dataset.kcmsSuggestName, {headers: {Accept: 'application/json'}});
+                    const data = response.ok ? await response.json() : {};
+                    if (data.name) {
+                        input.value = data.name;
+                        input.focus();
+                        input.select();
+                    } else {
+                        status.textContent = button.dataset.kcmsNone;
+                        status.hidden = false;
+                    }
+                } catch (exception) {
+                    status.textContent = button.dataset.kcmsNone;
+                    status.hidden = false;
+                } finally {
+                    button.disabled = false;
+                    label.textContent = text;
+                }
+            });
+        });
+
+        // Image blocks: live preview of the URL
+        document.querySelectorAll('[data-kcms-image-preview]').forEach(preview => {
+            const input = preview.closest('form').querySelector('[data-kcms-image-url]');
+            const image = preview.querySelector('img');
+            const caption = preview.querySelector('figcaption');
+            const emptyText = caption.textContent;
+            image.addEventListener('load', () => preview.classList.add('is-loaded'));
+            image.addEventListener('error', () => {
+                preview.classList.remove('is-loaded');
+                preview.classList.add('is-broken');
+                image.removeAttribute('src');
+                caption.textContent = preview.dataset.kcmsBroken;
+            });
+            const update = () => {
+                preview.classList.remove('is-loaded', 'is-broken');
+                caption.textContent = emptyText;
+                input.value.trim() ? image.src = input.value.trim() : image.removeAttribute('src');
+            };
+            input.addEventListener('input', update);
+            update();
+        });
+
+        // Editor: Ctrl+S saves, leaving with unsaved changes asks first
+        const forms = document.querySelectorAll('[data-kcms-form]');
+        let dirty = false;
+        forms.forEach(form => {
+            form.addEventListener('input', () => dirty = true);
+            form.addEventListener('submit', () => dirty = false);
+        });
+        if (forms.length > 0) {
+            window.addEventListener('beforeunload', event => {
+                if (dirty) {
+                    event.preventDefault();
+                }
+            });
+            document.addEventListener('keydown', event => {
+                if ((event.ctrlKey || event.metaKey) && event.key === 's') {
+                    event.preventDefault();
+                    const form = document.activeElement?.closest('[data-kcms-form]') ?? forms[0];
+                    form.requestSubmit();
+                }
+            });
+        }
     });
 </script>

@@ -1,0 +1,14 @@
+# Tools of the CMS, loaded for its assistant (kibatic_cms.ai.agent) and for the application's MCP server when
+# symfony/mcp-bundle is installed (KibaticCmsExtension); each one is both #[AsTool] and #[McpTool]
+services:
+    _defaults:
+        autowire: true
+        autoconfigure: true
+        public: false
+
+    Kibatic\CmsBundle\Ai\Tool\ListBlocksTool: ~
+    Kibatic\CmsBundle\Ai\Tool\GetBlockTool: ~
+    Kibatic\CmsBundle\Ai\Tool\SaveBlockTool: ~
+    Kibatic\CmsBundle\Ai\Tool\SaveMetablockTool: ~
+    Kibatic\CmsBundle\Ai\Tool\SaveNavigationTool: ~
+    Kibatic\CmsBundle\Ai\Tool\ListVersionsTool: ~

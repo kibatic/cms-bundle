@@ -7,10 +7,44 @@ services:
     Kibatic\CmsBundle\Controller\BlockController:
         tags: ['controller.service_arguments']
 
+    # Assistant (Symfony AI): its agent is set by KibaticCmsExtension, its tools are in ai.yaml
+    Kibatic\CmsBundle\Controller\ChatController:
+        tags: ['controller.service_arguments']
+
+    Kibatic\CmsBundle\Ai\BlockChanges: ~
+    Kibatic\CmsBundle\Ai\ContentRules: ~
+    Kibatic\CmsBundle\Ai\ToolAccess: ~
+    Kibatic\CmsBundle\Ai\VersionProposals: ~
+    # Its agent is set by KibaticCmsExtension, like the assistant's
+    Kibatic\CmsBundle\Ai\VersionNamer: ~
+
+    Kibatic\CmsBundle\Controller\UploadController:
+        tags: ['controller.service_arguments']
+
+    Kibatic\CmsBundle\Controller\PageController:
+        tags: ['controller.service_arguments']
+
+    Kibatic\CmsBundle\Upload\ImageStorage: ~
+    Kibatic\CmsBundle\Debug\DebugOverlayListener: ~
+    Kibatic\CmsBundle\Meta\MetaValidator: ~
+    Kibatic\CmsBundle\Navigation\NavigationValidator: ~
+    Kibatic\CmsBundle\Command\CleanUploadsCommand: ~
+
+    Kibatic\CmsBundle\Controller\VersionController:
+        tags: ['controller.service_arguments']
+
+    Kibatic\CmsBundle\Repository\VersionRepository: ~
+    Kibatic\CmsBundle\Version\Versions: ~
+    Kibatic\CmsBundle\Version\VersionPreview: ~
+    Kibatic\CmsBundle\Version\PreviewBannerListener: ~
+
+    # Block types, in this order in the admin (menu "New block", type filter)
+    Kibatic\CmsBundle\Form\MetaBlockType: ~
+    Kibatic\CmsBundle\Form\HtmlBlockType: ~
     Kibatic\CmsBundle\Form\TextBlockType: ~
     Kibatic\CmsBundle\Form\ImageBlockType: ~
-    Kibatic\CmsBundle\Form\HtmlBlockType: ~
     Kibatic\CmsBundle\Form\AlertBlockType: ~
+    Kibatic\CmsBundle\Form\NavigationBlockType: ~
 
     _instanceof:
         Kibatic\CmsBundle\Form\BlockTypeInterface:
