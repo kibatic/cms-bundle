@@ -118,7 +118,8 @@ class VersionController extends AbstractController
         return $this->render('@KibaticCms/version/edit_block.html.twig', [
             'version' => $version,
             'block' => $block,
-            'form' => $form->createView(),
+            // The form itself: render() answers 422 when it is not valid, which Turbo needs to show the errors
+            'form' => $form,
         ]);
     }
 

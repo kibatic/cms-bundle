@@ -123,7 +123,8 @@ class BlockController extends AbstractController
         return $this->render('@KibaticCms/block/new.html.twig', [
             'block' => $block,
             'typeName' => $typeName,
-            'form' => $form->createView(),
+            // The form itself: render() answers 422 when it is not valid, which Turbo needs to show the errors
+            'form' => $form,
         ]);
     }
 
@@ -154,8 +155,9 @@ class BlockController extends AbstractController
             'translations' => $this->blockRepository->findBySlug($block->getSlug()),
             'aiEnabled' => $this->aiEnabled,
             'languages' => $this->blockRepository->getExistingLanguages(),
-            'edit_form' => $editForm->createView(),
-            'delete_form' => $deleteForm->createView(),
+            // The forms themselves: render() answers 422 when one is not valid, which Turbo needs to show the errors
+            'edit_form' => $editForm,
+            'delete_form' => $deleteForm,
         ]);
     }
 
@@ -171,6 +173,7 @@ class BlockController extends AbstractController
         $blocks = $this->blockRepository->findBySlug($slug);
         $editForms = [];
         $deleteForms = [];
+        $invalid = false;
 
         foreach ($blocks as $block) {
             $blockType = $blockTypeChain->getBlockType($block->getType());
@@ -180,6 +183,7 @@ class BlockController extends AbstractController
             $editForm = $formFactory->createNamed('block_edit_' . $block->getId(), $blockType::class, $block);
             $editForm->handleRequest($request);
             $editForms[] = $editForm->createView();
+            $invalid = $invalid || ($editForm->isSubmitted() && !$editForm->isValid());
 
             if ($editForm->isSubmitted() && $editForm->isValid()) {
                 $entityManager->flush();
@@ -193,7 +197,8 @@ class BlockController extends AbstractController
             'blocks' => $blocks,
             'edit_forms' => $editForms,
             'delete_forms' => $deleteForms,
-        ]);
+        // Turbo shows the errors of a form only with this status
+        ], new Response(status: $invalid ? Response::HTTP_UNPROCESSABLE_ENTITY : Response::HTTP_OK));
     }
 
     public function delete(
