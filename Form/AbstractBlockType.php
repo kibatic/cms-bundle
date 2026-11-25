@@ -4,6 +4,7 @@ namespace Kibatic\CmsBundle\Form;
 
 use Kibatic\CmsBundle\Entity\Block;
 use Symfony\Component\Form\AbstractType;
+use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\LanguageType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\FormBuilderInterface;
@@ -45,6 +46,11 @@ abstract class AbstractBlockType extends AbstractType
                     'placeholder' => "display: grid; gap: 16px;\nh2 { color: var(--brand-color); }",
                     'data-kcms-styles' => true,
                 ],
+            ])
+            ->add('metaOnly', CheckboxType::class, [
+                'label' => 'form.meta_only.label',
+                'help' => 'form.meta_only.help',
+                'required' => false,
             ])
         ;
     }

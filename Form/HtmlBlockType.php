@@ -13,6 +13,9 @@ class HtmlBlockType extends AbstractBlockType implements BlockTypeInterface
 
         $builder->add('content', TextareaType::class, [
             'label' => 'form.content',
+            // An empty block may be created and filled later; the textarea is hidden by the visual editor, the
+            // browser could not show why the form is not sent
+            'required' => false,
             'attr' => [
                 'class' => 'wysiwyg'
             ]

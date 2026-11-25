@@ -33,6 +33,11 @@
             const typeFilter = document.querySelector('[data-kcms-type-filter]');
             const rows = document.querySelectorAll('[data-kcms-slug]');
             const noMatch = document.querySelector('[data-kcms-no-match]');
+            // Rows of what a metablock shows: visible when it is, and expanded
+            const showSubRows = () => document.querySelectorAll('[data-kcms-expand]').forEach(button => {
+                const expanded = button.getAttribute('aria-expanded') === 'true' && !button.closest('tr').hidden;
+                document.querySelectorAll(`[data-kcms-parent="${CSS.escape(button.dataset.kcmsExpand)}"]`).forEach(row => row.hidden = !expanded);
+            });
             const apply = () => {
                 const query = filter.value.trim().toLowerCase();
                 let visible = 0;
@@ -42,9 +47,14 @@
                     visible += match;
                 });
                 noMatch.hidden = visible > 0;
+                showSubRows();
             };
             filter.addEventListener('input', apply);
             typeFilter.addEventListener('change', apply);
+            document.querySelectorAll('[data-kcms-expand]').forEach(button => button.addEventListener('click', () => {
+                button.setAttribute('aria-expanded', button.getAttribute('aria-expanded') === 'true' ? 'false' : 'true');
+                showSubRows();
+            }));
         }
 
         // "New block" menu: closes on a click outside or with Escape

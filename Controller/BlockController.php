@@ -5,6 +5,7 @@ namespace Kibatic\CmsBundle\Controller;
 use Doctrine\ORM\EntityManagerInterface;
 use Kibatic\CmsBundle\BlockTypeChain;
 use Kibatic\CmsBundle\Entity\Block;
+use Kibatic\CmsBundle\Meta\MetaContent;
 use Kibatic\CmsBundle\Repository\BlockRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
@@ -39,10 +40,27 @@ class BlockController extends AbstractController
             $blocksBySlug[$block->getSlug()][] = $block;
         }
 
+        // What each metablock shows, listed under it; the blocks made only for a metablock are hidden from the list,
+        // unless no metablock shows them any more
+        $metaItems = [];
+        $shown = [];
+        foreach ($blocks as $block) {
+            if ('meta' === $block->getType()) {
+                $meta = MetaContent::fromJson($block->getContent());
+                $metaItems[$block->getSlug()] = $meta->items;
+                $shown += array_fill_keys($meta->slugs(), true);
+            }
+        }
+
+        $hiddenSlugs = array_keys(array_filter($blocksBySlug, fn (array $blocks, string $slug) => isset($shown[$slug])
+            && [] === array_filter($blocks, fn (Block $block) => !$block->isMetaOnly()), \ARRAY_FILTER_USE_BOTH));
+
         return $this->render('@KibaticCms/block/index.html.twig', [
             'i18nDisplay' => !empty($languages),
             'languages' => $languages,
             'blocksBySlug' => $blocksBySlug,
+            'metaItems' => $metaItems,
+            'hiddenSlugs' => $hiddenSlugs,
             'blocks' => $blocks,
             'blockTypeNames' => $blockTypeNames,
             'aiEnabled' => $this->aiEnabled,

@@ -111,6 +111,20 @@
     .kcms .kcms-table tbody tr:last-child td { border-bottom: 0; }
     .kcms .kcms-table tbody tr:hover { background: var(--kcms-subtle); }
     .kcms .kcms-row-actions { text-align: right; white-space: nowrap; }
+    /* What a metablock shows, under its row (block/_block_row.html.twig) */
+    .kcms .kcms-slug-cell { display: inline-flex; align-items: center; gap: 6px; vertical-align: middle; }
+    .kcms .kcms-expand, .kcms .kcms-expand-spacer { flex: none; width: 24px; height: 24px; }
+    .kcms .kcms-expand { display: inline-grid; place-items: center; padding: 0; border: 0; border-radius: 6px; background: none; color: var(--kcms-muted); cursor: pointer; }
+    .kcms .kcms-expand:hover { background: var(--kcms-accent-soft); color: var(--kcms-accent); }
+    .kcms .kcms-expand .kcms-icon { width: 16px; height: 16px; transition: transform .15s; }
+    .kcms .kcms-expand[aria-expanded="true"] .kcms-icon { transform: rotate(90deg); }
+    .kcms .kcms-table tr.kcms-sub-row { background: var(--kcms-subtle); }
+    .kcms .kcms-table tr.kcms-sub-row td { padding-top: 8px; padding-bottom: 8px; }
+    .kcms .kcms-table tr.kcms-sub-row td:first-child { padding-left: calc(16px + var(--kcms-level) * 30px); }
+    .kcms .kcms-table tr.kcms-sub-row td:first-child::before { content: "↳"; margin-right: 8px; color: var(--kcms-muted); }
+    .kcms .kcms-table tr.kcms-sub-group td { color: var(--kcms-muted); font-size: 13px; font-weight: 600; }
+    .kcms .kcms-table tr.kcms-sub-group .kcms-icon { width: 14px; height: 14px; vertical-align: -2px; }
+    .kcms .kcms-sub-missing { color: var(--kcms-danger); }
     .kcms .kcms-row-actions .kcms-copy { opacity: 0; transition: opacity .15s; }
     .kcms tr:hover .kcms-copy, .kcms .kcms-copy:focus-visible, .kcms .kcms-copy.is-done { opacity: 1; }
     .kcms .kcms-no-match { margin: 0; padding: 24px; text-align: center; color: var(--kcms-muted); }
@@ -273,6 +287,11 @@
     .kcms .kcms-form div:has(> label):last-child { margin-bottom: 0; }
     .kcms .kcms-form label { display: block; margin-bottom: 6px; font-size: 14px; font-weight: 600; }
     .kcms .kcms-form label.required::after { content: " *"; color: var(--kcms-danger); }
+    /* A checkbox before its label (the form theme puts the label first), its help below */
+    .kcms .kcms-form div:has(> input[type="checkbox"]) { display: grid; grid-template-columns: auto 1fr; column-gap: 8px; align-items: center; }
+    .kcms .kcms-form div > input[type="checkbox"] { order: -1; width: 16px; height: 16px; margin: 0; accent-color: var(--kcms-accent); }
+    .kcms .kcms-form div:has(> input[type="checkbox"]) > label { margin: 0; cursor: pointer; }
+    .kcms .kcms-form div:has(> input[type="checkbox"]) > .help-text { grid-column: 1 / -1; }
     .kcms input:is([type=text], [type=search], [type=url], [type=email], [type=number], :not([type])), .kcms select, .kcms textarea {
         display: block; width: 100%; min-height: 38px; padding: 8px 12px; margin: 0;
         border: 1px solid #cbd5e1; border-radius: 8px; background: var(--kcms-surface);

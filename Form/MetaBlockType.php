@@ -24,7 +24,7 @@ class MetaBlockType extends AbstractBlockType implements BlockTypeInterface
     {
         parent::buildForm($builder, $options);
         // Shared by every language (Block::SHARED_TYPES): saved without language
-        $builder->remove('language');
+        $builder->remove('language')->remove('metaOnly');
 
         $builder->add('content', HiddenType::class, [
             'label' => false,

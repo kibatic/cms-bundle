@@ -62,10 +62,11 @@
                     <svg class="kcms-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
                     <input type="search" placeholder="{{ 'index.filter'|trans }}" data-kcms-filter aria-label="{{ 'index.filter'|trans }}">
                 </label>
-                {# Types of the blocks of the list only #}
+                {# Types of the blocks of the list only, in the order of the types #}
+                {% set listTypes = blocks|filter(b => b.slug not in hiddenSlugs)|map(b => b.type) %}
                 <select class="kcms-type-filter" data-kcms-type-filter aria-label="{{ 'index.type_filter'|trans }}">
                     <option value="">{{ 'index.all_types'|trans }}</option>
-                    {% for type in blocks|map(b => b.type)|reduce((types, type) => type in types ? types : types|merge([type]), []) %}
+                    {% for type in blockTypeNames|filter(type => type in listTypes) %}
                         <option value="{{ type }}">{{ kcms.type_label(type) }}</option>
                     {% endfor %}
                 </select>
@@ -83,35 +84,9 @@
                         </tr>
                     </thead>
                     <tbody>
-                        {% for slug, blocks in blocksBySlug %}
-                            {% set block = blocks[0] %}
-                            {% set updatedAt = blocks|map(b => b.updatedAt)|reduce((max, date) => max is null or date > max ? date : max) %}
-                            <tr data-kcms-slug="{{ slug }}" data-kcms-type="{{ block.type }}">
-                                <td>
-                                    <a href="{{ path('cms_block_edit', {'id': block.id}) }}" class="kcms-slug">{{ slug }}</a>
-                                </td>
-                                <td>{{ kcms.type_badge(block.type) }}</td>
-                                {% if i18nDisplay %}
-                                    <td>
-                                        <div class="kcms-chips">
-                                            {% for b in blocks %}
-                                                <a href="{{ path('cms_block_edit', {'id': b.id}) }}" class="kcms-chip">{{ b.language ?? 'language.all'|trans }}</a>
-                                            {% endfor %}
-                                            {% for language in block.shared ? [] : languages %}
-                                                {% if language not in blocks|map(b => b.language) %}
-                                                    <a href="{{ path('cms_block_new', {'typeName': block.type, 'slug': slug, 'language': language}) }}"
-                                                       class="kcms-chip kcms-chip-missing" title="{{ 'index.add_translation'|trans({language: language}) }}">+ {{ language }}</a>
-                                                {% endif %}
-                                            {% endfor %}
-                                        </div>
-                                    </td>
-                                {% endif %}
-                                <td class="kcms-muted" title="{{ updatedAt|date('format.datetime'|trans) }}">{{ updatedAt|date('format.date'|trans) }}</td>
-                                <td class="kcms-row-actions">
-                                    {{ kcms.copy_snippet(slug) }}
-                                    <a href="{{ path('cms_block_edit', {'id': block.id}) }}" class="kcms-btn kcms-btn-sm">{{ 'index.edit'|trans }}</a>
-                                </td>
-                            </tr>
+                        {# The blocks made only for a metablock are listed under it #}
+                        {% for slug, slugBlocks in blocksBySlug|filter((b, slug) => slug not in hiddenSlugs) %}
+                            {% include '@KibaticCms/block/_block_row.html.twig' with {'slug': slug, 'blocks': slugBlocks, 'level': 0, 'parent': null, 'items': metaItems[slug] ?? []} %}
                         {% endfor %}
                     </tbody>
                 </table>

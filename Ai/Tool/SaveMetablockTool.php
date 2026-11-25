@@ -51,7 +51,7 @@ final class SaveMetablockTool
 
         if (null !== $error) {
             return 'empty' === $error
-                ? 'Not saved: give at least one item, and at least one block in each sub-metablock.'
+                ? 'Not saved: give at least one block in each sub-metablock.'
                 : 'Not saved: an item is not an existing block, or is a metablock (use a sub-metablock instead). Use cms_list_blocks to see the blocks.';
         }
 

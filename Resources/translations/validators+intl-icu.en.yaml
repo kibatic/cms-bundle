@@ -1,7 +1,7 @@
 # Errors of the CMS's forms (Symfony translates the form errors in the "validators" domain)
 kibatic_cms:
     meta:
-        empty: Add at least one block, to the metablock and to each sub-metablock.
+        empty: Add at least one block to each sub-metablock.
         invalid: "A block of the list does not exist or is a metablock."
     navigation:
         empty: "Add at least one entry, each one with a label."

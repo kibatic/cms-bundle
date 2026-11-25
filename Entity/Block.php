@@ -50,6 +50,12 @@ class Block
     #[ORM\Column(type: 'text', nullable: true)]
     private ?string $styles = null;
 
+    /**
+     * Made only to be shown in a metablock (e.g. by the assistant): hidden from the block list, listed under the
+     * metablocks that show it (BlockController::index())
+     */
+    #[ORM\Column(type: 'boolean', options: ['default' => false])]
+    private bool $metaOnly = false;
 
     public function getId(): ?int
     {
@@ -141,6 +147,18 @@ class Block
     {
         $styles = trim((string) $styles);
         $this->styles = '' !== $styles ? $styles : null;
+
+        return $this;
+    }
+
+    public function isMetaOnly(): bool
+    {
+        return $this->metaOnly;
+    }
+
+    public function setMetaOnly(bool $metaOnly): static
+    {
+        $this->metaOnly = $metaOnly;
 
         return $this;
     }

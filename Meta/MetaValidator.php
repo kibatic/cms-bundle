@@ -6,7 +6,7 @@ use Kibatic\CmsBundle\Repository\BlockRepository;
 
 /**
  * Rules of a metablock's content, for its editor (Form\MetaBlockType) and the assistant (Ai\Tool\SaveMetablockTool):
- * at least one item, only existing blocks, no metablock block (only sub-metablocks), no empty sub-metablock
+ * only existing blocks, no metablock block (only sub-metablocks), no empty sub-metablock
  */
 final class MetaValidator
 {
@@ -20,7 +20,8 @@ final class MetaValidator
      */
     public function validate(MetaContent $meta): ?string
     {
-        if ([] === $meta->items || $meta->hasEmptyGroup()) {
+        // An empty metablock may be created and filled later, not an empty sub-metablock
+        if ($meta->hasEmptyGroup()) {
             return 'empty';
         }
 

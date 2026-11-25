@@ -1,0 +1,73 @@
+{# A row of the block list (block/index.html.twig): a slug and its blocks in each language. Under a metablock (level 1,
+   level 2 in a sub-metablock), the rows of what it shows, hidden until its expand button is clicked #}
+{% trans_default_domain 'KibaticCmsBundle' %}
+{% import '@KibaticCms/_macros.html.twig' as kcms %}
+{% set columns = i18nDisplay ? 5 : 4 %}
+{% set subRow = level > 0 ? 'class="kcms-sub-row" data-kcms-parent="' ~ parent|e('html_attr') ~ '" style="--kcms-level: ' ~ level ~ '" hidden' : '' %}
+
+{% if blocks is empty %}
+    <tr {{ subRow|raw }}>
+        <td><span class="kcms-slug kcms-sub-missing">{{ slug }}</span></td>
+        <td colspan="{{ columns - 2 }}"><span class="kcms-meta-missing">{{ 'index.missing'|trans }}</span></td>
+        <td class="kcms-row-actions">
+            <a href="{{ path('cms_block_choose_type', {'slug': slug}) }}" class="kcms-btn kcms-btn-sm">+ {{ 'missing_block.create'|trans }}</a>
+        </td>
+    </tr>
+{% else %}
+    {% set block = blocks[0] %}
+    {% set updatedAt = blocks|map(b => b.updatedAt)|reduce((max, date) => max is null or date > max ? date : max) %}
+    <tr {{ level == 0 ? ('data-kcms-slug="' ~ slug|e('html_attr') ~ '" data-kcms-type="' ~ block.type|e('html_attr') ~ '"')|raw : subRow|raw }}>
+        <td>
+            <span class="kcms-slug-cell">
+                {% if level == 0 %}
+                    {% if items is not empty %}
+                        <button type="button" class="kcms-expand" aria-expanded="false" data-kcms-expand="{{ slug }}"
+                                title="{{ 'index.expand'|trans }}" aria-label="{{ 'index.expand'|trans }}">
+                            <svg class="kcms-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
+                        </button>
+                    {% else %}
+                        <span class="kcms-expand-spacer"></span>
+                    {% endif %}
+                {% endif %}
+                <a href="{{ path('cms_block_edit', {'id': block.id}) }}" class="kcms-slug">{{ slug }}</a>
+            </span>
+        </td>
+        <td>{{ kcms.type_badge(block.type) }}</td>
+        {% if i18nDisplay %}
+            <td>
+                <div class="kcms-chips">
+                    {% for b in blocks %}
+                        <a href="{{ path('cms_block_edit', {'id': b.id}) }}" class="kcms-chip">{{ b.language ?? 'language.all'|trans }}</a>
+                    {% endfor %}
+                    {% for language in block.shared ? [] : languages %}
+                        {% if language not in blocks|map(b => b.language) %}
+                            <a href="{{ path('cms_block_new', {'typeName': block.type, 'slug': slug, 'language': language}) }}"
+                               class="kcms-chip kcms-chip-missing" title="{{ 'index.add_translation'|trans({language: language}) }}">+ {{ language }}</a>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            </td>
+        {% endif %}
+        <td class="kcms-muted" title="{{ updatedAt|date('format.datetime'|trans) }}">{{ updatedAt|date('format.date'|trans) }}</td>
+        <td class="kcms-row-actions">
+            {{ kcms.copy_snippet(slug) }}
+            <a href="{{ path('cms_block_edit', {'id': block.id}) }}" class="kcms-btn kcms-btn-sm">{{ 'index.edit'|trans }}</a>
+        </td>
+    </tr>
+
+    {% for item in items %}
+        {% if item.meta is defined %}
+            <tr class="kcms-sub-row kcms-sub-group" data-kcms-parent="{{ slug }}" style="--kcms-level: 1" hidden>
+                <td colspan="{{ columns }}">
+                    {{ kcms.type_icon('meta') }} {{ 'index.sub_meta'|trans }}
+                    {%- if item.titles is not empty %} · {{ item.titles[app.request.locale] ?? item.titles|first }}{% endif %}
+                </td>
+            </tr>
+            {% for sub in item.meta.items %}
+                {% include '@KibaticCms/block/_block_row.html.twig' with {'slug': sub.slug, 'blocks': blocksBySlug[sub.slug] ?? [], 'level': 2, 'parent': slug, 'items': []} %}
+            {% endfor %}
+        {% else %}
+            {% include '@KibaticCms/block/_block_row.html.twig' with {'slug': item.slug, 'blocks': blocksBySlug[item.slug] ?? [], 'level': 1, 'parent': slug, 'items': []} %}
+        {% endif %}
+    {% endfor %}
+{% endif %}

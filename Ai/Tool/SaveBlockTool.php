@@ -35,8 +35,9 @@ final class SaveBlockTool
      * @param string $type     Type of a new block: "html" (rich text, the default), "text" (plain text) or "image"; ignored for an existing block, which keeps its type
      * @param string $language Language code of the block (e.g. "fr", "en"); empty for a block shared by every language
      * @param ?string $styles  CSS of this block only, scoped to it: its whole look, background and padding included (declarations for the block, nested rules for its content); null keeps the current styles (to change the text only), a string replaces them, an empty string removes them
+     * @param ?bool $meta_only true for a block made only to be shown in a metablock (hidden from the block list, listed under its metablock); null keeps the current value (a new translation takes the one of the block's other languages)
      */
-    public function __invoke(string $slug, string $content, string $type = 'html', string $language = '', ?string $styles = null): string
+    public function __invoke(string $slug, string $content, string $type = 'html', string $language = '', ?string $styles = null, ?bool $meta_only = null): string
     {
         if (!preg_match('/^[a-z0-9][a-z0-9._-]*$/', $slug)) {
             return sprintf('Not saved: "%s" is not a valid slug (lowercase letters, digits, "-", "_" or ".").', $slug);
@@ -57,7 +58,8 @@ final class SaveBlockTool
             $block = (new Block())
                 ->setSlug($slug)
                 ->setLanguage('' !== $language ? $language : null)
-                ->setType($type);
+                ->setType($type)
+                ->setMetaOnly($this->blocks->findOneBy(['slug' => $slug])?->isMetaOnly() ?? false);
             $this->entityManager->persist($block);
         } elseif (!\in_array($block->getType(), self::TYPES, true)) {
             return match ($block->getType()) {
@@ -74,6 +76,9 @@ final class SaveBlockTool
         $block->setContent($content);
         if (null !== $styles) {
             $block->setStyles($styles);
+        }
+        if (null !== $meta_only) {
+            $block->setMetaOnly($meta_only);
         }
         $this->entityManager->flush();
         $this->changes->add($block, $created);

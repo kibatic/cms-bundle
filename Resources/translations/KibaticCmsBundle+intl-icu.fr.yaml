@@ -23,6 +23,9 @@ index:
     type_filter: Filtrer par type
     all_types: Tous les types
     no_match: Aucun bloc ne correspond à ce filtre.
+    expand: Afficher ses blocs
+    sub_meta: Sous-métabloc
+    missing: Bloc introuvable
     empty:
         title: Aucun bloc de contenu pour l'instant
         text: 'Un bloc est un contenu modifié ici et affiché dans vos templates avec :'
@@ -130,6 +133,9 @@ form:
         summary: Styles du bloc (CSS)
         label: CSS de ce bloc uniquement
         help: "Les déclarations s'appliquent au bloc lui-même, les règles à son contenu (ex. h2 '{' … '}') : il s'affiche pareil sur toutes les pages qui le montrent. Utilisez les variables CSS du site pour ses couleurs et polices."
+    meta_only:
+        label: Seulement dans un métabloc
+        help: Caché de la liste des blocs, il s'affiche sous les métablocs qui le montrent.
     image_url:
         label: Ou l'adresse de l'image
         placeholder: https://… ou /images/…

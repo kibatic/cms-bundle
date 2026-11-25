@@ -22,6 +22,9 @@ index:
     published: 'Public site: {name}'
     type_filter: Filter by type
     all_types: All types
+    expand: Show its blocks
+    sub_meta: Sub-metablock
+    missing: Block not found
     no_match: No block matches this filter.
     empty:
         title: No content block yet
@@ -130,6 +133,9 @@ form:
         summary: Styles of the block (CSS)
         label: CSS of this block only
         help: "Declarations apply to the block itself, rules to its content (e.g. h2 '{' … '}'): it looks the same on every page that shows it. Use the site's CSS variables for its colors and fonts."
+    meta_only:
+        label: Only in a metablock
+        help: Hidden from the block list, it is listed under the metablocks that show it.
     image_url:
         label: Or the image URL
         placeholder: https://… or /images/…

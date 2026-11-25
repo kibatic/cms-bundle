@@ -28,7 +28,7 @@ class Version
     private ?\DateTimeImmutable $publishedAt = null;
 
     /**
-     * @var list<array{slug: string, language: ?string, type: string, content: ?string, styles?: ?string, created_at: string, updated_at: string}>
+     * @var list<array{slug: string, language: ?string, type: string, content: ?string, styles?: ?string, meta_only?: bool, created_at: string, updated_at: string}>
      */
     #[ORM\Column(type: 'json')]
     private array $blocks;
@@ -49,6 +49,7 @@ class Version
             'type' => $block->getType(),
             'content' => $block->getContent(),
             'styles' => $block->getStyles(),
+            'meta_only' => $block->isMetaOnly(),
             'created_at' => $block->getCreatedAt()->format(\DATE_ATOM),
             'updated_at' => $block->getUpdatedAt()->format(\DATE_ATOM),
         ], $blocks);
@@ -107,6 +108,7 @@ class Version
             ->setContent($data['content'])
             // Versions saved before the styles of the blocks have none
             ->setStyles($data['styles'] ?? null)
+            ->setMetaOnly($data['meta_only'] ?? false)
             ->setCreatedAt(new \DateTime($data['created_at']))
             ->setUpdatedAt(new \DateTime($data['updated_at'])), $this->blocks);
     }
