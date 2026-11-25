@@ -67,6 +67,7 @@ copy:
 new:
     crumb: New block
     title: 'New {type} block'
+    choose_type: Which type of block do you want to create?
 
 edit:
     updated: 'Updated {date}'
@@ -75,7 +76,10 @@ edit:
     by_slug: Every translation of this block, each saved on its own.
 
 # Shown on the site's pages to the CMS admins, in place of a block that does not exist
-missing_block: 'CMS block <b>"{slug}"</b> does not exist, <a href="{url}">create it</a>.'
+missing_block:
+    title: Block not found
+    create: Create
+    hint: Only visible to CMS admins
 
 editor:
     mode:

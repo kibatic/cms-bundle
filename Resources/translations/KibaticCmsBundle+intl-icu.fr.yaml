@@ -67,6 +67,7 @@ copy:
 new:
     crumb: Nouveau bloc
     title: 'Nouveau bloc {type}'
+    choose_type: Quel type de bloc créer ?
 
 edit:
     updated: 'Modifié le {date}'
@@ -75,7 +76,10 @@ edit:
     by_slug: Toutes les traductions de ce bloc, chacune enregistrée séparément.
 
 # Affiché sur les pages du site aux admins du CMS, à la place d'un bloc qui n'existe pas
-missing_block: 'Le bloc <b>« {slug} »</b> n''existe pas, <a href="{url}">le créer</a>.'
+missing_block:
+    title: Bloc introuvable
+    create: Créer
+    hint: Visible seulement par les admins du CMS
 
 editor:
     mode:

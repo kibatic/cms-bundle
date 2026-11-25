@@ -49,6 +49,19 @@ class BlockController extends AbstractController
         ]);
     }
 
+    /**
+     * Type of a new block with a given slug, e.g. from the badge of a missing block on a page (BlockExtension::missingBlock())
+     */
+    public function chooseType(Request $request, BlockTypeChain $blockTypeChain): Response
+    {
+        $this->denyAccessUnlessGranted(self::$role);
+
+        return $this->render('@KibaticCms/block/choose_type.html.twig', [
+            'slug' => $request->query->get('slug'),
+            'blockTypeNames' => $blockTypeChain->getBlockTypeNames(),
+        ]);
+    }
+
     public function new(
         Request $request,
         string $typeName,

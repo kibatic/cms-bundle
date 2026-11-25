@@ -1,0 +1,24 @@
+{% extends '@KibaticCms/layout.html.twig' %}
+{% trans_default_domain 'KibaticCmsBundle' %}
+{% import '@KibaticCms/_macros.html.twig' as kcms %}
+
+{% block kcms_body %}
+    <nav class="kcms-crumbs"><a href="{{ path('cms_block_index') }}">{{ 'index.title'|trans }}</a><span>{{ 'new.crumb'|trans }}</span></nav>
+
+    <header class="kcms-head">
+        <div>
+            <h1 class="kcms-title">{% if slug %}<span class="kcms-slug">{{ slug }}</span>{% else %}{{ 'new.crumb'|trans }}{% endif %}</h1>
+            <p class="kcms-subtitle">{{ 'new.choose_type'|trans }}</p>
+        </div>
+    </header>
+
+    <div class="kcms-type-grid">
+        {% for blockTypeName in blockTypeNames %}
+            <a href="{{ path('cms_block_new', {'typeName': blockTypeName, 'slug': slug}) }}" class="kcms-type-card">
+                {{ kcms.type_icon(blockTypeName) }}
+                <strong>{{ kcms.type_label(blockTypeName) }}</strong>
+                <small>{{ kcms.type_description(blockTypeName) }}</small>
+            </a>
+        {% endfor %}
+    </div>
+{% endblock %}

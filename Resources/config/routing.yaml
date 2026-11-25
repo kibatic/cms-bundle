@@ -8,6 +8,11 @@ cms_block_show:
     controller: Kibatic\CmsBundle\Controller\BlockController::show
     methods: GET
 
+cms_block_choose_type:
+    path: /block/new
+    controller: Kibatic\CmsBundle\Controller\BlockController::chooseType
+    methods: GET
+
 cms_block_new:
     path: /block/{typeName}/new
     controller: Kibatic\CmsBundle\Controller\BlockController::new

@@ -36,11 +36,12 @@ services:
     Kibatic\CmsBundle\Version\VersionPreview: ~
     Kibatic\CmsBundle\Version\PreviewBannerListener: ~
 
+    # Block types, in this order in the admin (menu "New block", type filter)
+    Kibatic\CmsBundle\Form\MetaBlockType: ~
+    Kibatic\CmsBundle\Form\HtmlBlockType: ~
     Kibatic\CmsBundle\Form\TextBlockType: ~
     Kibatic\CmsBundle\Form\ImageBlockType: ~
-    Kibatic\CmsBundle\Form\HtmlBlockType: ~
     Kibatic\CmsBundle\Form\AlertBlockType: ~
-    Kibatic\CmsBundle\Form\MetaBlockType: ~
     Kibatic\CmsBundle\Form\NavigationBlockType: ~
 
     _instanceof:

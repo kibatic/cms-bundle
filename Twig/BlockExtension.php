@@ -108,17 +108,44 @@ class BlockExtension extends AbstractExtension implements ResetInterface
             }
 
             if ($this->security->isGranted(BlockController::$role)) {
-                $url = $this->router->generate('cms_block_new', ['slug' => $slug, 'typeName' => 'html']);
-                return '<div class="alert alert-danger">' . $this->translator->trans('missing_block', [
-                    'slug' => htmlspecialchars($slug),
-                    'url' => htmlspecialchars($url),
-                ], 'KibaticCmsBundle') . '</div>';
+                return $this->missingBlock($slug);
             }
 
             return null;
         }
 
         return $this->render($block);
+    }
+
+    /**
+     * Shown to the admins in place of a block that does not exist: a compact inline badge with a link to create it,
+     * styled inline so that it looks the same on any site (no CSS of the site or of the admin on its pages)
+     */
+    private function missingBlock(string $slug): string
+    {
+        $trans = fn (string $key) => htmlspecialchars($this->translator->trans('missing_block.'.$key, [], 'KibaticCmsBundle'));
+
+        return sprintf(
+            '<span data-cms-missing-block="%1$s" title="%2$s" style="display:inline-flex;align-items:center;gap:8px;flex-wrap:wrap;'
+            .'box-sizing:border-box;max-width:100%%;margin:2px 0;padding:4px 4px 4px 10px;border:1px dashed #f87171;border-radius:8px;'
+            .'background:#fef2f2;color:#991b1b;font:500 13px/1.4 system-ui,-apple-system,\'Segoe UI\',sans-serif;letter-spacing:normal;'
+            .'text-transform:none;text-align:left;text-shadow:none;vertical-align:middle;white-space:normal">'
+            .'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" '
+            .'stroke-linejoin="round" aria-hidden="true" style="flex:none"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/>'
+            .'<path d="M12 9v4"/><path d="M12 17h.01"/></svg>'
+            .'<span>%3$s</span>'
+            .'<code style="padding:1px 6px;border-radius:4px;background:#fee2e2;color:#7f1d1d;font:600 12px/1.4 ui-monospace,SFMono-Regular,Menlo,monospace">%1$s</code>'
+            // Not an <a>: the block is often inside a link of the site (title of the header…), and a link in a link
+            // is moved out of it by the browser
+            .'<span role="link" tabindex="0" data-href="%4$s" onclick="event.preventDefault();event.stopPropagation();location.href=this.dataset.href" '
+            .'onkeydown="if(event.key===\'Enter\'){this.click()}" style="padding:2px 10px;border-radius:6px;background:#dc2626;color:#fff;'
+            .'font-size:12px;font-weight:600;line-height:1.6;cursor:pointer">+ %5$s</span></span>',
+            htmlspecialchars($slug),
+            $trans('hint'),
+            $trans('title'),
+            htmlspecialchars($this->router->generate('cms_block_choose_type', ['slug' => $slug])),
+            $trans('create'),
+        );
     }
 
     /**
