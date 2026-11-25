@@ -8,19 +8,23 @@ use Kibatic\CmsBundle\Entity\Block;
 use Kibatic\CmsBundle\Navigation\NavigationContent;
 use Kibatic\CmsBundle\Navigation\NavigationValidator;
 use Kibatic\CmsBundle\Repository\BlockRepository;
+use Mcp\Capability\Attribute\McpTool;
+use Mcp\Schema\ToolAnnotations;
 use Symfony\AI\Agent\Toolbox\Attribute\AsTool;
 
-#[AsTool(
-    name: 'cms_save_navigation',
-    description: <<<'TXT'
+#[AsTool(name: self::NAME, description: self::DESCRIPTION)]
+// Also a tool of the application's MCP server, when it exposes the CMS's (Resources/config/tools.yaml)
+#[McpTool(name: self::NAME, description: self::DESCRIPTION, annotations: new ToolAnnotations(readOnlyHint: false, destructiveHint: false))]
+final class SaveNavigationTool
+{
+    public const NAME = 'cms_save_navigation';
+    public const DESCRIPTION = <<<'TXT'
         Creates a navigation block (a menu), or replaces the entries of the existing one with this slug. A navigation is a
         tree of entries as deep as wanted, shared by every language: each entry has its label in each language of the
         site and leads to the page of a block (/page/its-slug), or is the heading of its sub-entries. Read a navigation
         with cms_get_block before modifying it: its content is this JSON, and saving replaces every entry.
-        TXT,
-)]
-final class SaveNavigationTool
-{
+        TXT;
+
     public function __construct(
         private readonly BlockRepository $blocks,
         private readonly NavigationValidator $validator,

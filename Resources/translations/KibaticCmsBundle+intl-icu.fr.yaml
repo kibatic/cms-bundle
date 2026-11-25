@@ -194,6 +194,16 @@ flash:
 
 
 chat:
+    mcp:
+        open: Installer sur Claude
+        title: Installer sur Claude
+        close: Fermer
+        intro: "Les outils du CMS dans Claude, avec votre compte : lire et modifier les blocs, les métablocs et les menus. La publication des versions reste ici."
+        password: 'Mot de passe de « {user} »'
+        password_help: Il ne sert qu'à écrire les commandes ci-dessous, dans cette page ; il n'est envoyé nulle part.
+        copy: Copier
+        desktop_mac: "Dans le Terminal, puis quittez Claude Desktop (Cmd+Q) et relancez-le. Node.js doit être installé."
+        desktop_windows: "Dans PowerShell, puis quittez Claude Desktop et relancez-le. Node.js doit être installé."
     proposal:
         name: Nom de la version
         cancel: Annuler

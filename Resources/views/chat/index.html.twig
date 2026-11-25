@@ -12,6 +12,13 @@
             <p class="kcms-subtitle">{{ 'chat.subtitle'|trans }}</p>
         </div>
         <div class="kcms-head-actions">
+            {# The application's MCP server exposes the CMS's tools: commands to add it to Claude (Ai\McpEndpoint) #}
+            {% if mcpUrl %}
+                <button type="button" class="kcms-btn" data-kcms-mcp-open>
+                    <svg class="kcms-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22v-5"/><path d="M9 8V2"/><path d="M15 8V2"/><path d="M18 8v5a4 4 0 0 1-4 4h-4a4 4 0 0 1-4-4V8Z"/></svg>
+                    {{ 'chat.mcp.open'|trans }}
+                </button>
+            {% endif %}
             <form method="post" action="{{ path('cms_chat_reset') }}">
                 <input type="hidden" name="_token" value="{{ csrf }}">
                 <button type="submit" class="kcms-btn" data-kcms-chat-reset {{ history is empty ? 'disabled' }}>{{ 'chat.reset'|trans }}</button>
@@ -340,4 +347,5 @@
             input.setSelectionRange(input.value.length, input.value.length);
         });
     </script>
+    {% if mcpUrl %}{% include '@KibaticCms/chat/_mcp_dialog.html.twig' %}{% endif %}
 {% endblock %}

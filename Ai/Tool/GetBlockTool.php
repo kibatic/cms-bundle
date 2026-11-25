@@ -4,14 +4,18 @@ namespace Kibatic\CmsBundle\Ai\Tool;
 
 use Kibatic\CmsBundle\Ai\BlockDescriber;
 use Kibatic\CmsBundle\Repository\BlockRepository;
+use Mcp\Capability\Attribute\McpTool;
+use Mcp\Schema\ToolAnnotations;
 use Symfony\AI\Agent\Toolbox\Attribute\AsTool;
 
-#[AsTool(
-    name: 'cms_get_block',
-    description: 'Returns the full content of a block, in every language, or in one language only. Read a block before modifying it.',
-)]
+#[AsTool(name: self::NAME, description: self::DESCRIPTION)]
+// Also a tool of the application's MCP server, when it exposes the CMS's (Resources/config/tools.yaml)
+#[McpTool(name: self::NAME, description: self::DESCRIPTION, annotations: new ToolAnnotations(readOnlyHint: true))]
 final class GetBlockTool
 {
+    public const NAME = 'cms_get_block';
+    public const DESCRIPTION = 'Returns the full content of a block, in every language, or in one language only. Read a block before modifying it.';
+
     public function __construct(
         private readonly BlockRepository $blocks,
     ) {

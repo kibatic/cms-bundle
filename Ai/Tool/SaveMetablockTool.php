@@ -8,19 +8,23 @@ use Kibatic\CmsBundle\Entity\Block;
 use Kibatic\CmsBundle\Meta\MetaContent;
 use Kibatic\CmsBundle\Meta\MetaValidator;
 use Kibatic\CmsBundle\Repository\BlockRepository;
+use Mcp\Capability\Attribute\McpTool;
+use Mcp\Schema\ToolAnnotations;
 use Symfony\AI\Agent\Toolbox\Attribute\AsTool;
 
-#[AsTool(
-    name: 'cms_save_metablock',
-    description: <<<'TXT'
+#[AsTool(name: self::NAME, description: self::DESCRIPTION)]
+// Also a tool of the application's MCP server, when it exposes the CMS's (Resources/config/tools.yaml)
+#[McpTool(name: self::NAME, description: self::DESCRIPTION, annotations: new ToolAnnotations(readOnlyHint: false, destructiveHint: false))]
+final class SaveMetablockTool
+{
+    public const NAME = 'cms_save_metablock';
+    public const DESCRIPTION = <<<'TXT'
         Creates a metablock, or replaces the content of the existing metablock with this slug and language. A metablock
         shows existing blocks (by slug, each one in the page's language) together with a layout, and may contain
         sub-metablocks: groups made inside it, with their own layout, that show existing blocks only. Read a metablock
         with cms_get_block before modifying it: its content is this JSON, and saving replaces it whole.
-        TXT,
-)]
-final class SaveMetablockTool
-{
+        TXT;
+
     public function __construct(
         private readonly BlockRepository $blocks,
         private readonly MetaValidator $validator,

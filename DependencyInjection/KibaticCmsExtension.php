@@ -5,6 +5,7 @@ namespace Kibatic\CmsBundle\DependencyInjection;
 use Kibatic\CmsBundle\Ai\VersionNamer;
 use Kibatic\CmsBundle\Controller\ChatController;
 use Symfony\AI\Agent\AgentInterface;
+use Symfony\AI\McpBundle\McpBundle;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\Exception\LogicException;
@@ -68,6 +69,17 @@ class KibaticCmsExtension extends Extension
             }
 
             $loader->load('ai.yaml');
+        }
+
+        // The tools are also MCP tools of the application (symfony/mcp-bundle), exposed by its servers whose registry
+        // lists them
+        $mcp = \in_array(McpBundle::class, $container->getParameter('kernel.bundles'), true);
+        if ($mcp) {
+            $loader->load('mcp.yaml');
+        }
+
+        if (null !== $agent || $mcp) {
+            $loader->load('tools.yaml');
         }
 
         // Without an agent, the assistant's routes answer 404 and no version name is suggested

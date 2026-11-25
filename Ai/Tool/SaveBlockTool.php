@@ -7,17 +7,21 @@ use Kibatic\CmsBundle\Ai\BlockChanges;
 use Kibatic\CmsBundle\BlockTypeChain;
 use Kibatic\CmsBundle\Entity\Block;
 use Kibatic\CmsBundle\Repository\BlockRepository;
+use Mcp\Capability\Attribute\McpTool;
+use Mcp\Schema\ToolAnnotations;
 use Symfony\AI\Agent\Toolbox\Attribute\AsTool;
 
-#[AsTool(
-    name: 'cms_save_block',
-    description: <<<'TXT'
-        Creates a block, or replaces the content of the existing block with this slug and language. The content replaces
-        the whole previous content: to change part of a block, read it first (cms_get_block) and send it back complete.
-        TXT,
-)]
+#[AsTool(name: self::NAME, description: self::DESCRIPTION)]
+// Also a tool of the application's MCP server, when it exposes the CMS's (Resources/config/tools.yaml)
+#[McpTool(name: self::NAME, description: self::DESCRIPTION, annotations: new ToolAnnotations(readOnlyHint: false, destructiveHint: false))]
 final class SaveBlockTool
 {
+    public const NAME = 'cms_save_block';
+    public const DESCRIPTION = <<<'TXT'
+        Creates a block, or replaces the content of the existing block with this slug and language. The content replaces
+        the whole previous content: to change part of a block, read it first (cms_get_block) and send it back complete.
+        TXT;
+
     /** Types whose content is a single string (the "alert" type is a form of several fields) */
     private const TYPES = ['html', 'text', 'image'];
 
